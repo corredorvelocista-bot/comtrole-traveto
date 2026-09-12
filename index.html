@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controle de Travete</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #4caf50;
+            --accent-hover: #45a049;
+            --border-color: #333;
+            --info-color: #2196F3;
+            --whatsapp-color: #25D366;
+            --warning-color: #ff9800;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+        .container { width: 100%; max-width: 500px; }
+        h1 { font-size: 1.5rem; margin-bottom: 4px; color: #fff; }
+        p.subtitle { font-size: 0.85rem; color: #aaa; margin-bottom: 20px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 6px; }
+        input, textarea { width: 100%; padding: 12px; background-color: #2c2c2c; border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box; margin-bottom: 12px; }
+        textarea { height: 100px; resize: vertical; }
+        button { width: 100%; padding: 14px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 4px; }
+        button:hover { background-color: var(--accent-hover); }
+        .history-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        ul { padding-left: 20px; margin: 4px 0; color: #ccc; }
+        .btn-whatsapp { background-color: var(--whatsapp-color); color: #fff; font-size: 0.85rem; padding: 8px; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .archive-box { background-color: #252525; padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 4px solid var(--info-color); }
+        .btn-close { background-color: var(--info-color); margin-top: 12px; }
+        .btn-backup { background-color: #607d8b; margin-top: 8px; font-size: 0.9rem; padding: 10px; }
+        .btn-backup:hover { background-color: #546e7a; }
+        
+        /* Estilo da caixa de pré-visualização em tempo real */
+        .preview-box {
+            display: none;
+            background-color: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            border-left: 4px solid var(--accent-color);
+        }
+        .preview-box span {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Controle de Travete</h1>
+    <p class="subtitle">Arquitetura Modular em POO</p>
+
+    <!-- Bloco de Entrada e Preview -->
+    <div class="card">
+        <label for="valorUnitario">Valor Unitário (R$)</label>
+        <input type="number" id="valorUnitario" step="0.01" value="0.21">
+
+        <label for="textoProducao">Lançamento do Dia</label>
+        <textarea id="textoProducao" placeholder="Ex: 251 calças patricia"></textarea>
+
+        <button id="btnSalvar">Salvar Lançamento</button>
+
+        <!-- Preview que aparece em tempo real -->
+        <div id="previewResult" class="preview-box">
+            <div>Total de Peças: <span id="previewPecas">0</span></div>
+            <div>Total a Receber: <span id="previewValor">R$ 0,00</span></div>
+        </div>
+    </div>
+
+    <!-- Bloco da Semana Atual -->
+    <div class="card">
+        <h3 style="margin-top:0;">Semana Atual</h3>
+        
+        <!-- Campo de Busca -->
+        <input type="text" id="inputBusca" placeholder="🔍 Buscar na semana (ex: patricia)..." style="margin-bottom: 12px; font-size: 0.9rem; padding: 10px;">
+
+        <div id="listaHistorico"></div>
+        <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <strong>Total:</strong> <span id="totalGeralValor" style="color: var(--accent-color);">R$ 0,00</span> (<span id="totalGeralPecas">0</span> pçs)
+        </div>
+        <button id="btnFecharSemana" class="btn-close">🔒 Fechar e Salvar Semana</button>
+    </div>
+
+    <!-- Bloco do Histórico de Semanas e Backup -->
+    <div class="card" id="cardArquivo" style="display: none;">
+        <h3 style="margin-top:0; color: var(--info-color);">Histórico de Semanas</h3>
+        <div id="listaArquivo"></div>
+    </div>
+
+    <!-- Card de Configurações e Backup -->
+    <div class="card">
+        <h3 style="margin-top:0; color: var(--warning-color);">Backup e Segurança</h3>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Salve seus dados para não perder nada ao trocar de aparelho.</p>
+        <!-- Alteração aplicada diretamente aqui: -->
+       <button id="btnExportar" onclick="if(window.app) { window.app.exportarBackup(); } else { alert('App ainda carregando'); }" class="btn-backup">💾 Exportar Backup (JSON)</button>
+        <button id="btnImportarTrigger" class="btn-backup" style="background-color: #455a64;">📂 Restaurar Backup</button>
+        <input type="file" id="inputImportarFile" accept=".json" style="display: none;">
+    </div>
+
+    <!-- Card de Exportação Visual por Cópia -->
+    <div class="card" id="cardAreaExportacao" style="display: none;">
+        <h3 style="margin-top:0; color: var(--info-color);">Seu Código de Backup</h3>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 8px;">Copie o texto abaixo e salve em um arquivo .json ou envie para si mesmo:</p>
+        <textarea id="textoExportadoBackup" readonly style="height: 120px; font-size: 0.8rem; font-family: monospace;"></textarea>
+        <button id="btnCopiarBackup" style="background-color: var(--info-color); margin-top: 6px;">📋 Copiar Texto do Backup</button>
+    </div>
+</div>
+
+<!-- Importação como módulo JavaScript ES6 -->
+<script type="module" src="./js/app.js?v=4"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW falhou'));
+    }
+</script>
+</body>
+</html>
