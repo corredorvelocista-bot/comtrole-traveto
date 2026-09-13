@@ -182,7 +182,6 @@ class AppController {
         this.lancamentosAtuais.push(lancamento);
         localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
         
-        // Marca que há dados pendentes de sincronização
         this.sincronizadoComNuvem = false;
         localStorage.setItem('sincronizado_nuvem', 'false');
 
@@ -214,7 +213,6 @@ class AppController {
         if (textoEl) textoEl.value = reg.textoBruto || reg.textoOriginal || '';
         if (valorEl && reg.valorUnitario) valorEl.value = reg.valorUnitario;
 
-        // Remove o item antigo para ser substituído ao salvar novamente
         this.lancamentosAtuais.splice(index, 1);
         localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
         this.render();
@@ -391,14 +389,20 @@ class AppController {
         if (totalGeralValorEl) totalGeralValorEl.innerText = `R$ ${totalValor.toFixed(2)}`;
         if (totalGeralPecasEl) totalGeralPecasEl.innerText = totalPecas;
 
-        // Indicador visual de sincronização pendente no botão da nuvem
-        const btnNuvem = document.getElementById('btnEnviarNuvem');
-        if (btnNuvem) {
+        // Aviso visual claro de sincronização pendente
+        const cardSync = document.getElementById('cardSincronizacao');
+        if (cardSync) {
+            let avisoEl = document.getElementById('avisoSyncPendente');
             if (!this.sincronizadoComNuvem && this.lancamentosAtuais.length > 0) {
-                btnNuvem.style.border = '2px solid #ff9800';
-                btnNuvem.title = 'Há novos lançamentos não sincronizados';
-            } else {
-                btnNuvem.style.border = 'none';
+                if (!avisoEl) {
+                    avisoEl = document.createElement('div');
+                    avisoEl.id = 'avisoSyncPendente';
+                    avisoEl.style.cssText = 'background: rgba(255, 152, 0, 0.15); color: #ff9800; padding: 8px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 10px; text-align: center; border: 1px solid #ff9800;';
+                    cardSync.insertBefore(avisoEl, cardSync.querySelector('p'));
+                }
+                avisoEl.innerText = '⚠️ Há novos lançamentos na semana atual que ainda não foram sincronizados com o Google Drive.';
+            } else if (avisoEl) {
+                avisoEl.remove();
             }
         }
 
@@ -408,6 +412,59 @@ class AppController {
         const semanasSalvas = await this.storage.obterTodasSemanas();
         let htmlHistorico = '';
         
+        // --- NOVO: Cálculo de Resumo Mensal ---
+        const resumoMensal = {};
+        semanasSalvas.forEach(semana => {
+            // Tenta extrair o mês/ano do período da semana (ex: "01/03/2026 a 07/03/2026" vira "Março / 2026")
+            const partesPeriodo = semana.periodo ? semana.periodo.split(' ') : [];
+            let mesAnoKey = 'Outros';
+            if (partesPeriodo.length > 0) {
+                const dataInicioStr = partesPeriodo[0]; // ex: 01/03/2026
+                const subPartes = dataInicioStr.split('/');
+                if (subPartes.length === 3) {
+                    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                    const mesIndex = parseInt(subPartes[1], 10) - 1;
+                    if (mesesNomes[mesIndex]) {
+                        mesAnoKey = `${mesesNomes[mesIndex]} de ${subPartes[2]}`;
+                    }
+                }
+            }
+
+            if (!resumoMensal[mesAnoKey]) {
+                resumoMensal[mesAnoKey] = { valor: 0, pecas: 0, semanasCount: 0 };
+            }
+            resumoMensal[mesAnoKey].valor += semana.valorTotal || 0;
+            resumoMensal[mesAnoKey].pecas += semana.pecasTotal || 0;
+            resumoMensal[mesAnoKey].semanasCount += 1;
+        });
+
+        let htmlResumoMensal = '';
+        Object.keys(resumoMensal).forEach(mes => {
+            const dados = resumoMensal[mes];
+            htmlResumoMensal += `
+                <div style="background: rgba(33, 150, 243, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                    <div>
+                        <strong style="color: var(--info-color);">${mes}</strong>
+                        <div style="font-size: 0.75rem; color: #aaa;">${dados.semanasCount} semana(s) fechada(s)</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: var(--accent-color); font-weight: bold;">R$ ${dados.valor.toFixed(2)}</span>
+                        <div style="font-size: 0.75rem; color: #ccc;">${dados.pecas} pçs</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (htmlResumoMensal) {
+            htmlHistorico += `
+                <div style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #bbb;">📊 Resumo por Mês</h4>
+                    ${htmlResumoMensal}
+                </div>
+            `;
+        }
+        // ---------------------------------------
+
         semanasSalvas.sort((a, b) => b.id - a.id).forEach(semana => {
             const semObj = new SemanaProducao(semana.registros);
             semObj.periodo = semana.periodo;
