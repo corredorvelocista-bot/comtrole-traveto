@@ -1,6 +1,4 @@
 {
-  "rewrites": [
-    { "source": "/ajuda", "destination": "/ajuda.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "cleanUrls": true,
+  "trailingSlash": false
 }

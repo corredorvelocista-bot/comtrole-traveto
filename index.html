@@ -56,7 +56,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: auto !important; /* Corrige para não ocupar 100% da largura */
+            width: auto !important;
             margin-top: 0 !important;
         }
         .btn-hamburger:hover { background-color: #2c2c2c; }
@@ -143,6 +143,28 @@
             border-left: 4px solid var(--accent-color);
         }
         .preview-box span { font-weight: bold; color: var(--accent-color); }
+
+        /* Estilo limpo para o Link de Tutoriais */
+        .btn-link-tutoriais {
+            background-color: var(--info-color);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 4px;
+            transition: opacity 0.2s;
+        }
+        .btn-link-tutoriais:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -177,11 +199,10 @@
         <div style="color: var(--info-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">💡 Ajuda & Novidades</div>
         <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">Veja vídeos de uso, dicas e atualizações do app.</p>
         
-        <a href="ajuda.html" style="text-decoration: none;">
-    <button id="btnTutoriais" style="background-color: var(--info-color); color: white; font-size: 0.9rem; padding: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 0;">
-        🎥 Tutoriais e Atualizações
-    </button>
-</a>
+        <!-- Botão corrigido usando tag <a> pura (sem botão aninhado) -->
+        <a href="ajuda.html" id="btnTutoriais" class="btn-link-tutoriais">
+            🎥 Tutoriais e Atualizações
+        </a>
     </div>
 </nav>
 
