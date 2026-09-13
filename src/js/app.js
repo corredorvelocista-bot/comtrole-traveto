@@ -107,27 +107,24 @@ class AppController {
         safeBind('btnLogoutGoogle', 'click', () => this.fazerLogoutGoogle());
         safeBind('btnEnviarNuvem', 'click', () => this.enviarParaGoogleSheetsAutomatico());
         safeBind('btnAbrirPlanilhaDrive', 'click', () => this.abrirPlanilhaNoNavegador());
-        
+
         // Controle do Menu Hambúrguer
-        const btnMenu = document.getElementById('btnMenuHamburguer');
         const menuLateral = document.getElementById('menuLateral');
-        const overlayMenu = document.getElementById('overlayMenu');
-        const btnFecharMenu = document.getElementById('btnFecharMenu');
-
-        const abrirMenu = () => {
+        const menuOverlay = document.getElementById('menuOverlay');
+        
+        safeBind('btnMenuHamburger', 'click', () => {
             if (menuLateral) menuLateral.classList.add('ativo');
-            if (overlayMenu) overlayMenu.classList.add('ativo');
-        };
+            if (menuOverlay) menuOverlay.classList.add('ativo');
+        });
 
-        const fecharMenu = () => {
+        const fecharMenuFunc = () => {
             if (menuLateral) menuLateral.classList.remove('ativo');
-            if (overlayMenu) overlayMenu.classList.remove('ativo');
+            if (menuOverlay) menuOverlay.classList.remove('ativo');
         };
 
-        if (btnMenu) btnMenu.addEventListener('click', abrirMenu);
-        if (btnFecharMenu) btnFecharMenu.addEventListener('click', fecharMenu);
-        if (overlayMenu) overlayMenu.addEventListener('click', fecharMenu);
-
+        safeBind('btnFecharMenu', 'click', fecharMenuFunc);
+        safeBind('menuOverlay', 'click', fecharMenuFunc);
+        
         const textoInput = document.getElementById('textoProducao');
         const valorInput = document.getElementById('valorUnitario');
         const inputBusca = document.getElementById('inputBusca');
@@ -171,21 +168,6 @@ class AppController {
         }
     }
 
-    tocarSom() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.15);
-        } catch (e) {}
-    }
-
     salvarLancamento() {
         const textoEl = document.getElementById('textoProducao');
         const valorEl = document.getElementById('valorUnitario');
@@ -211,7 +193,6 @@ class AppController {
         this.sincronizadoComNuvem = false;
         localStorage.setItem('sincronizado_nuvem', 'false');
 
-        this.tocarSom();
         textoEl.value = '';
         const previewBox = document.getElementById('previewResult');
         if (previewBox) previewBox.style.display = 'none';
@@ -390,7 +371,7 @@ class AppController {
                 alert('Erro ao sincronizar com o Google Drive. Verifique sua conexão.');
             }
         } finally {
-            if (btnNuvem) btnNuvem.innerText = "🚀 Sincronizar Agora com o Google Drive";
+            if (btnNuvem) btnNuvem.innerText = "🚀 Sincronizar com o Drive";
         }
     }
 
@@ -402,7 +383,10 @@ class AppController {
         if (listaAtualEl) {
             let htmlAtuais = '';
             this.lancamentosAtuais.forEach((reg, index) => {
-                if (this.termoBusca && !reg.data.toLowerCase().includes(this.termoBusca) && !reg.textoOriginal.toLowerCase().includes(this.termoBusca)) {
+                const textoBuscaRef = (reg.textoBruto || reg.textoOriginal || '').toLowerCase();
+                const dataRef = (reg.data || '').toLowerCase();
+
+                if (this.termoBusca && !dataRef.includes(this.termoBusca) && !textoBuscaRef.includes(this.termoBusca)) {
                     return;
                 }
                 totalPecas += reg.pecas || 0;
@@ -431,18 +415,18 @@ class AppController {
         if (totalGeralValorEl) totalGeralValorEl.innerText = `R$ ${totalValor.toFixed(2)}`;
         if (totalGeralPecasEl) totalGeralPecasEl.innerText = totalPecas;
 
-        // Aviso visual claro de sincronização pendente ajustado para o card/menu lateral
-        const cardSync = document.getElementById('cardSincronizacao');
-        if (cardSync) {
-            let avisoEl = document.getElementById('avisoSyncPendente');
+        // Gerenciamento dos avisos e botões de Drive dentro do Menu Lateral
+        const containerMenuSync = document.getElementById('cardSincronizacaoMenu');
+        if (containerMenuSync) {
+            let avisoEl = document.getElementById('avisoSyncPendenteMenu');
             if (!this.sincronizadoComNuvem && this.lancamentosAtuais.length > 0) {
                 if (!avisoEl) {
                     avisoEl = document.createElement('div');
-                    avisoEl.id = 'avisoSyncPendente';
+                    avisoEl.id = 'avisoSyncPendenteMenu';
                     avisoEl.style.cssText = 'background: rgba(255, 152, 0, 0.15); color: #ff9800; padding: 8px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 10px; text-align: center; border: 1px solid #ff9800;';
-                    cardSync.insertBefore(avisoEl, cardSync.querySelector('p'));
+                    containerMenuSync.prepend(avisoEl);
                 }
-                avisoEl.innerText = '⚠️ Há novos lançamentos na semana atual que ainda não foram sincronizados com o Google Drive.';
+                avisoEl.innerText = '⚠️ Há lançamentos pendentes de sincronização.';
             } else if (avisoEl) {
                 avisoEl.remove();
             }
@@ -456,7 +440,7 @@ class AppController {
                     btnAbrirPlanilha.style.cssText = 'background-color: #34a853; color: white; font-weight: bold; width: 100%; margin-top: 8px;';
                     btnAbrirPlanilha.innerHTML = '📊 Ver Planilha no Google Drive';
                     btnAbrirPlanilha.onclick = () => window.app.abrirPlanilhaNoNavegador();
-                    cardSync.appendChild(btnAbrirPlanilha);
+                    containerMenuSync.appendChild(btnAbrirPlanilha);
                 }
             } else if (btnAbrirPlanilha) {
                 btnAbrirPlanilha.remove();
