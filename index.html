@@ -9,6 +9,9 @@
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
+    <!-- Google Identity Services (GIS) para o Login com Google -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
         :root {
             --bg-color: #121212;
@@ -106,12 +109,24 @@
         <div id="listaArquivo"></div>
     </div>
 
-    <!-- Card de Configurações e Backup -->
+    <!-- Card de Configurações e Nuvem Google Automática -->
     <div class="card">
-        <h3 style="margin-top:0; color: var(--warning-color);">Backup e Segurança</h3>
-        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Salve seus dados para não perder nada ao trocar de aparelho.</p>
-        <!-- Alteração aplicada diretamente aqui: -->
-       <button id="btnExportar" onclick="if(window.app) { window.app.exportarBackup(); } else { alert('App ainda carregando'); }" class="btn-backup">💾 Exportar Backup (JSON)</button>
+        <h3 style="margin-top:0; color: var(--warning-color);">Sincronização com Google Drive</h3>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 12px;">Conecte sua conta do Google para salvar seus dados automaticamente na nuvem sem nenhuma configuração técnica.</p>
+        
+        <!-- Área Dinâmica de Login / Status -->
+        <div id="authContainer" style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px dashed var(--border-color); text-align: center;">
+            <div id="statusLogin" style="font-size: 0.85rem; color: #bbb; margin-bottom: 10px;">Status: Desconectado</div>
+            <button id="btnLoginGoogle" style="background-color: #4285F4; color: white; font-size: 0.9rem; padding: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 0;">
+                🔑 Entrar com o Google
+            </button>
+            <button id="btnLogoutGoogle" style="background-color: #d32f2f; color: white; font-size: 0.85rem; padding: 8px; display: none; margin-top: 8px;">
+                🚪 Sair da Conta
+            </button>
+        </div>
+
+        <button id="btnEnviarNuvem" class="btn-backup" style="background-color: var(--warning-color); color: #000; font-weight: bold;">🚀 Sincronizar Agora com o Google Drive</button>
+        <button id="btnExportar" onclick="if(window.app) { window.app.exportarBackup(); } else { alert('App ainda carregando'); }" class="btn-backup">💾 Exportar Backup (Arquivo JSON)</button>
         <button id="btnImportarTrigger" class="btn-backup" style="background-color: #455a64;">📂 Restaurar Backup</button>
         <input type="file" id="inputImportarFile" accept=".json" style="display: none;">
     </div>
@@ -126,7 +141,7 @@
 </div>
 
 <!-- Importação como módulo JavaScript ES6 -->
-<script type="module" src="./js/app.js?v=4"></script>
+<script type="module" src="/src/js/app.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW falhou'));
