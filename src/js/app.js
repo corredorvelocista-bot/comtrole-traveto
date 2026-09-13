@@ -7,6 +7,7 @@ class AppController {
         this.lancamentosAtuais = JSON.parse(localStorage.getItem('temp_lancamentos')) || [];
         this.termoBusca = '';
         this.sincronizadoComNuvem = JSON.parse(localStorage.getItem('sincronizado_nuvem')) ?? true;
+        this.spreadsheetIdSalvo = localStorage.getItem('google_spreadsheet_id') || null;
         
         // Configuração Google Auth
         this.CLIENT_ID = '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
@@ -80,7 +81,10 @@ class AppController {
             google.accounts.oauth2.revoke(this.accessToken, () => {
                 this.accessToken = null;
                 localStorage.removeItem('google_access_token');
+                localStorage.removeItem('google_spreadsheet_id');
+                this.spreadsheetIdSalvo = null;
                 this.atualizarInterfaceLogin(false);
+                this.render();
                 alert('Você desconectou sua conta do Google.');
             });
         }
@@ -101,6 +105,7 @@ class AppController {
         safeBind('btnLoginGoogle', 'click', () => this.fazerLoginGoogle());
         safeBind('btnLogoutGoogle', 'click', () => this.fazerLogoutGoogle());
         safeBind('btnEnviarNuvem', 'click', () => this.enviarParaGoogleSheetsAutomatico());
+        safeBind('btnAbrirPlanilhaDrive', 'click', () => this.abrirPlanilhaNoNavegador());
         
         const textoInput = document.getElementById('textoProducao');
         const valorInput = document.getElementById('valorUnitario');
@@ -250,7 +255,10 @@ class AppController {
         const searchData = await searchRes.json();
 
         if (searchData.files && searchData.files.length > 0) {
-            return searchData.files[0].id;
+            const idEncontrado = searchData.files[0].id;
+            this.spreadsheetIdSalvo = idEncontrado;
+            localStorage.setItem('google_spreadsheet_id', idEncontrado);
+            return idEncontrado;
         }
 
         const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
@@ -265,6 +273,9 @@ class AppController {
         });
         const createData = await createRes.json();
         const spreadsheetId = createData.spreadsheetId;
+        
+        this.spreadsheetIdSalvo = spreadsheetId;
+        localStorage.setItem('google_spreadsheet_id', spreadsheetId);
 
         await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
             method: 'PUT',
@@ -278,6 +289,28 @@ class AppController {
         });
 
         return spreadsheetId;
+    }
+
+    abrirPlanilhaNoNavegador() {
+        if (!this.accessToken) {
+            alert('Conecte-se com o Google primeiro para acessar sua planilha.');
+            this.fazerLoginGoogle();
+            return;
+        }
+
+        if (!this.spreadsheetIdSalvo) {
+            // Tenta buscar o ID antes de abrir
+            this.obterOuCriarPlanilhaDrive().then(id => {
+                if (id) {
+                    window.open(`https://docs.google.com/spreadsheets/d/${id}/edit`, '_blank');
+                }
+            }).catch(() => {
+                alert('Não foi possível localizar sua planilha no Drive. Faça uma sincronização primeiro.');
+            });
+            return;
+        }
+
+        window.open(`https://docs.google.com/spreadsheets/d/${this.spreadsheetIdSalvo}/edit`, '_blank');
     }
 
     async enviarParaGoogleSheetsAutomatico() {
@@ -297,17 +330,6 @@ class AppController {
             if (btnNuvem) btnNuvem.innerText = "Sincronizando com o Drive...";
 
             const spreadsheetId = await this.obterOuCriarPlanilhaDrive();
-
-            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
-                method: 'PUT',
-                headers: {
-                    Authorization: `Bearer ${this.accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    values: [["Data do Lançamento", "Descrição / Texto Bruto", "Peças", "Valor Unitário", "Valor Total"]]
-                })
-            });
 
             const linhasNovas = this.lancamentosAtuais.map(reg => [
                 reg.data || new Date().toLocaleDateString('pt-BR'),
@@ -336,7 +358,7 @@ class AppController {
             localStorage.setItem('sincronizado_nuvem', 'true');
             this.render();
 
-            alert("Sincronizado com sucesso! Seus lançamentos foram organizados linha por linha na planilha 'Controle de Travete - Meus Dados'.");
+            alert("Sincronizado com sucesso! Seus lançamentos foram enviados para a planilha 'Controle de Travete - Meus Dados'.");
         } catch (e) {
             console.error(e);
             if (e.message.includes('401') || e.message.includes('expired')) {
@@ -404,6 +426,22 @@ class AppController {
             } else if (avisoEl) {
                 avisoEl.remove();
             }
+
+            // Exibir ou ocultar o botão de abrir planilha dependendo se está conectado/salvo
+            let btnAbrirPlanilha = document.getElementById('btnAbrirPlanilhaDrive');
+            if (this.accessToken && (this.spreadsheetIdSalvo || localStorage.getItem('google_spreadsheet_id'))) {
+                if (!btnAbrirPlanilha) {
+                    btnAbrirPlanilha = document.createElement('button');
+                    btnAbrirPlanilha.id = 'btnAbrirPlanilhaDrive';
+                    btnAbrirPlanilha.className = 'btn-backup';
+                    btnAbrirPlanilha.style.cssText = 'background-color: #34a853; color: white; font-weight: bold; width: 100%; margin-top: 8px;';
+                    btnAbrirPlanilha.innerHTML = '📊 Ver Planilha no Google Drive';
+                    btnAbrirPlanilha.onclick = () => window.app.abrirPlanilhaNoNavegador();
+                    cardSync.appendChild(btnAbrirPlanilha);
+                }
+            } else if (btnAbrirPlanilha) {
+                btnAbrirPlanilha.remove();
+            }
         }
 
         const historicoEl = document.getElementById('listaArquivo');
@@ -412,14 +450,13 @@ class AppController {
         const semanasSalvas = await this.storage.obterTodasSemanas();
         let htmlHistorico = '';
         
-        // --- NOVO: Cálculo de Resumo Mensal ---
+        // --- Cálculo de Resumo Mensal ---
         const resumoMensal = {};
         semanasSalvas.forEach(semana => {
-            // Tenta extrair o mês/ano do período da semana (ex: "01/03/2026 a 07/03/2026" vira "Março / 2026")
             const partesPeriodo = semana.periodo ? semana.periodo.split(' ') : [];
             let mesAnoKey = 'Outros';
             if (partesPeriodo.length > 0) {
-                const dataInicioStr = partesPeriodo[0]; // ex: 01/03/2026
+                const dataInicioStr = partesPeriodo[0];
                 const subPartes = dataInicioStr.split('/');
                 if (subPartes.length === 3) {
                     const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -463,7 +500,6 @@ class AppController {
                 </div>
             `;
         }
-        // ---------------------------------------
 
         semanasSalvas.sort((a, b) => b.id - a.id).forEach(semana => {
             const semObj = new SemanaProducao(semana.registros);
