@@ -22,6 +22,39 @@ class AppController {
         this.render();
     }
 
+    // Função de som gerada por código (Web Audio API)
+   tocarSomLancamento() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioCtx.currentTime;
+
+            // Função auxiliar para tocar uma nota limpa
+            const tocarNota = (frequencia, inicio, duracao) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine'; // Som puro e agradável
+                osc.frequency.setValueAtTime(frequencia, inicio);
+                
+                // Volume suave para não estourar
+                gain.gain.setValueAtTime(0.05, inicio);
+                gain.gain.exponentialRampToValueAtTime(0.0001, inicio + duracao);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(inicio);
+                osc.stop(inicio + duracao);
+            };
+
+            // Acorde futurista em duas camadas (estilo toque suave do Windows)
+            tocarNota(523.25, now, 0.15);       // Nota Dó (C5)
+            tocarNota(659.25, now + 0.04, 0.2); // Nota Mi (E5) um pouquinho depois
+        } catch (e) {
+            // Ignora se o navegador bloquear autoplay
+        }
+    }
+
     initGoogleAuth() {
         if (typeof google !== 'undefined' && google.accounts) {
             this.tokenClient = google.accounts.oauth2.initTokenClient({
@@ -190,6 +223,9 @@ class AppController {
         this.lancamentosAtuais.push(lancamento);
         localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
         
+        // Toca o som programático assim que o lançamento é bem-sucedido
+        this.tocarSomLancamento();
+
         this.sincronizadoComNuvem = false;
         localStorage.setItem('sincronizado_nuvem', 'false');
 
@@ -415,7 +451,6 @@ class AppController {
         if (totalGeralValorEl) totalGeralValorEl.innerText = `R$ ${totalValor.toFixed(2)}`;
         if (totalGeralPecasEl) totalGeralPecasEl.innerText = totalPecas;
 
-        // Gerenciamento dos avisos e botões de Drive dentro do Menu Lateral
         const containerMenuSync = document.getElementById('cardSincronizacaoMenu');
         if (containerMenuSync) {
             let avisoEl = document.getElementById('avisoSyncPendenteMenu');
@@ -453,7 +488,6 @@ class AppController {
         const semanasSalvas = await this.storage.obterTodasSemanas();
         let htmlHistorico = '';
         
-        // --- Cálculo de Resumo Mensal ---
         const resumoMensal = {};
         semanasSalvas.forEach(semana => {
             const partesPeriodo = semana.periodo ? semana.periodo.split(' ') : [];
