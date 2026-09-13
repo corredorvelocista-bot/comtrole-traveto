@@ -8,7 +8,7 @@ class AppController {
         this.termoBusca = '';
         
         // Configuração Google Auth (Substitua abaixo pelo seu Client ID do Google Cloud Console)
-        this.CLIENT_ID = '438481776145-8uft9fdedft1q19059n2rga0cld16ird.apps.googleusercontent.com';
+        this.CLIENT_ID = '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
         this.SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
         this.tokenClient = null;
         this.accessToken = localStorage.getItem('google_access_token') || null;
