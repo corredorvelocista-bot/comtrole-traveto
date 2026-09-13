@@ -7,7 +7,7 @@ class AppController {
         this.lancamentosAtuais = JSON.parse(localStorage.getItem('temp_lancamentos')) || [];
         this.termoBusca = '';
         
-        // Configuração Google Auth (Substitua abaixo pelo seu Client ID do Google Cloud Console)
+        // Configuração Google Auth
         this.CLIENT_ID = '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
         this.SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
         this.tokenClient = null;
@@ -21,7 +21,6 @@ class AppController {
     }
 
     initGoogleAuth() {
-        // Inicializa o cliente do Google Identity Services
         if (typeof google !== 'undefined' && google.accounts) {
             this.tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: this.CLIENT_ID,
@@ -40,7 +39,6 @@ class AppController {
             });
         }
 
-        // Verifica estado inicial de login
         if (this.accessToken) {
             this.atualizarInterfaceLogin(true);
         } else {
@@ -102,28 +100,6 @@ class AppController {
         safeBind('btnLoginGoogle', 'click', () => this.fazerLoginGoogle());
         safeBind('btnLogoutGoogle', 'click', () => this.fazerLogoutGoogle());
         safeBind('btnEnviarNuvem', 'click', () => this.enviarParaGoogleSheetsAutomatico());
-
-        // Backup e Restauração Local (JSON)
-        safeBind('btnExportar', 'click', () => this.exportarBackup());
-        safeBind('btnImportarTrigger', 'click', () => {
-            const fileInput = document.getElementById('inputImportarFile');
-            if (fileInput) fileInput.click();
-        });
-        safeBind('inputImportarFile', 'change', (e) => this.importarBackup(e));
-        
-        safeBind('btnCopiarBackup', 'click', () => {
-            const textarea = document.getElementById('textoExportadoBackup');
-            if (textarea) {
-                textarea.select();
-                textarea.setSelectionRange(0, 99999);
-                try {
-                    document.execCommand('copy');
-                    alert('Texto copiado com sucesso!');
-                } catch (err) {
-                    alert('Erro ao copiar automaticamente.');
-                }
-            }
-        });
         
         const textoInput = document.getElementById('textoProducao');
         const valorInput = document.getElementById('valorUnitario');
@@ -241,7 +217,6 @@ class AppController {
     async obterOuCriarPlanilhaDrive() {
         const nomePlanilha = 'Controle de Travete - Meus Dados';
         
-        // 1. Buscar se a planilha já existe no Google Drive do usuário
         const query = encodeURIComponent(`name = '${nomePlanilha}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`);
         const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
             headers: { Authorization: `Bearer ${this.accessToken}` }
@@ -249,10 +224,9 @@ class AppController {
         const searchData = await searchRes.json();
 
         if (searchData.files && searchData.files.length > 0) {
-            return searchData.files[0].id; // Retorna o ID da planilha existente
+            return searchData.files[0].id;
         }
 
-        // 2. Se não existir, cria uma nova planilha automaticamente
         const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
             method: 'POST',
             headers: {
@@ -266,7 +240,6 @@ class AppController {
         const createData = await createRes.json();
         const spreadsheetId = createData.spreadsheetId;
 
-        // Adiciona cabeçalho detalhado e formatado de A até E na primeira aba
         await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
             method: 'PUT',
             headers: {
@@ -297,10 +270,8 @@ class AppController {
         try {
             if (btnNuvem) btnNuvem.innerText = "Sincronizando com o Drive...";
 
-            // Obtém ou cria a planilha automaticamente na conta do usuário
             const spreadsheetId = await this.obterOuCriarPlanilhaDrive();
 
-            // Garante que o cabeçalho esteja atualizado nas colunas A até E
             await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
                 method: 'PUT',
                 headers: {
@@ -312,7 +283,6 @@ class AppController {
                 })
             });
 
-            // Mapeia cada lançamento atual em uma linha dedicada com suas colunas separadas
             const linhasNovas = this.lancamentosAtuais.map(reg => [
                 reg.data || new Date().toLocaleDateString('pt-BR'),
                 reg.textoBruto || reg.textoOriginal || '',
@@ -321,7 +291,6 @@ class AppController {
                 reg.valorTotal || 0
             ]);
 
-            // Envia as linhas formatadas individualmente para a planilha
             const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A:E:append?valueInputOption=USER_ENTERED`, {
                 method: 'POST',
                 headers: {
@@ -340,7 +309,6 @@ class AppController {
             alert("Sincronizado com sucesso! Seus lançamentos foram organizados linha por linha na planilha 'Controle de Travete - Meus Dados'.");
         } catch (e) {
             console.error(e);
-            // Se o token expirou, limpa e pede novo login
             if (e.message.includes('401') || e.message.includes('expired')) {
                 localStorage.removeItem('google_access_token');
                 this.accessToken = null;
@@ -352,65 +320,6 @@ class AppController {
         } finally {
             if (btnNuvem) btnNuvem.innerText = "🚀 Sincronizar Agora com o Google Drive";
         }
-    }
-
-    async exportarBackup() {
-        try {
-            const historico = await this.storage.obterTodasSemanas();
-            const dadosBackup = {
-                versao: 1,
-                dataExportacao: new Date().toISOString(),
-                lancamentosAtuais: this.lancamentosAtuais,
-                historicoSemanas: historico
-            };
-
-            const jsonString = JSON.stringify(dadosBackup, null, 2);
-            
-            const cardArea = document.getElementById('cardAreaExportacao');
-            const textarea = document.getElementById('textoExportadoBackup');
-            if (cardArea && textarea) {
-                textarea.value = jsonString;
-                cardArea.style.display = 'block';
-                cardArea.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup-travete-${new Date().toISOString().slice(0, 10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch (e) {
-            alert('Erro ao gerar backup.');
-        }
-    }
-
-    async importarBackup(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const dados = JSON.parse(e.target.result);
-                if (dados.lancamentosAtuais) {
-                    this.lancamentosAtuais = dados.lancamentosAtuais;
-                    localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
-                }
-                if (dados.historicoSemanas && Array.isArray(dados.historicoSemanas)) {
-                    await this.storage.limparTudo();
-                    for (const sem of dados.historicoSemanas) {
-                        await this.storage.salvarSemana(sem);
-                    }
-                }
-                this.render();
-                alert('Backup restaurado com sucesso!');
-            } catch (err) {
-                alert('Arquivo de backup inválido ou corrompido.');
-            }
-        };
-        reader.readAsText(file);
     }
 
     async render() {

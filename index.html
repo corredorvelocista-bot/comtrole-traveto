@@ -103,7 +103,7 @@
         <button id="btnFecharSemana" class="btn-close">🔒 Fechar e Salvar Semana</button>
     </div>
 
-    <!-- Bloco do Histórico de Semanas e Backup -->
+    <!-- Bloco do Histórico de Semanas -->
     <div class="card" id="cardArquivo" style="display: none;">
         <h3 style="margin-top:0; color: var(--info-color);">Histórico de Semanas</h3>
         <div id="listaArquivo"></div>
@@ -125,18 +125,7 @@
             </button>
         </div>
 
-        <button id="btnEnviarNuvem" class="btn-backup" style="background-color: var(--warning-color); color: #000; font-weight: bold;">🚀 Sincronizar Agora com o Google Drive</button>
-        <button id="btnExportar" onclick="if(window.app) { window.app.exportarBackup(); } else { alert('App ainda carregando'); }" class="btn-backup">💾 Exportar Backup (Arquivo JSON)</button>
-        <button id="btnImportarTrigger" class="btn-backup" style="background-color: #455a64;">📂 Restaurar Backup</button>
-        <input type="file" id="inputImportarFile" accept=".json" style="display: none;">
-    </div>
-
-    <!-- Card de Exportação Visual por Cópia -->
-    <div class="card" id="cardAreaExportacao" style="display: none;">
-        <h3 style="margin-top:0; color: var(--info-color);">Seu Código de Backup</h3>
-        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 8px;">Copie o texto abaixo e salve em um arquivo .json ou envie para si mesmo:</p>
-        <textarea id="textoExportadoBackup" readonly style="height: 120px; font-size: 0.8rem; font-family: monospace;"></textarea>
-        <button id="btnCopiarBackup" style="background-color: var(--info-color); margin-top: 6px;">📋 Copiar Texto do Backup</button>
+        <button id="btnEnviarNuvem" class="btn-backup" style="background-color: var(--warning-color); color: #000; font-weight: bold; width: 100%;">🚀 Sincronizar Agora com o Google Drive</button>
     </div>
 </div>
 
