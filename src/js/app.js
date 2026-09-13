@@ -6,6 +6,7 @@ class AppController {
         this.storage = new StorageService();
         this.lancamentosAtuais = JSON.parse(localStorage.getItem('temp_lancamentos')) || [];
         this.termoBusca = '';
+        this.sincronizadoComNuvem = JSON.parse(localStorage.getItem('sincronizado_nuvem')) ?? true;
         
         // Configuração Google Auth
         this.CLIENT_ID = '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
@@ -181,6 +182,10 @@ class AppController {
         this.lancamentosAtuais.push(lancamento);
         localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
         
+        // Marca que há dados pendentes de sincronização
+        this.sincronizadoComNuvem = false;
+        localStorage.setItem('sincronizado_nuvem', 'false');
+
         this.tocarSom();
         textoEl.value = '';
         const previewBox = document.getElementById('previewResult');
@@ -193,8 +198,29 @@ class AppController {
         if (confirm('Deseja realmente excluir este lançamento?')) {
             this.lancamentosAtuais.splice(index, 1);
             localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
+            this.sincronizadoComNuvem = false;
+            localStorage.setItem('sincronizado_nuvem', 'false');
             this.render();
         }
+    }
+
+    editarLancamento(index) {
+        const reg = this.lancamentosAtuais[index];
+        if (!reg) return;
+
+        const textoEl = document.getElementById('textoProducao');
+        const valorEl = document.getElementById('valorUnitario');
+
+        if (textoEl) textoEl.value = reg.textoBruto || reg.textoOriginal || '';
+        if (valorEl && reg.valorUnitario) valorEl.value = reg.valorUnitario;
+
+        // Remove o item antigo para ser substituído ao salvar novamente
+        this.lancamentosAtuais.splice(index, 1);
+        localStorage.setItem('temp_lancamentos', JSON.stringify(this.lancamentosAtuais));
+        this.render();
+        
+        if (textoEl) textoEl.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async fecharSemana() {
@@ -209,6 +235,8 @@ class AppController {
 
             this.lancamentosAtuais = [];
             localStorage.removeItem('temp_lancamentos');
+            this.sincronizadoComNuvem = true;
+            localStorage.setItem('sincronizado_nuvem', 'true');
             this.render();
             alert('Semana fechada com sucesso!');
         }
@@ -306,6 +334,10 @@ class AppController {
                 throw new Error('Falha ao gravar dados na planilha.');
             }
 
+            this.sincronizadoComNuvem = true;
+            localStorage.setItem('sincronizado_nuvem', 'true');
+            this.render();
+
             alert("Sincronizado com sucesso! Seus lançamentos foram organizados linha por linha na planilha 'Controle de Travete - Meus Dados'.");
         } catch (e) {
             console.error(e);
@@ -339,12 +371,15 @@ class AppController {
                 const detalhesList = reg.detalhes ? reg.detalhes.map(d => `<li>${d}</li>`).join('') : '';
 
                 htmlAtuais += `
-                    <div class="history-item">
-                        <div>
+                    <div class="history-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="flex: 1; margin-right: 8px;">
                             <strong>${reg.data}</strong> - ${reg.pecas} pçs (R$ ${reg.valorTotal.toFixed(2)})
                             <ul>${detalhesList}</ul>
                         </div>
-                        <button onclick="window.app.removerLancamento(${index})" style="width: auto; padding: 4px 8px; background: transparent; color: #ff5555; font-size: 0.9rem; margin: 0; cursor: pointer;">🗑️</button>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="window.app.editarLancamento(${index})" title="Editar Lançamento" style="width: auto; padding: 6px 8px; background: transparent; color: #ff9800; font-size: 0.9rem; margin: 0; cursor: pointer; border: none;">✏️</button>
+                            <button onclick="window.app.removerLancamento(${index})" title="Excluir Lançamento" style="width: auto; padding: 6px 8px; background: transparent; color: #ff5555; font-size: 0.9rem; margin: 0; cursor: pointer; border: none;">🗑️</button>
+                        </div>
                     </div>
                 `;
             });
@@ -355,6 +390,17 @@ class AppController {
         const totalGeralPecasEl = document.getElementById('totalGeralPecas');
         if (totalGeralValorEl) totalGeralValorEl.innerText = `R$ ${totalValor.toFixed(2)}`;
         if (totalGeralPecasEl) totalGeralPecasEl.innerText = totalPecas;
+
+        // Indicador visual de sincronização pendente no botão da nuvem
+        const btnNuvem = document.getElementById('btnEnviarNuvem');
+        if (btnNuvem) {
+            if (!this.sincronizadoComNuvem && this.lancamentosAtuais.length > 0) {
+                btnNuvem.style.border = '2px solid #ff9800';
+                btnNuvem.title = 'Há novos lançamentos não sincronizados';
+            } else {
+                btnNuvem.style.border = 'none';
+            }
+        }
 
         const historicoEl = document.getElementById('listaArquivo');
         if (!historicoEl) return;
