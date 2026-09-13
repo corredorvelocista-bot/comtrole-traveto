@@ -266,15 +266,15 @@ class AppController {
         const createData = await createRes.json();
         const spreadsheetId = createData.spreadsheetId;
 
-        // Adiciona cabeçalho padrão na primeira aba
-        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:C1?valueInputOption=USER_ENTERED`, {
+        // Adiciona cabeçalho detalhado e formatado de A até E na primeira aba
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
             method: 'PUT',
             headers: {
                 Authorization: `Bearer ${this.accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                values: [["Data/Hora", "Tipo do Backup", "Dados Detalhados (JSON)"]]
+                values: [["Data do Lançamento", "Descrição / Texto Bruto", "Peças", "Valor Unitário", "Valor Total"]]
             })
         });
 
@@ -288,6 +288,11 @@ class AppController {
             return;
         }
 
+        if (this.lancamentosAtuais.length === 0) {
+            alert('Não há lançamentos atuais na tela para sincronizar.');
+            return;
+        }
+
         const btnNuvem = document.getElementById('btnEnviarNuvem');
         try {
             if (btnNuvem) btnNuvem.innerText = "Sincronizando com o Drive...";
@@ -295,26 +300,36 @@ class AppController {
             // Obtém ou cria a planilha automaticamente na conta do usuário
             const spreadsheetId = await this.obterOuCriarPlanilhaDrive();
 
-            const historico = await this.storage.obterTodasSemanas();
-            const dadosBackup = {
-                lancamentosAtuais: this.lancamentosAtuais,
-                historicoSemanas: historico,
-                dataExportacao: new Date().toISOString()
-            };
+            // Garante que o cabeçalho esteja atualizado nas colunas A até E
+            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    values: [["Data do Lançamento", "Descrição / Texto Bruto", "Peças", "Valor Unitário", "Valor Total"]]
+                })
+            });
 
-            // Adiciona uma nova linha com os dados atuais na planilha do usuário
-            const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A:C:append?valueInputOption=USER_ENTERED`, {
+            // Mapeia cada lançamento atual em uma linha dedicada com suas colunas separadas
+            const linhasNovas = this.lancamentosAtuais.map(reg => [
+                reg.data || new Date().toLocaleDateString('pt-BR'),
+                reg.textoBruto || reg.textoOriginal || '',
+                reg.pecas || 0,
+                reg.valorUnitario || 0,
+                reg.valorTotal || 0
+            ]);
+
+            // Envia as linhas formatadas individualmente para a planilha
+            const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A:E:append?valueInputOption=USER_ENTERED`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${this.accessToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    values: [[
-                        new Date().toLocaleString('pt-BR'),
-                        "Backup Completo Automático",
-                        JSON.stringify(dadosBackup)
-                    ]]
+                    values: linhasNovas
                 })
             });
 
@@ -322,7 +337,7 @@ class AppController {
                 throw new Error('Falha ao gravar dados na planilha.');
             }
 
-            alert("Sincronizado com sucesso! Seus dados foram salvos na planilha 'Controle de Travete - Meus Dados' no seu Google Drive.");
+            alert("Sincronizado com sucesso! Seus lançamentos foram organizados linha por linha na planilha 'Controle de Travete - Meus Dados'.");
         } catch (e) {
             console.error(e);
             // Se o token expirou, limpa e pede novo login
