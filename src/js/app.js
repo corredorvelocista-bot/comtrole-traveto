@@ -36,6 +36,7 @@ class AppController {
                     this.accessToken = response.access_token;
                     localStorage.setItem('google_access_token', this.accessToken);
                     this.atualizarInterfaceLogin(true);
+                    this.render();
                     alert('Conta Google conectada com sucesso!');
                 },
             });
@@ -299,13 +300,12 @@ class AppController {
         }
 
         if (!this.spreadsheetIdSalvo) {
-            // Tenta buscar o ID antes de abrir
             this.obterOuCriarPlanilhaDrive().then(id => {
                 if (id) {
                     window.open(`https://docs.google.com/spreadsheets/d/${id}/edit`, '_blank');
                 }
             }).catch(() => {
-                alert('Não foi possível localizar sua planilha no Drive. Faça uma sincronização primeiro.');
+                alert('Não foi possível localizar sua planilha no Drive. Tente sincronizar primeiro.');
             });
             return;
         }
@@ -427,9 +427,9 @@ class AppController {
                 avisoEl.remove();
             }
 
-            // Exibir ou ocultar o botão de abrir planilha dependendo se está conectado/salvo
+            // CORREÇÃO: Exibir o botão se estiver logado (this.accessToken)
             let btnAbrirPlanilha = document.getElementById('btnAbrirPlanilhaDrive');
-            if (this.accessToken && (this.spreadsheetIdSalvo || localStorage.getItem('google_spreadsheet_id'))) {
+            if (this.accessToken) {
                 if (!btnAbrirPlanilha) {
                     btnAbrirPlanilha = document.createElement('button');
                     btnAbrirPlanilha.id = 'btnAbrirPlanilhaDrive';
