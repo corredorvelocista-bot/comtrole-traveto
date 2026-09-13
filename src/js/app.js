@@ -108,6 +108,26 @@ class AppController {
         safeBind('btnEnviarNuvem', 'click', () => this.enviarParaGoogleSheetsAutomatico());
         safeBind('btnAbrirPlanilhaDrive', 'click', () => this.abrirPlanilhaNoNavegador());
         
+        // Controle do Menu Hambúrguer
+        const btnMenu = document.getElementById('btnMenuHamburguer');
+        const menuLateral = document.getElementById('menuLateral');
+        const overlayMenu = document.getElementById('overlayMenu');
+        const btnFecharMenu = document.getElementById('btnFecharMenu');
+
+        const abrirMenu = () => {
+            if (menuLateral) menuLateral.classList.add('ativo');
+            if (overlayMenu) overlayMenu.classList.add('ativo');
+        };
+
+        const fecharMenu = () => {
+            if (menuLateral) menuLateral.classList.remove('ativo');
+            if (overlayMenu) overlayMenu.classList.remove('ativo');
+        };
+
+        if (btnMenu) btnMenu.addEventListener('click', abrirMenu);
+        if (btnFecharMenu) btnFecharMenu.addEventListener('click', fecharMenu);
+        if (overlayMenu) overlayMenu.addEventListener('click', fecharMenu);
+
         const textoInput = document.getElementById('textoProducao');
         const valorInput = document.getElementById('valorUnitario');
         const inputBusca = document.getElementById('inputBusca');
@@ -411,7 +431,7 @@ class AppController {
         if (totalGeralValorEl) totalGeralValorEl.innerText = `R$ ${totalValor.toFixed(2)}`;
         if (totalGeralPecasEl) totalGeralPecasEl.innerText = totalPecas;
 
-        // Aviso visual claro de sincronização pendente
+        // Aviso visual claro de sincronização pendente ajustado para o card/menu lateral
         const cardSync = document.getElementById('cardSincronizacao');
         if (cardSync) {
             let avisoEl = document.getElementById('avisoSyncPendente');
@@ -427,7 +447,6 @@ class AppController {
                 avisoEl.remove();
             }
 
-            // CORREÇÃO: Exibir o botão se estiver logado (this.accessToken)
             let btnAbrirPlanilha = document.getElementById('btnAbrirPlanilhaDrive');
             if (this.accessToken) {
                 if (!btnAbrirPlanilha) {
