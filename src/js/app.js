@@ -3,11 +3,13 @@ import { LancamentoDia, SemanaProducao } from './Producao.js';
 
 class AppController {
     constructor() {
+	this.metaBatidaDisparada = JSON.parse(localStorage.getItem('meta_batida_disparada')) || false;
         this.storage = new StorageService();
         this.lancamentosAtuais = JSON.parse(localStorage.getItem('temp_lancamentos')) || [];
         this.termoBusca = '';
         this.sincronizadoComNuvem = JSON.parse(localStorage.getItem('sincronizado_nuvem')) ?? true;
         this.spreadsheetIdSalvo = localStorage.getItem('google_spreadsheet_id') || null;
+        this.metaSemanal = parseFloat(localStorage.getItem('meta_semanal_valor')) || 500.00; // Valor padrão inicial de exemplo
         
         // Configuração Google Auth
         this.CLIENT_ID = '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
@@ -48,10 +50,78 @@ class AppController {
             };
 
             // Acorde futurista em duas camadas (estilo toque suave do Windows)
-            tocarNota(523.25, now, 0.15);       // Nota Dó (C5)
+            tocarNota(523.25, now, 0.15);        // Nota Dó (C5)
             tocarNota(659.25, now + 0.04, 0.2); // Nota Mi (E5) um pouquinho depois
         } catch (e) {
             // Ignora se o navegador bloquear autoplay
+        }
+    }
+    
+    //Efeito de de confete e som de vetoria
+    tocarSomMetaBatida() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioCtx.currentTime;
+
+            const tocarNota = (frequencia, inicio, duracao) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle'; // Som mais festivo/brilhante
+                osc.frequency.setValueAtTime(frequencia, inicio);
+                
+                gain.gain.setValueAtTime(0.08, inicio);
+                gain.gain.exponentialRampToValueAtTime(0.0001, inicio + duracao);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(inicio);
+                osc.stop(inicio + duracao);
+            };
+
+            // Jingle de vitória (acorde ascendente alegre)
+            tocarNota(523.25, now, 0.15);        // Dó (C5)
+            tocarNota(659.25, now + 0.12, 0.15); // Mi (E5)
+            tocarNota(783.99, now + 0.24, 0.15); // Sol (G5)
+            tocarNota(1046.50, now + 0.36, 0.4); // Dó agudo (C6)
+        } catch (e) {
+            // Ignora se bloqueado pelo navegador
+        }
+    }
+
+    dispararAnimacaoMetaBatida() {
+        // Dispara o som comemorativo
+        this.tocarSomMetaBatida();
+
+        // Criação dinâmica de partículas de confete na tela
+        const quantidade = 30;
+        const cores = ['#4caf50', '#ff9800', '#2196f3', '#e91e63', '#ffeb3b'];
+
+        for (let i = 0; i < quantidade; i++) {
+            const confete = document.createElement('div');
+            confete.style.position = 'fixed';
+            confete.style.width = `${Math.random() * 8 + 6}px`;
+            confete.style.height = `${Math.random() * 8 + 6}px`;
+            confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+            confete.style.top = '-10px';
+            confete.style.left = `${Math.random() * window.innerWidth}px`;
+            confete.style.opacity = '1';
+            confete.style.borderRadius = '50%';
+            confete.style.zIndex = '9999';
+            confete.style.pointerEvents = 'none';
+            
+            // Animação CSS inline via Web Animations API
+            const anim = confete.animate([
+                { transform: `translate3d(0, 0, 0) rotate(0deg)`, opacity: 1 },
+                { transform: `translate3d(${(Math.random() - 0.5) * 200}px, ${window.innerHeight + 50}px, 0) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+            ], {
+                duration: Math.random() * 1000 + 1500,
+                easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
+            });
+
+            document.body.appendChild(confete);
+            anim.onfinish = () => confete.remove();
         }
     }
 
@@ -134,6 +204,7 @@ class AppController {
 
         safeBind('btnSalvar', 'click', () => this.salvarLancamento());
         safeBind('btnFecharSemana', 'click', () => this.fecharSemana());
+        safeBind('btnSalvarMeta', 'click', () => this.salvarMetaSemanal());
         
         // Eventos de Autenticação Google
         safeBind('btnLoginGoogle', 'click', () => this.fazerLoginGoogle());
@@ -172,6 +243,32 @@ class AppController {
             });
         }
     }
+    salvarMetaSemanal() {
+    const inputMeta = document.getElementById('inputMetaValor');
+    if (!inputMeta) return;
+
+    const novoValor = parseFloat(inputMeta.value);
+
+    if (isNaN(novoValor) || novoValor <= 0) {
+        alert('Digite um valor válido para a meta.');
+        return;
+    }
+
+    this.metaSemanal = novoValor;
+
+    // Nova meta = permite uma nova comemoração
+    this.metaBatidaDisparada = false;
+    localStorage.setItem('meta_batida_disparada', 'false');
+
+    localStorage.setItem('meta_semanal_valor', this.metaSemanal);
+
+    inputMeta.value = '';
+
+    this.render();
+
+    alert('Meta semanal atualizada com sucesso!');
+}
+
     
     atualizarPreviewTempoReal() {
         const textoEl = document.getElementById('textoProducao');
@@ -413,8 +510,86 @@ class AppController {
 
     async render() {
         const listaAtualEl = document.getElementById('listaHistorico');
+        
+        // --- Pré-cálculo dos totais para uso na barra de progresso e exibição ---
         let totalPecas = 0;
         let totalValor = 0;
+
+        this.lancamentosAtuais.forEach(reg => {
+            const textoBuscaRef = (reg.textoBruto || reg.textoOriginal || '').toLowerCase();
+            const dataRef = (reg.data || '').toLowerCase();
+            
+
+            if (this.termoBusca && !dataRef.includes(this.termoBusca) && !textoBuscaRef.includes(this.termoBusca)) {
+                return;
+            }
+            totalPecas += reg.pecas || 0;
+            totalValor += reg.valorTotal || 0;
+        });
+        
+        // --- Atualização da Barra de Progresso da Meta ---
+const textoMetaEl = document.getElementById('textoMetaProgresso');
+const porcentagemEl = document.getElementById('porcentagemMeta');
+const barraEl = document.getElementById('barraProgressoMeta');
+
+if (textoMetaEl && porcentagemEl && barraEl) {
+
+    const progressoPorcentagem = this.metaSemanal > 0
+        ? (totalValor / this.metaSemanal) * 100
+        : 0;
+
+    const porcentagemLimitada = Math.min(progressoPorcentagem, 100);
+
+    textoMetaEl.innerText =
+        `R$ ${totalValor.toFixed(2)} / R$ ${this.metaSemanal.toFixed(2)}`;
+
+    porcentagemEl.innerText =
+        `${progressoPorcentagem.toFixed(0)}%`;
+
+    barraEl.style.width =
+        `${porcentagemLimitada}%`;
+
+    // =====================================================
+    // META ATINGIDA
+    // =====================================================
+
+    if (progressoPorcentagem >= 100) {
+
+        barraEl.style.backgroundColor = '#4caf50';
+
+        // Dispara SOMENTE UMA VEZ
+        if (!this.metaBatidaDisparada) {
+
+            this.metaBatidaDisparada = true;
+
+            localStorage.setItem(
+                'meta_batida_disparada',
+                'true'
+            );
+
+            // Pequeno atraso para garantir que a interface
+            // esteja atualizada antes da animação
+            setTimeout(() => {
+                this.dispararAnimacaoMetaBatida();
+            }, 100);
+        }
+
+    } else {
+
+        barraEl.style.backgroundColor =
+            'var(--accent-color)';
+
+        // Se o usuário diminuir/remover lançamentos
+        // abaixo da meta, permite comemorar novamente
+        this.metaBatidaDisparada = false;
+
+        localStorage.setItem(
+            'meta_batida_disparada',
+            'false'
+        );
+    }
+}
+
 
         if (listaAtualEl) {
             let htmlAtuais = '';
@@ -425,8 +600,6 @@ class AppController {
                 if (this.termoBusca && !dataRef.includes(this.termoBusca) && !textoBuscaRef.includes(this.termoBusca)) {
                     return;
                 }
-                totalPecas += reg.pecas || 0;
-                totalValor += reg.valorTotal || 0;
 
                 const detalhesList = reg.detalhes ? reg.detalhes.map(d => `<li>${d}</li>`).join('') : '';
 
