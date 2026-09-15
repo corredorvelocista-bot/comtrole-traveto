@@ -242,6 +242,11 @@ class AppController {
                 this.render();
             });
         }
+
+        // Bottom Bar
+        safeBind('btnBottomSync', 'click', () => this.acaoBottomSync());
+        safeBind('btnBottomBusca', 'click', () => this.abrirBuscaRapida());
+        safeBind('btnBottomMenu', 'click', () => this.abrirMenuBottom());
     }
     salvarMetaSemanal() {
     const inputMeta = document.getElementById('inputMetaValor');
@@ -508,6 +513,77 @@ class AppController {
         }
     }
 
+
+    // =============================
+    // Bottom Bar
+    // =============================
+    abrirBuscaRapida() {
+        const inputBusca = document.getElementById('inputBusca');
+        const cardSemana = document.getElementById('cardSemanaAtual');
+
+        if (cardSemana) {
+            cardSemana.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (inputBusca) {
+            setTimeout(() => {
+                inputBusca.focus();
+                inputBusca.select();
+            }, 350);
+        }
+    }
+
+    atualizarBottomBar() {
+        const status = document.getElementById('bottomSyncStatus');
+        const label = document.getElementById('bottomSyncLabel');
+        const btnSync = document.getElementById('btnBottomSync');
+
+        if (!status || !label || !btnSync) return;
+
+        const conectado = !!this.accessToken;
+        const pendente = !this.sincronizadoComNuvem && this.lancamentosAtuais.length > 0;
+
+        btnSync.classList.remove('sincronizado', 'pendente', 'desconectado');
+
+        if (!conectado) {
+            status.textContent = '⚪';
+            label.textContent = 'Google';
+            btnSync.classList.add('desconectado');
+            btnSync.title = 'Conectar ao Google';
+        } else if (pendente) {
+            status.textContent = '🟡';
+            label.textContent = 'Pendente';
+            btnSync.classList.add('pendente');
+            btnSync.title = 'Sincronizar lançamentos';
+        } else {
+            status.textContent = '🟢';
+            label.textContent = 'Sincronizado';
+            btnSync.classList.add('sincronizado');
+            btnSync.title = 'Abrir planilha no Google';
+        }
+    }
+
+    acaoBottomSync() {
+        if (!this.accessToken) {
+            this.fazerLoginGoogle();
+            return;
+        }
+
+        if (!this.sincronizadoComNuvem && this.lancamentosAtuais.length > 0) {
+            this.enviarParaGoogleSheetsAutomatico();
+            return;
+        }
+
+        this.abrirPlanilhaNoNavegador();
+    }
+
+    abrirMenuBottom() {
+        const menuLateral = document.getElementById('menuLateral');
+        const menuOverlay = document.getElementById('menuOverlay');
+        if (menuLateral) menuLateral.classList.add('ativo');
+        if (menuOverlay) menuOverlay.classList.add('ativo');
+    }
+
     async render() {
         const listaAtualEl = document.getElementById('listaHistorico');
         
@@ -757,6 +833,7 @@ if (textoMetaEl && porcentagemEl && barraEl) {
             cardArquivo.style.display = semanasSalvas.length ? 'block' : 'none';
         }
         historicoEl.innerHTML = htmlHistorico;
+        this.atualizarBottomBar();
     }
 }
 

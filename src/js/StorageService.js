@@ -8,7 +8,7 @@ export class StorageService {
     async abrirDB() {
         return new Promise((resolve, reject) => {
             if (!window.indexedDB) {
-                return reject(window.localStorage); // Fallback se IndexedDB não suportado
+                return reject(window.localStorage);
             }
 
             const request = indexedDB.open(this.dbName, this.dbVersion);
@@ -29,7 +29,6 @@ export class StorageService {
         try {
             const db = await this.abrirDB();
             if (db instanceof Storage) {
-                // Fallback LocalStorage
                 const semanas = JSON.parse(db.getItem('historico_semanas') || '[]');
                 semanas.push(semana);
                 db.setItem('historico_semanas', JSON.stringify(semanas));

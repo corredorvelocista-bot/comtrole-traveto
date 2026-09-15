@@ -10,20 +10,17 @@ export class LancamentoDia {
     }
 
     extrairPecas(texto) {
-        // Tenta achar o primeiro número isolado no texto
         const match = texto.match(/^(\d+)/);
         return match ? parseInt(match[1], 10) : 0;
     }
 
     extrairDetalhes(texto) {
-        // Quebra linhas ou usa o texto como detalhe descritivo
         return texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     }
 
     extrairDataOuHoje(texto) {
-        // Se houver menção de data no formato DD/MM, extrai, senão usa a data atual
-        const matchData = texto.match(/(\d{2}\/\d{2})/);
-        return matchData ? matchData[1] : this.dataCompleta;
+        const match = texto.match(/(\d{2}\/\d{2})/);
+        return match ? match[1] : this.dataCompleta;
     }
 }
 
@@ -46,7 +43,7 @@ export class SemanaProducao {
     gerarMensagemWhatsApp() {
         let msg = `*Relatório de Produção - Travete*\n`;
         msg += `📅 Período: ${this.periodo}\n\n`;
-        
+
         this.registros.forEach(reg => {
             msg += `• *${reg.data}*: ${reg.pecas} pçs - R$ ${reg.valorTotal.toFixed(2)}\n`;
             if (reg.detalhes && reg.detalhes.length > 0) {
@@ -59,7 +56,6 @@ export class SemanaProducao {
         msg += `\n------------------\n`;
         msg += `🔢 *Total de Peças:* ${this.pecasTotal} pçs\n`;
         msg += `💰 *Valor Total:* R$ ${this.valorTotal.toFixed(2)}`;
-        
         return msg;
     }
 }
