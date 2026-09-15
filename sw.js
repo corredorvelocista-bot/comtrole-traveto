@@ -1,10 +1,14 @@
-const CACHE_NAME = 'travete-v3';
+const CACHE_NAME = 'travete-v4';
+
 const assets = [
+  './',
   './index.html',
   './manifest.json',
-  './js/StorageService.js',
-  './js/Producao.js',
-  './js/app.js'
+  './src/js/StorageService.js',
+  './src/js/Producao.js',
+  './src/js/app.js',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -15,6 +19,8 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+    caches.match(e.request).then((response) => {
+      return response || fetch(e.request);
+    })
   );
 });
