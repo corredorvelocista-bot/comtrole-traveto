@@ -2,978 +2,2338 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>Controle de Travete</title>
 
     <link rel="manifest" href="manifest.json">
+
     <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes">
 
     <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --card-bg-2: #252525;
-            --text-color: #e0e0e0;
-            --accent-color: #4caf50;
-            --accent-hover: #45a049;
-            --border-color: #333;
-            --info-color: #2196F3;
-            --whatsapp-color: #25D366;
-            --warning-color: #ff9800;
-            --danger-color: #d32f2f;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 16px 16px 105px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        /* =====================================================
-           CABEÇALHO
-           ===================================================== */
-
-        .app-header {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .app-header-titles h1 {
-            font-size: 1.5rem;
-            margin: 0 0 4px 0;
-            color: #fff;
-        }
-
-        .app-header-titles p.subtitle {
-            font-size: 0.85rem;
-            color: #aaa;
-            margin: 0;
-        }
-
-        .btn-hamburger {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1.4rem;
-            color: var(--text-color);
-            cursor: pointer;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: auto !important;
-            margin-top: 0 !important;
-        }
-
-        .btn-hamburger:hover {
-            background-color: #2c2c2c;
-        }
-
-        /* =====================================================
-           MENU LATERAL
-           ===================================================== */
-
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 998;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .menu-overlay.ativo {
-            display: block;
-            opacity: 1;
-        }
-
-        .menu-lateral {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 290px;
-            height: 100%;
-            background-color: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            z-index: 999;
-            transition: left 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.5);
-            overflow-y: auto;
-        }
-
-        .menu-lateral.ativo {
-            left: 0;
-        }
-
-        .menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-        }
-
-        .menu-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #fff;
-        }
-
-        .btn-fechar-menu {
-            background: transparent;
-            border: none;
-            color: #aaa;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 4px 8px;
-            width: auto !important;
-        }
-
-        .btn-fechar-menu:hover {
-            color: #fff;
-        }
-
-        /* =====================================================
-           CARDS
-           ===================================================== */
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-bottom: 6px;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            padding: 12px;
-            background-color: #2c2c2c;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            box-sizing: border-box;
-            margin-bottom: 12px;
-        }
-
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
-        }
-
-        ul {
-            padding-left: 20px;
-            margin: 4px 0;
-            color: #ccc;
-        }
-
-        .btn-whatsapp {
-            background-color: var(--whatsapp-color);
-            color: #fff;
-            font-size: 0.85rem;
-            padding: 8px;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .archive-box {
-            background-color: #252525;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border-left: 4px solid var(--info-color);
-        }
-
-        .btn-close {
-            background-color: var(--info-color);
-            margin-top: 12px;
-        }
-
-        .btn-backup {
-            background-color: #607d8b;
-            margin-top: 8px;
-            font-size: 0.9rem;
-            padding: 10px;
-        }
-
-        .btn-backup:hover {
-            background-color: #546e7a;
-        }
-
-        /* =====================================================
-           PREVIEW
-           ===================================================== */
-
-        .preview-box {
-            display: none;
-            background-color: #252525;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 12px;
-            font-size: 0.95rem;
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .preview-box span {
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        /* =====================================================
-           LINK TUTORIAIS
-           ===================================================== */
-
-        .btn-link-tutoriais {
-            background-color: var(--info-color);
-            color: white;
-            font-size: 0.9rem;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            text-decoration: none;
-            box-sizing: border-box;
-            margin-top: 4px;
-            transition: opacity 0.2s;
-        }
-
-        .btn-link-tutoriais:hover {
-            opacity: 0.9;
-        }
-
-        /* =====================================================
-           SEÇÕES EXPANSÍVEIS DA CONFIGURAÇÃO
-           ===================================================== */
-
-        .config-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .config-section {
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            background: #202020;
-        }
-
-        .config-section-button {
-            width: 100%;
-            margin: 0;
-            padding: 13px 14px;
-            background: #252525;
-            color: #fff;
-            border: none;
-            border-radius: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            text-align: left;
-            font-size: 0.92rem;
-        }
-
-        .config-section-button:hover {
-            background: #2c2c2c;
-        }
-
-        .config-section-button.aberto {
-            background: #2c2c2c;
-        }
-
-        .config-arrow {
-            transition: transform 0.2s ease;
-            font-size: 0.8rem;
-        }
-
-        .config-section-button.aberto .config-arrow {
-            transform: rotate(180deg);
-        }
-
-        .config-section-panel {
-            display: none;
-            padding: 13px;
-            border-top: 1px solid var(--border-color);
-            background: #1b1b1b;
-        }
-
-        .config-section-panel.aberto {
-            display: block;
-        }
-
-        .config-description {
-            color: #999;
-            font-size: 0.78rem;
-            line-height: 1.45;
-            margin: 0 0 10px;
-        }
-
-        .config-status {
-            background: #252525;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 0.82rem;
-            color: #bbb;
-            margin-bottom: 10px;
-        }
-
-        .config-small-button {
-            padding: 10px;
-            font-size: 0.85rem;
-        }
-
-        /* =====================================================
-           SEÇÕES EXPANSÍVEIS DO MENU
-           ===================================================== */
-
-        .menu-section {
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            background: #202020;
-            margin-bottom: 8px;
-        }
-
-        .menu-section-button {
-            width: 100%;
-            margin: 0;
-            padding: 12px 14px;
-            background: #252525;
-            border-radius: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-
-        .menu-section-button:hover {
-            background: #2c2c2c;
-        }
-
-        .menu-section-panel {
-            display: none;
-            padding: 12px;
-            border-top: 1px solid var(--border-color);
-            background: #1b1b1b;
-        }
-
-        .menu-section-panel.aberto {
-            display: block;
-        }
-
-        .menu-section-arrow {
-            transition: transform 0.2s ease;
-        }
-
-        .menu-section-button.aberto .menu-section-arrow {
-            transform: rotate(180deg);
-        }
-
-        /* =====================================================
-           BOTTOM BAR
-           ===================================================== */
-
-        .bottom-bar {
-            position: fixed;
-            z-index: 997;
-            left: 50%;
-            bottom: max(10px, env(safe-area-inset-bottom));
-            transform: translateX(-50%);
-            width: min(calc(100% - 20px), 500px);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            padding: 7px;
-            background: rgba(30, 30, 30, 0.96);
-            border: 1px solid #3a3a3a;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(10px);
-        }
-
-        .bottom-item {
-            min-height: 58px;
-            background: transparent;
-            color: #aaa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            border-radius: 11px;
-            transition: background 0.15s ease, color 0.15s ease;
-            margin-top: 0;
-            padding: 6px;
-        }
-
-        .bottom-item:hover,
-        .bottom-item:focus-visible {
-            background: #292929;
-            color: white;
-            outline: none;
-        }
-
-        .bottom-icon {
-            font-size: 1.35rem;
-            line-height: 1;
-        }
-
-        .bottom-label {
-            font-size: 0.68rem;
-            font-weight: bold;
-        }
-
-        #btnBottomSync.pendente {
-            color: var(--warning-color);
-        }
-
-        #btnBottomSync.sincronizado {
-            color: var(--accent-color);
-        }
-
-        #btnBottomSync.desconectado {
-            color: #aaa;
-        }
-
-        #bottomSyncStatus {
-            font-size: 0.78rem;
-        }
-
-        @media (min-width: 700px) {
-            body {
-                padding-bottom: 110px;
-            }
-        }
-    </style>
+    <script
+        src="https://accounts.google.com/gsi/client"
+        async
+        defer>
+    </script>
+
+<style>
+
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --accent-color: #4caf50;
+    --accent-hover: #45a049;
+    --border-color: #333;
+    --info-color: #2196F3;
+    --whatsapp-color: #25D366;
+    --warning-color: #ff9800;
+    --purple-color: #bb86fc;
+    --danger-color: #d32f2f;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+
+    background-color: var(--bg-color);
+    color: var(--text-color);
+
+    margin: 0;
+
+    padding:
+        16px
+        16px
+        calc(105px + env(safe-area-inset-bottom));
+
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+}
+
+
+/* =====================================================
+   CABEÇALHO
+===================================================== */
+
+.app-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.app-header-titles {
+    min-width: 0;
+}
+
+.app-header-titles h1 {
+    font-size: 1.5rem;
+
+    margin:
+        0
+        0
+        4px
+        0;
+
+    color: #fff;
+}
+
+.app-header-titles p.subtitle {
+    font-size: 0.85rem;
+
+    color: #aaa;
+
+    margin: 0;
+}
+
+
+/* =====================================================
+   BOTÃO HAMBURGER
+===================================================== */
+
+.btn-hamburger {
+    background: var(--card-bg);
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 8px;
+
+    font-size: 1.4rem;
+
+    color: var(--text-color);
+
+    cursor: pointer;
+
+    padding:
+        10px
+        16px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: auto !important;
+
+    margin-top: 0 !important;
+
+    flex-shrink: 0;
+}
+
+.btn-hamburger:hover {
+    background-color: #2c2c2c;
+}
+
+
+/* =====================================================
+   MENU LATERAL
+===================================================== */
+
+.menu-overlay {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background:
+        rgba(0, 0, 0, 0.6);
+
+    backdrop-filter: blur(2px);
+
+    z-index: 998;
+
+    display: none;
+
+    opacity: 0;
+
+    transition:
+        opacity
+        0.3s
+        ease;
+}
+
+.menu-overlay.ativo {
+    display: block;
+    opacity: 1;
+}
+
+.menu-lateral {
+    position: fixed;
+
+    top: 0;
+    left: -320px;
+
+    width: min(290px, 88vw);
+    height: 100%;
+
+    background-color:
+        var(--card-bg);
+
+    border-right:
+        1px
+        solid
+        var(--border-color);
+
+    z-index: 999;
+
+    transition:
+        left
+        0.3s
+        ease;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 20px;
+
+    box-shadow:
+        5px
+        0
+        25px
+        rgba(0,0,0,0.5);
+
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.menu-lateral.ativo {
+    left: 0;
+}
+
+.menu-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 20px;
+
+    border-bottom:
+        1px
+        solid
+        var(--border-color);
+
+    padding-bottom: 12px;
+
+    position: sticky;
+    top: -20px;
+
+    background: var(--card-bg);
+
+    z-index: 2;
+
+    padding-top: 20px;
+}
+
+.menu-header h3 {
+    margin: 0;
+
+    font-size: 1.1rem;
+
+    color: #fff;
+}
+
+.btn-fechar-menu {
+    background: transparent;
+
+    border: none;
+
+    color: #aaa;
+
+    font-size: 1.2rem;
+
+    cursor: pointer;
+
+    padding:
+        4px
+        8px;
+
+    width: auto !important;
+
+    margin: 0 !important;
+}
+
+.btn-fechar-menu:hover {
+    color: #fff;
+}
+
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.card {
+    background-color:
+        var(--card-bg);
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 12px;
+
+    padding: 16px;
+
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+
+    font-size: 0.85rem;
+
+    color: #aaa;
+
+    margin-bottom: 6px;
+}
+
+input,
+textarea {
+    width: 100%;
+
+    padding: 12px;
+
+    background-color: #2c2c2c;
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 8px;
+
+    color: #fff;
+
+    font-size: 1rem;
+
+    box-sizing: border-box;
+
+    margin-bottom: 12px;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+
+    border-color:
+        var(--accent-color);
+
+    box-shadow:
+        0
+        0
+        0
+        2px
+        rgba(76,175,80,0.15);
+}
+
+textarea {
+    height: 100px;
+
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+
+    padding: 14px;
+
+    background-color:
+        var(--accent-color);
+
+    color: white;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-size: 1rem;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    margin-top: 4px;
+
+    transition:
+        background
+        0.15s
+        ease,
+        transform
+        0.1s
+        ease;
+}
+
+button:hover {
+    background-color:
+        var(--accent-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+
+/* =====================================================
+   HISTÓRICO
+===================================================== */
+
+.history-item {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    padding: 10px 0;
+
+    border-bottom:
+        1px
+        solid
+        var(--border-color);
+
+    font-size: 0.9rem;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+ul {
+    padding-left: 20px;
+
+    margin:
+        4px
+        0;
+
+    color: #ccc;
+}
+
+
+/* =====================================================
+   RESUMO POR VALOR UNITÁRIO
+===================================================== */
+
+.resumo-preco {
+    margin-top: 16px;
+
+    padding-top: 14px;
+
+    border-top:
+        1px
+        solid
+        var(--border-color);
+}
+
+.resumo-preco-titulo {
+    color: var(--purple-color);
+
+    font-size: 1rem;
+
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+.resumo-preco-grupo {
+    background: #252525;
+
+    border:
+        1px
+        solid
+        #383838;
+
+    border-radius: 9px;
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+}
+
+.resumo-preco-grupo-titulo {
+    color: #fff;
+
+    font-weight: bold;
+
+    margin-bottom: 7px;
+}
+
+.resumo-preco-item {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    padding:
+        5px
+        0;
+
+    color: #ccc;
+
+    font-size: 0.82rem;
+
+    border-bottom:
+        1px
+        solid
+        #333;
+}
+
+.resumo-preco-item:last-child {
+    border-bottom: none;
+}
+
+.resumo-preco-total {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    margin-top: 8px;
+
+    padding-top: 7px;
+
+    border-top:
+        1px
+        solid
+        #444;
+
+    color: var(--accent-color);
+
+    font-size: 0.84rem;
+
+    font-weight: bold;
+}
+
+.resumo-geral {
+    background:
+        linear-gradient(
+            135deg,
+            #252525,
+            #202020
+        );
+
+    border:
+        1px
+        solid
+        #444;
+
+    border-radius: 10px;
+
+    padding: 12px;
+
+    margin-top: 10px;
+}
+
+.resumo-geral-linha {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 4px 0;
+}
+
+.resumo-geral-linha strong {
+    color: var(--accent-color);
+}
+
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+.btn-whatsapp {
+    background-color:
+        var(--whatsapp-color);
+
+    color: #fff;
+
+    font-size: 0.85rem;
+
+    padding: 8px;
+
+    margin-top: 8px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =====================================================
+   ARQUIVO / BACKUP
+===================================================== */
+
+.archive-box {
+    background-color: #252525;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    margin-top: 10px;
+
+    border-left:
+        4px
+        solid
+        var(--info-color);
+}
+
+.btn-close {
+    background-color:
+        var(--info-color);
+
+    margin-top: 12px;
+}
+
+.btn-backup {
+    background-color: #607d8b;
+
+    margin-top: 8px;
+
+    font-size: 0.9rem;
+
+    padding: 10px;
+}
+
+.btn-backup:hover {
+    background-color: #546e7a;
+}
+
+
+/* =====================================================
+   PREVIEW
+===================================================== */
+
+.preview-box {
+    display: none;
+
+    background-color: #252525;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    margin-top: 12px;
+
+    font-size: 0.95rem;
+
+    border-left:
+        4px
+        solid
+        var(--accent-color);
+}
+
+.preview-box span {
+    font-weight: bold;
+
+    color: var(--accent-color);
+}
+
+
+/* =====================================================
+   TUTORIAIS
+===================================================== */
+
+.btn-link-tutoriais {
+    background-color:
+        var(--info-color);
+
+    color: white;
+
+    font-size: 0.9rem;
+
+    font-weight: bold;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    width: 100%;
+
+    text-decoration: none;
+
+    box-sizing: border-box;
+
+    margin-top: 4px;
+
+    transition:
+        opacity
+        0.2s;
+}
+
+.btn-link-tutoriais:hover {
+    opacity: 0.9;
+}
+
+
+/* =====================================================
+   CONFIGURAÇÃO
+===================================================== */
+
+.config-menu-button {
+    background: #2c2335;
+
+    border:
+        1px
+        solid
+        #4b385c;
+
+    color: #fff;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    margin: 0;
+
+    font-size: 0.9rem;
+}
+
+.config-menu-button:hover {
+    background: #382b43;
+}
+
+.config-menu-button .config-arrow {
+    font-size: 1.1rem;
+
+    transition:
+        transform
+        0.2s
+        ease;
+}
+
+.config-menu-button.aberto .config-arrow {
+    transform: rotate(90deg);
+}
+
+.configuracao-panel {
+    display: none;
+
+    margin-top: 10px;
+
+    animation:
+        aparecerConfig
+        0.2s
+        ease;
+}
+
+.configuracao-panel.ativo {
+    display: block;
+}
+
+@keyframes aparecerConfig {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+.config-header {
+    background: #252525;
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 10px;
+
+    padding: 12px;
+
+    margin-bottom: 10px;
+}
+
+.config-header h4 {
+    margin:
+        0
+        0
+        5px
+        0;
+
+    color: #fff;
+
+    font-size: 1rem;
+}
+
+.config-header p {
+    margin: 0;
+
+    color: #999;
+
+    font-size: 0.78rem;
+
+    line-height: 1.4;
+}
+
+.config-card {
+    background: #252525;
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 10px;
+
+    margin-bottom: 10px;
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   NOVOS BOTÕES EXPANSÍVEIS DA CONFIGURAÇÃO
+===================================================== */
+
+.config-section-button {
+    width: 100%;
+
+    padding:
+        12px;
+
+    margin: 0;
+
+    background: #2c2c2c;
+
+    color: #fff;
+
+    border: none;
+
+    border-bottom:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    text-align: left;
+
+    font-size: 0.88rem;
+
+    font-weight: bold;
+}
+
+.config-section-button:hover {
+    background: #353535;
+}
+
+.config-section-button .section-arrow {
+    font-size: 1.1rem;
+
+    transition:
+        transform
+        0.2s
+        ease;
+}
+
+.config-section-button.aberto .section-arrow {
+    transform: rotate(90deg);
+}
+
+.config-section-panel {
+    display: none;
+}
+
+.config-section-panel.ativo {
+    display: block;
+
+    animation:
+        aparecerConfig
+        0.18s
+        ease;
+}
+
+
+/* =====================================================
+   ITENS DA CONFIGURAÇÃO
+===================================================== */
+
+.config-item {
+    padding:
+        11px
+        12px;
+
+    border-bottom:
+        1px
+        solid
+        #333;
+}
+
+.config-item:last-child {
+    border-bottom: none;
+}
+
+.config-item-title {
+    color: #eee;
+
+    font-size: 0.84rem;
+
+    font-weight: 600;
+
+    margin-bottom: 3px;
+}
+
+.config-item-description {
+    color: #888;
+
+    font-size: 0.74rem;
+
+    line-height: 1.35;
+}
+
+.config-switch-row {
+    display: flex !important;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin: 0 !important;
+
+    cursor: pointer;
+}
+
+.config-switch-row .config-item-text {
+    flex: 1;
+}
+
+.config-switch {
+    position: relative;
+
+    width: 42px !important;
+
+    height: 23px;
+
+    min-width: 42px;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    appearance: none;
+
+    -webkit-appearance: none;
+
+    background: #444;
+
+    border: none;
+
+    border-radius: 20px;
+
+    cursor: pointer;
+
+    transition:
+        background
+        0.2s
+        ease;
+}
+
+.config-switch::before {
+    content: "";
+
+    position: absolute;
+
+    width: 17px;
+    height: 17px;
+
+    left: 3px;
+    top: 3px;
+
+    background: #fff;
+
+    border-radius: 50%;
+
+    transition:
+        transform
+        0.2s
+        ease;
+}
+
+.config-switch:checked {
+    background:
+        var(--accent-color);
+}
+
+.config-switch:checked::before {
+    transform:
+        translateX(19px);
+}
+
+.config-number {
+    margin-top: 8px !important;
+
+    margin-bottom: 0 !important;
+
+    font-size: 0.85rem !important;
+
+    padding: 9px !important;
+}
+
+.config-button {
+    background: #333;
+
+    border:
+        1px
+        solid
+        #444;
+
+    color: #eee;
+
+    font-size: 0.82rem;
+
+    padding: 10px;
+
+    margin-top: 6px;
+}
+
+.config-button:hover {
+    background: #3b3b3b;
+}
+
+.config-button.danger {
+    background: #5b2525;
+
+    border-color:
+        #733030;
+}
+
+.config-button.danger:hover {
+    background: #713030;
+}
+
+.config-info {
+    color: #999;
+
+    font-size: 0.76rem;
+
+    line-height: 1.4;
+}
+
+.config-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    font-size: 0.78rem;
+
+    color: #aaa;
+}
+
+.config-status-dot {
+    font-size: 0.9rem;
+}
+
+.config-voltar {
+    background: #333;
+
+    color: #fff;
+
+    margin-top: 4px;
+
+    font-size: 0.85rem;
+}
+
+
+/* =====================================================
+   SEÇÕES EXPANSÍVEIS DO MENU
+===================================================== */
+
+.menu-section-button {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    margin: 0;
+
+    border:
+        1px
+        solid
+        var(--border-color);
+
+    border-radius: 8px;
+
+    background: #252525;
+
+    color: #fff;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    text-align: left;
+
+    font-size: 0.9rem;
+
+    font-weight: bold;
+}
+
+.menu-section-button:hover {
+    background: #303030;
+}
+
+.menu-section-button .section-arrow {
+    transition:
+        transform
+        0.2s
+        ease;
+}
+
+.menu-section-button.aberto .section-arrow {
+    transform: rotate(90deg);
+}
+
+.menu-section-panel {
+    display: none;
+
+    padding-top: 8px;
+}
+
+.menu-section-panel.ativo {
+    display: block;
+
+    animation:
+        aparecerConfig
+        0.18s
+        ease;
+}
+
+
+/* =====================================================
+   STATUS GOOGLE
+===================================================== */
+
+.google-status-box {
+    background: #252525;
+
+    border:
+        1px
+        solid
+        #333;
+
+    border-radius: 8px;
+
+    padding: 10px;
+
+    margin-bottom: 8px;
+}
+
+
+/* =====================================================
+   BARRA INFERIOR
+===================================================== */
+
+.bottom-bar {
+    position: fixed;
+
+    z-index: 997;
+
+    left: 50%;
+
+    bottom:
+        max(
+            10px,
+            env(safe-area-inset-bottom)
+        );
+
+    transform:
+        translateX(-50%);
+
+    width:
+        min(
+            calc(100% - 20px),
+            500px
+        );
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 6px;
+
+    padding: 7px;
+
+    background:
+        rgba(
+            30,
+            30,
+            30,
+            0.96
+        );
+
+    border:
+        1px
+        solid
+        #3a3a3a;
+
+    border-radius: 16px;
+
+    box-shadow:
+        0
+        8px
+        30px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
+
+    backdrop-filter:
+        blur(10px);
+}
+
+.bottom-item {
+    min-height: 58px;
+
+    background: transparent;
+
+    color: #aaa;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 2px;
+
+    border-radius: 11px;
+
+    transition:
+        background
+        0.15s
+        ease,
+        color
+        0.15s
+        ease;
+
+    margin-top: 0;
+
+    padding: 6px;
+}
+
+.bottom-item:hover,
+.bottom-item:focus-visible {
+    background: #292929;
+
+    color: white;
+
+    outline: none;
+}
+
+.bottom-icon {
+    font-size: 1.35rem;
+
+    line-height: 1;
+}
+
+.bottom-label {
+    font-size: 0.68rem;
+
+    font-weight: bold;
+}
+
+#btnBottomSync.pendente {
+    color:
+        var(--warning-color);
+}
+
+#btnBottomSync.sincronizado {
+    color:
+        var(--accent-color);
+}
+
+#btnBottomSync.desconectado {
+    color: #aaa;
+}
+
+#bottomSyncStatus {
+    font-size: 0.78rem;
+}
+
+
+/* =====================================================
+   RESPONSIVO
+===================================================== */
+
+@media (min-width: 700px) {
+
+    body {
+        padding-bottom: 110px;
+    }
+
+}
+
+</style>
 </head>
+
 
 <body>
 
-<!-- =========================================================
+
+<!-- =====================================================
+     OVERLAY DO MENU
+===================================================== -->
+
+<div
+    id="menuOverlay"
+    class="menu-overlay">
+</div>
+
+
+<!-- =====================================================
      MENU LATERAL
-     ========================================================= -->
+===================================================== -->
 
-<div id="menuOverlay" class="menu-overlay"></div>
+<nav
+    id="menuLateral"
+    class="menu-lateral">
 
-<nav id="menuLateral" class="menu-lateral">
 
     <div class="menu-header">
-        <h3>Menu do Sistema</h3>
+
+        <h3>
+            Menu do Sistema
+        </h3>
 
         <button
             id="btnFecharMenu"
             class="btn-fechar-menu"
-            type="button">
+            type="button"
+            aria-label="Fechar menu">
+
             ✕
-        </button>
-    </div>
 
-    <!-- =====================================================
-         SINCRONIZAÇÃO GOOGLE
-         ===================================================== -->
-
-    <div class="menu-section">
-
-        <button
-            id="btnMenuGoogle"
-            class="menu-section-button"
-            type="button"
-            aria-expanded="false">
-
-            <span>☁️ Sincronização Google</span>
-            <span class="menu-section-arrow">▼</span>
         </button>
 
-        <div
-            id="painelMenuGoogle"
-            class="menu-section-panel">
-
-            <p class="config-description">
-                Conecte sua conta Google para sincronizar os dados do aplicativo.
-            </p>
-
-            <div
-                id="statusLogin"
-                class="config-status">
-                Status: Desconectado
-            </div>
-
-            <button
-                id="btnLoginGoogle"
-                style="background-color:#4285F4; margin:0 0 8px;">
-                🔑 Entrar com o Google
-            </button>
-
-            <button
-                id="btnLogoutGoogle"
-                style="background-color:#d32f2f; display:none; margin:0 0 8px;">
-                🚪 Sair da Conta
-            </button>
-
-            <button
-                id="btnEnviarNuvem"
-                class="btn-backup"
-                style="background-color:var(--warning-color); color:#000; font-weight:bold; margin:0;">
-                🚀 Sincronizar com o Drive
-            </button>
-
-        </div>
     </div>
 
-    <!-- =====================================================
-         META
-         ===================================================== -->
-
-    <div class="menu-section">
-
-        <button
-            id="btnMenuMeta"
-            class="menu-section-button"
-            type="button"
-            aria-expanded="false">
-
-            <span>🎯 Meta Semanal</span>
-            <span class="menu-section-arrow">▼</span>
-        </button>
-
-        <div
-            id="painelMenuMeta"
-            class="menu-section-panel">
-
-            <div
-                style="background-color:#252525; padding:10px; border-radius:8px;">
-
-                <div
-                    style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
-
-                    <span id="textoMetaProgresso">
-                        R$ 0,00 / R$ 0,00
-                    </span>
-
-                    <span
-                        id="porcentagemMeta"
-                        style="font-weight:bold; color:var(--accent-color);">
-                        0%
-                    </span>
-                </div>
-
-                <div
-                    style="background:#333; border-radius:4px; height:8px; width:100%; overflow:hidden;">
-
-                    <div
-                        id="barraProgressoMeta"
-                        style="background:var(--accent-color); height:100%; width:0%; transition:width .3s ease;">
-                    </div>
-                </div>
-
-                <div
-                    style="margin-top:8px; display:flex; gap:4px;">
-
-                    <input
-                        type="number"
-                        id="inputMetaValor"
-                        placeholder="Definir Meta R$"
-                        step="50"
-                        style="margin:0; padding:6px; font-size:0.85rem;">
-
-                    <button
-                        id="btnSalvarMeta"
-                        style="width:auto; margin:0; padding:6px 12px; font-size:0.85rem;">
-                        Salvar
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- =====================================================
-         AJUDA
-         ===================================================== -->
-
-    <div class="menu-section">
-
-        <button
-            id="btnMenuAjuda"
-            class="menu-section-button"
-            type="button"
-            aria-expanded="false">
-
-            <span>💡 Ajuda & Novidades</span>
-            <span class="menu-section-arrow">▼</span>
-        </button>
-
-        <div
-            id="painelMenuAjuda"
-            class="menu-section-panel">
-
-            <p class="config-description">
-                Veja vídeos de uso, dicas e atualizações do aplicativo.
-            </p>
-
-            <a
-                href="ajuda.html"
-                id="btnTutoriais"
-                class="btn-link-tutoriais">
-                🎥 Tutoriais e Atualizações
-            </a>
-
-        </div>
-    </div>
-
-    <!-- =====================================================
-         CONFIGURAÇÃO
-         ===================================================== -->
-
-    <button
-        id="btnAbrirConfiguracao"
-        type="button"
-        style="
-            margin-top:8px;
-            background:#333;
-            border:1px solid #444;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            text-align:left;
-        "
-        aria-expanded="false">
-
-        <span>⚙️ Configuração</span>
-        <span id="configArrow">▼</span>
-    </button>
 
     <div
-        id="painelConfiguracao"
-        style="display:none; margin-top:8px;">
+        class="menu-content"
+        id="cardSincronizacao"
+        style="
+            display:flex;
+            flex-direction:column;
+            gap:12px;">
 
-        <div class="config-menu">
 
-            <!-- GOOGLE -->
+        <!-- =================================================
+             CONFIGURAÇÃO
+        ================================================= -->
 
-            <div class="config-section">
+        <div>
 
-                <button
-                    id="btnConfigGoogle"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
+            <button
+                id="btnAbrirConfiguracao"
+                class="config-menu-button"
+                type="button"
+                aria-expanded="false">
 
-                    <span>☁️ Google e Sincronização</span>
-                    <span class="config-arrow">▼</span>
-                </button>
+                <span>
+                    ⚙️ Configuração
+                </span>
 
-                <div
-                    id="painelConfigGoogle"
-                    class="config-section-panel">
+                <span
+                    id="configArrow"
+                    class="config-arrow">
 
-                    <p class="config-description">
-                        Controle o acesso à conta Google e a sincronização dos dados.
+                    ›
+
+                </span>
+
+            </button>
+
+
+            <div
+                id="painelConfiguracao"
+                class="configuracao-panel">
+
+
+                <div class="config-header">
+
+                    <h4>
+                        ⚙️ Configuração do Sistema
+                    </h4>
+
+                    <p>
+                        Personalize o funcionamento do
+                        Controle de Travete.
+                        As alterações ficam salvas
+                        neste dispositivo.
                     </p>
-
-                    <div class="config-status">
-                        A sincronização utiliza sua conta Google conectada.
-                    </div>
-
-                    <button
-                        id="btnConfigGoogleLogin"
-                        class="config-small-button"
-                        type="button"
-                        style="background:#4285F4;">
-                        🔑 Conectar Google
-                    </button>
-
-                    <button
-                        id="btnConfigGoogleLogout"
-                        class="config-small-button"
-                        type="button"
-                        style="background:#d32f2f;">
-                        🚪 Desconectar Google
-                    </button>
 
                 </div>
-            </div>
 
-            <!-- PRODUÇÃO -->
 
-            <div class="config-section">
+                <!-- =================================================
+                     GOOGLE E SINCRONIZAÇÃO
+                ================================================= -->
 
-                <button
-                    id="btnConfigProducao"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
-
-                    <span>🏭 Produção</span>
-                    <span class="config-arrow">▼</span>
-                </button>
-
-                <div
-                    id="painelConfigProducao"
-                    class="config-section-panel">
-
-                    <p class="config-description">
-                        Configure o valor usado para calcular o pagamento por peça.
-                    </p>
-
-                    <label for="configValorUnitario">
-                        Valor unitário
-                    </label>
-
-                    <input
-                        type="number"
-                        id="configValorUnitario"
-                        step="0.01"
-                        placeholder="R$ 0,00">
+                <div class="config-card">
 
                     <button
-                        id="btnConfigSalvarProducao"
-                        class="config-small-button"
-                        type="button">
-                        💾 Salvar configuração
-                    </button>
-
-                </div>
-            </div>
-
-            <!-- META -->
-
-            <div class="config-section">
-
-                <button
-                    id="btnConfigMeta"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
-
-                    <span>🎯 Metas</span>
-                    <span class="config-arrow">▼</span>
-                </button>
-
-                <div
-                    id="painelConfigMeta"
-                    class="config-section-panel">
-
-                    <p class="config-description">
-                        Defina uma meta semanal para acompanhar seu progresso.
-                    </p>
-
-                    <label for="configMetaValor">
-                        Meta semanal
-                    </label>
-
-                    <input
-                        type="number"
-                        id="configMetaValor"
-                        step="50"
-                        placeholder="R$ 0,00">
-
-                    <button
-                        id="btnConfigSalvarMeta"
-                        class="config-small-button"
-                        type="button">
-                        🎯 Salvar meta
-                    </button>
-
-                </div>
-            </div>
-
-            <!-- NOTIFICAÇÕES -->
-
-            <div class="config-section">
-
-                <button
-                    id="btnConfigNotificacoes"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
-
-                    <span>🔔 Notificações</span>
-                    <span class="config-arrow">▼</span>
-                </button>
-
-                <div
-                    id="painelConfigNotificacoes"
-                    class="config-section-panel">
-
-                    <p class="config-description">
-                        Área reservada para as preferências de notificações do aplicativo.
-                    </p>
-
-                    <button
-                        id="btnConfigNotificacoesAtivar"
-                        class="config-small-button"
+                        id="btnConfigGoogle"
+                        class="config-section-button"
                         type="button"
-                        style="background:#607d8b;">
-                        🔔 Ativar notificações
+                        aria-expanded="false">
+
+                        <span>
+                            ☁️ Google e Sincronização
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
                     </button>
 
-                </div>
-            </div>
-
-            <!-- DADOS -->
-
-            <div class="config-section">
-
-                <button
-                    id="btnConfigDados"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
-
-                    <span>💾 Dados e Backup</span>
-                    <span class="config-arrow">▼</span>
-                </button>
-
-                <div
-                    id="painelConfigDados"
-                    class="config-section-panel">
-
-                    <p class="config-description">
-                        Gerencie o armazenamento e os backups dos seus dados.
-                    </p>
-
-                    <button
-                        id="btnConfigBackup"
-                        class="config-small-button"
-                        type="button"
-                        style="background:#607d8b;">
-                        💾 Fazer backup
-                    </button>
-
-                    <button
-                        id="btnConfigLimparDados"
-                        class="config-small-button"
-                        type="button"
-                        style="background:#d32f2f;">
-                        🗑️ Limpar dados
-                    </button>
-
-                </div>
-            </div>
-
-            <!-- SOBRE -->
-
-            <div class="config-section">
-
-                <button
-                    id="btnConfigSobre"
-                    class="config-section-button"
-                    type="button"
-                    aria-expanded="false">
-
-                    <span>ℹ️ Sobre o aplicativo</span>
-                    <span class="config-arrow">▼</span>
-                </button>
-
-                <div
-                    id="painelConfigSobre"
-                    class="config-section-panel">
-
-                    <p class="config-description">
-                        Controle de Travete
-                    </p>
-
-                    <div class="config-status">
-                        Arquitetura Modular em POO<br>
-                        Aplicativo PWA para controle de produção.
-                    </div>
 
                     <div
-                        style="font-size:0.75rem; color:#777;">
-                        Versão 1.0
+                        id="painelConfigGoogle"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                Conta conectada
+                            </div>
+
+                            <div class="config-status">
+
+                                <span
+                                    class="config-status-dot"
+                                    id="configStatusGoogleDot">
+
+                                    ⚪
+
+                                </span>
+
+                                <span id="configStatusGoogle">
+                                    Nenhuma conta conectada
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <label class="config-switch-row">
+
+                                <div class="config-item-text">
+
+                                    <div class="config-item-title">
+                                        🔄 Sincronização automática
+                                    </div>
+
+                                    <div class="config-item-description">
+                                        Sincroniza os lançamentos automaticamente
+                                        quando possível.
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    id="configSyncAutomatico"
+                                    class="config-switch">
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <label class="config-switch-row">
+
+                                <div class="config-item-text">
+
+                                    <div class="config-item-title">
+                                        📶 Sincronizar somente no Wi-Fi
+                                    </div>
+
+                                    <div class="config-item-description">
+                                        Evita sincronização automática usando
+                                        conexão móvel.
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    id="configSyncWifi"
+                                    class="config-switch">
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <button
+                                id="btnConfigSincronizarAgora"
+                                class="config-button"
+                                type="button">
+
+                                🔄 Sincronizar agora
+
+                            </button>
+
+
+                            <button
+                                id="btnConfigPlanilha"
+                                class="config-button"
+                                type="button">
+
+                                📊 Ver Planilha no Google Drive
+
+                            </button>
+
+                        </div>
+
                     </div>
 
                 </div>
+
+
+                <!-- =================================================
+                     PRODUÇÃO
+                ================================================= -->
+
+                <div class="config-card">
+
+                    <button
+                        id="btnConfigProducao"
+                        class="config-section-button"
+                        type="button"
+                        aria-expanded="false">
+
+                        <span>
+                            📊 Produção
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        id="painelConfigProducao"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                💰 Valor unitário padrão
+                            </div>
+
+                            <div class="config-item-description">
+                                Valor utilizado automaticamente
+                                nos novos lançamentos.
+                            </div>
+
+                            <input
+                                type="number"
+                                id="configValorUnitario"
+                                class="config-number"
+                                step="0.01"
+                                min="0.01"
+                                value="0.21">
+
+
+                            <button
+                                id="btnSalvarConfigProducao"
+                                class="config-button"
+                                type="button">
+
+                                💾 Salvar valor padrão
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                📦 Resumo semanal
+                            </div>
+
+                            <div class="config-item-description">
+                                Os lançamentos são agrupados pelo
+                                valor unitário, mantendo cada
+                                lançamento individual dentro do grupo.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     META
+                ================================================= -->
+
+                <div class="config-card">
+
+                    <button
+                        id="btnConfigMeta"
+                        class="config-section-button"
+                        type="button"
+                        aria-expanded="false">
+
+                        <span>
+                            🎯 Meta Semanal
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        id="painelConfigMeta"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                💵 Valor da meta
+                            </div>
+
+                            <div class="config-item-description">
+                                Defina o valor que deseja alcançar
+                                durante a semana.
+                            </div>
+
+                            <input
+                                type="number"
+                                id="configMetaSemanal"
+                                class="config-number"
+                                step="50"
+                                min="0"
+                                placeholder="R$ 500,00">
+
+                            <button
+                                id="btnSalvarConfigMeta"
+                                class="config-button"
+                                type="button">
+
+                                💾 Salvar meta
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                📈 Progresso da meta
+                            </div>
+
+                            <div
+                                id="configResumoMeta"
+                                class="config-info">
+
+                                R$ 0,00 / R$ 0,00
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     NOTIFICAÇÕES
+                ================================================= -->
+
+                <div class="config-card">
+
+                    <button
+                        id="btnConfigNotificacoes"
+                        class="config-section-button"
+                        type="button"
+                        aria-expanded="false">
+
+                        <span>
+                            🔔 Notificações e Sons
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        id="painelConfigNotificacoes"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <label class="config-switch-row">
+
+                                <div class="config-item-text">
+
+                                    <div class="config-item-title">
+                                        🔊 Som ao salvar lançamento
+                                    </div>
+
+                                    <div class="config-item-description">
+                                        Reproduz um som quando
+                                        um lançamento é salvo.
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    id="configSomLancamento"
+                                    class="config-switch"
+                                    checked>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <label class="config-switch-row">
+
+                                <div class="config-item-text">
+
+                                    <div class="config-item-title">
+                                        🎵 Som ao atingir a meta
+                                    </div>
+
+                                    <div class="config-item-description">
+                                        Toca uma comemoração sonora
+                                        ao alcançar a meta semanal.
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    id="configSomMeta"
+                                    class="config-switch"
+                                    checked>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <label class="config-switch-row">
+
+                                <div class="config-item-text">
+
+                                    <div class="config-item-title">
+                                        🎉 Confete ao atingir a meta
+                                    </div>
+
+                                    <div class="config-item-description">
+                                        Mostra a animação de confete
+                                        quando a meta for atingida.
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="checkbox"
+                                    id="configConfeteMeta"
+                                    class="config-switch"
+                                    checked>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     DADOS
+                ================================================= -->
+
+                <div class="config-card">
+
+                    <button
+                        id="btnConfigDados"
+                        class="config-section-button"
+                        type="button"
+                        aria-expanded="false">
+
+                        <span>
+                            💾 Dados
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        id="painelConfigDados"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                📤 Exportar dados
+                            </div>
+
+                            <div class="config-item-description">
+                                Salve uma cópia dos dados do aplicativo.
+                            </div>
+
+                            <button
+                                id="btnConfigExportar"
+                                class="config-button"
+                                type="button">
+
+                                📤 Exportar dados
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                📥 Importar dados
+                            </div>
+
+                            <div class="config-item-description">
+                                Restaure dados a partir de
+                                um arquivo de backup.
+                            </div>
+
+                            <button
+                                id="btnConfigImportar"
+                                class="config-button"
+                                type="button">
+
+                                📥 Importar dados
+
+                            </button>
+
+                            <input
+                                type="file"
+                                id="configArquivoImportacao"
+                                accept=".json,application/json"
+                                style="display:none;">
+
+                        </div>
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                🗑️ Limpar dados
+                            </div>
+
+                            <div class="config-item-description">
+                                Apaga os dados salvos neste navegador.
+                            </div>
+
+                            <button
+                                id="btnConfigLimpar"
+                                class="config-button danger"
+                                type="button">
+
+                                🗑️ Limpar dados do aplicativo
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     SOBRE
+                ================================================= -->
+
+                <div class="config-card">
+
+                    <button
+                        id="btnConfigSobre"
+                        class="config-section-button"
+                        type="button"
+                        aria-expanded="false">
+
+                        <span>
+                            ℹ️ Sobre
+                        </span>
+
+                        <span class="section-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        id="painelConfigSobre"
+                        class="config-section-panel">
+
+
+                        <div class="config-item">
+
+                            <div class="config-item-title">
+                                Controle de Travete
+                            </div>
+
+                            <div class="config-info">
+
+                                Versão
+                                <strong id="configVersao">
+                                    1.0.0
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                id="btnConfigAtualizacoes"
+                                class="config-button"
+                                type="button">
+
+                                🔄 Verificar atualizações
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="btnFecharConfiguracao"
+                    class="config-voltar"
+                    type="button">
+
+                    ← Voltar ao Menu
+
+                </button>
+
             </div>
 
         </div>
+
+
+        <!-- =================================================
+             GOOGLE
+        ================================================= -->
+
+        <div>
+
+            <button
+                id="btnMenuGoogle"
+                class="menu-section-button"
+                type="button"
+                aria-expanded="false">
+
+                <span>
+                    ☁️ Sincronização Google
+                </span>
+
+                <span class="section-arrow">
+                    ›
+                </span>
+
+            </button>
+
+
+            <div
+                id="painelMenuGoogle"
+                class="menu-section-panel">
+
+
+                <p
+                    style="
+                        font-size:0.8rem;
+                        color:#aaa;
+                        margin:0 0 10px 0;">
+
+                    Conecte sua conta para salvar
+                    dados na nuvem com facilidade.
+
+                </p>
+
+
+                <div
+                    id="statusLogin"
+                    class="google-status-box">
+
+                    ⚪ Nenhuma conta conectada
+
+                </div>
+
+
+                <button
+                    id="btnLoginGoogle"
+                    type="button"
+                    style="
+                        background-color:#4285F4;
+                        color:white;
+                        font-size:0.9rem;
+                        padding:10px;
+                        display:inline-flex;
+                        align-items:center;
+                        justify-content:center;
+                        gap:8px;
+                        margin:0;">
+
+                    🔑 Entrar com o Google
+
+                </button>
+
+
+                <button
+                    id="btnLogoutGoogle"
+                    type="button"
+                    style="
+                        background-color:#d32f2f;
+                        color:white;
+                        font-size:0.85rem;
+                        padding:8px;
+                        display:none;
+                        margin:0;">
+
+                    🚪 Sair da Conta
+
+                </button>
+
+
+                <div
+                    id="cardSincronizacaoMenu"
+                    style="margin-top:4px;">
+
+                    <button
+                        id="btnEnviarNuvem"
+                        class="btn-backup"
+                        type="button"
+                        style="
+                            background-color:var(--warning-color);
+                            color:#000;
+                            font-weight:bold;
+                            width:100%;
+                            margin:0;">
+
+                        🚀 Sincronizar com o Drive
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             META SEMANAL
+        ================================================= -->
+
+        <div>
+
+            <button
+                id="btnMenuMeta"
+                class="menu-section-button"
+                type="button"
+                aria-expanded="false">
+
+                <span>
+                    🎯 Meta Semanal
+                </span>
+
+                <span class="section-arrow">
+                    ›
+                </span>
+
+            </button>
+
+
+            <div
+                id="painelMenuMeta"
+                class="menu-section-panel">
+
+
+                <div
+                    style="
+                        background-color:#252525;
+                        padding:10px;
+                        border-radius:8px;
+                        margin-bottom:10px;">
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            font-size:0.8rem;
+                            margin-bottom:6px;">
+
+                        <span id="textoMetaProgresso">
+                            R$ 0,00 / R$ 0,00
+                        </span>
+
+                        <span
+                            id="porcentagemMeta"
+                            style="
+                                font-weight:bold;
+                                color:var(--accent-color);">
+
+                            0%
+
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            background:#333;
+                            border-radius:4px;
+                            height:8px;
+                            width:100%;
+                            overflow:hidden;">
+
+                        <div
+                            id="barraProgressoMeta"
+                            style="
+                                background:var(--accent-color);
+                                height:100%;
+                                width:0%;
+                                transition:width 0.3s ease;">
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:8px;
+                            display:flex;
+                            gap:4px;">
+
+                        <input
+                            type="number"
+                            id="inputMetaValor"
+                            placeholder="Definir Meta R$"
+                            style="
+                                margin:0;
+                                padding:6px;
+                                font-size:0.85rem;"
+                            step="50"
+                            min="0">
+
+
+                        <button
+                            id="btnSalvarMeta"
+                            type="button"
+                            style="
+                                width:auto;
+                                margin:0;
+                                padding:6px 12px;
+                                font-size:0.85rem;">
+
+                            Salvar
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             AJUDA
+        ================================================= -->
+
+        <div>
+
+            <button
+                id="btnMenuAjuda"
+                class="menu-section-button"
+                type="button"
+                aria-expanded="false">
+
+                <span>
+                    💡 Ajuda & Novidades
+                </span>
+
+                <span class="section-arrow">
+                    ›
+                </span>
+
+            </button>
+
+
+            <div
+                id="painelMenuAjuda"
+                class="menu-section-panel">
+
+
+                <p
+                    style="
+                        font-size:0.8rem;
+                        color:#aaa;
+                        margin:0 0 10px 0;">
+
+                    Veja vídeos de uso, dicas
+                    e atualizações do app.
+
+                </p>
+
+
+                <a
+                    href="ajuda.html"
+                    id="btnTutoriais"
+                    class="btn-link-tutoriais">
+
+                    🎥 Tutoriais e Atualizações
+
+                </a>
+
+            </div>
+
+        </div>
+
     </div>
 
 </nav>
 
-<!-- =========================================================
+
+<!-- =====================================================
      CONTEÚDO PRINCIPAL
-     ========================================================= -->
+===================================================== -->
 
 <div class="container">
+
+
+    <!-- CABEÇALHO -->
 
     <div class="app-header">
 
@@ -982,8 +2342,11 @@
             class="btn-hamburger"
             aria-label="Abrir Menu"
             type="button">
+
             ☰
+
         </button>
+
 
         <div class="app-header-titles">
 
@@ -996,11 +2359,13 @@
             </p>
 
         </div>
+
     </div>
 
-    <!-- =====================================================
-         ENTRADA E PREVIEW
-         ===================================================== -->
+
+    <!-- =================================================
+         LANÇAMENTO
+    ================================================= -->
 
     <div class="card">
 
@@ -1012,7 +2377,9 @@
             type="number"
             id="valorUnitario"
             step="0.01"
+            min="0.01"
             value="0.21">
+
 
         <label for="textoProducao">
             Lançamento do Dia
@@ -1020,11 +2387,18 @@
 
         <textarea
             id="textoProducao"
-            placeholder="Ex: 251 calças patricia"></textarea>
+            placeholder="Ex: 251 calças patricia">
+        </textarea>
 
-        <button id="btnSalvar">
+
+        <button
+            id="btnSalvar"
+            type="button">
+
             Salvar Lançamento
+
         </button>
+
 
         <div
             id="previewResult"
@@ -1032,35 +2406,63 @@
 
             <div>
                 Total de Peças:
-                <span id="previewPecas">0</span>
+                <span id="previewPecas">
+                    0
+                </span>
             </div>
 
             <div>
                 Total a Receber:
-                <span id="previewValor">R$ 0,00</span>
+                <span id="previewValor">
+                    R$ 0,00
+                </span>
             </div>
 
         </div>
 
     </div>
 
-    <!-- =====================================================
-         SEMANA ATUAL
-         ===================================================== -->
 
-    <div class="card">
+    <!-- =================================================
+         SEMANA ATUAL
+    ================================================= -->
+
+    <div
+        class="card"
+        id="cardSemanaAtual">
 
         <h3 style="margin-top:0;">
-            Semana Atual
+            📅 Semana Atual
         </h3>
+
 
         <input
             type="text"
             id="inputBusca"
             placeholder="🔍 Buscar na semana (ex: patricia)..."
-            style="margin-bottom:12px; font-size:0.9rem; padding:10px;">
+            style="
+                margin-bottom:12px;
+                font-size:0.9rem;
+                padding:10px;">
+
 
         <div id="listaHistorico"></div>
+
+
+        <!-- =================================================
+             RESUMO POR VALOR
+        ================================================= -->
+
+        <div
+            id="resumoSemanalPreco"
+            class="resumo-preco">
+
+            <!-- O app.js preenche aqui -->
+
+        </div>
+
+
+        <!-- TOTAL GERAL -->
 
         <div
             style="
@@ -1074,27 +2476,38 @@
 
             <span
                 id="totalGeralValor"
-                style="color:var(--accent-color);">
+                style="
+                    color:var(--accent-color);">
+
                 R$ 0,00
+
             </span>
 
-            <span id="totalGeralPecas">
+            <span
+                id="totalGeralPecas">
+
                 0
+
             </span>
 
         </div>
 
+
         <button
             id="btnFecharSemana"
-            class="btn-close">
+            class="btn-close"
+            type="button">
+
             🔒 Fechar e Salvar Semana
+
         </button>
 
     </div>
 
-    <!-- =====================================================
-         HISTÓRICO
-         ===================================================== -->
+
+    <!-- =================================================
+         ARQUIVO
+    ================================================= -->
 
     <div
         class="card"
@@ -1106,7 +2519,7 @@
                 margin-top:0;
                 color:var(--info-color);">
 
-            Histórico de Semanas
+            📚 Histórico de Semanas
 
         </h3>
 
@@ -1116,15 +2529,15 @@
 
 </div>
 
-<!-- =========================================================
+
+<!-- =====================================================
      BARRA INFERIOR
-     ========================================================= -->
+===================================================== -->
 
 <nav
     class="bottom-bar"
     aria-label="Navegação rápida">
 
-    <!-- GOOGLE -->
 
     <button
         id="btnBottomSync"
@@ -1135,18 +2548,21 @@
         <span
             class="bottom-icon"
             id="bottomSyncStatus">
+
             ⚪
+
         </span>
 
         <span
             class="bottom-label"
             id="bottomSyncLabel">
+
             Google
+
         </span>
 
     </button>
 
-    <!-- BUSCA -->
 
     <button
         id="btnBottomBusca"
@@ -1164,7 +2580,6 @@
 
     </button>
 
-    <!-- MENU -->
 
     <button
         id="btnBottomMenu"
@@ -1184,360 +2599,309 @@
 
 </nav>
 
-<!-- =========================================================
+
+<!-- =====================================================
      APP.JS
-     ========================================================= -->
+===================================================== -->
 
-<script type="module" src="/src/js/app.js"></script>
-
-<!-- =========================================================
-     SERVICE WORKER
-     ========================================================= -->
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker
-                .register('./sw.js')
-                .catch(err => {
-                    console.log('SW falhou:', err);
-                });
-        });
-    }
+<script
+    type="module"
+    src="./src/js/app.js">
 </script>
 
-<!-- =========================================================
-     CONTROLE DAS SEÇÕES EXPANSÍVEIS
-     ========================================================= -->
+
+<!-- =====================================================
+     EXPANSÃO DAS SEÇÕES
+===================================================== -->
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
 
-    function configurarSecao(botaoId, painelId) {
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-        const botao = document.getElementById(botaoId);
-        const painel = document.getElementById(painelId);
+        function configurarSecao(botaoId, painelId) {
 
-        if (!botao || !painel) {
-            return;
+            const botao =
+                document.getElementById(botaoId);
+
+            const painel =
+                document.getElementById(painelId);
+
+            if (!botao || !painel) {
+                return;
+            }
+
+            botao.addEventListener(
+                "click",
+                () => {
+
+                    const aberto =
+                        painel.classList.toggle("ativo");
+
+                    botao.classList.toggle(
+                        "aberto",
+                        aberto
+                    );
+
+                    botao.setAttribute(
+                        "aria-expanded",
+                        aberto ? "true" : "false"
+                    );
+
+                }
+            );
+
         }
 
-        botao.addEventListener('click', () => {
 
-            const aberto =
-                painel.classList.contains('aberto');
+        /* =================================================
+           SEÇÕES DA CONFIGURAÇÃO
+        ================================================= */
 
-            painel.classList.toggle('aberto', !aberto);
-            botao.classList.toggle('aberto', !aberto);
-
-            botao.setAttribute(
-                'aria-expanded',
-                String(!aberto)
-            );
-        });
-    }
-
-    /* =====================================================
-       CONFIGURAÇÃO
-       ===================================================== */
-
-    configurarSecao(
-        'btnConfigGoogle',
-        'painelConfigGoogle'
-    );
-
-    configurarSecao(
-        'btnConfigProducao',
-        'painelConfigProducao'
-    );
-
-    configurarSecao(
-        'btnConfigMeta',
-        'painelConfigMeta'
-    );
-
-    configurarSecao(
-        'btnConfigNotificacoes',
-        'painelConfigNotificacoes'
-    );
-
-    configurarSecao(
-        'btnConfigDados',
-        'painelConfigDados'
-    );
-
-    configurarSecao(
-        'btnConfigSobre',
-        'painelConfigSobre'
-    );
-
-    /* =====================================================
-       MENU
-       ===================================================== */
-
-    configurarSecao(
-        'btnMenuGoogle',
-        'painelMenuGoogle'
-    );
-
-    configurarSecao(
-        'btnMenuMeta',
-        'painelMenuMeta'
-    );
-
-    configurarSecao(
-        'btnMenuAjuda',
-        'painelMenuAjuda'
-    );
-
-    /* =====================================================
-       CONFIGURAÇÃO PRINCIPAL
-       ===================================================== */
-
-    const btnConfiguracao =
-        document.getElementById('btnAbrirConfiguracao');
-
-    const painelConfiguracao =
-        document.getElementById('painelConfiguracao');
-
-    const configArrow =
-        document.getElementById('configArrow');
-
-    if (btnConfiguracao && painelConfiguracao) {
-
-        btnConfiguracao.addEventListener('click', () => {
-
-            const aberto =
-                painelConfiguracao.style.display === 'block';
-
-            painelConfiguracao.style.display =
-                aberto ? 'none' : 'block';
-
-            btnConfiguracao.classList.toggle(
-                'aberto',
-                !aberto
-            );
-
-            btnConfiguracao.setAttribute(
-                'aria-expanded',
-                String(!aberto)
-            );
-
-            if (configArrow) {
-                configArrow.style.transform =
-                    aberto
-                        ? 'rotate(0deg)'
-                        : 'rotate(180deg)';
-            }
-        });
-    }
-
-    /* =====================================================
-       BOTÕES DA CONFIGURAÇÃO
-       ===================================================== */
-
-    const btnConfigGoogleLogin =
-        document.getElementById('btnConfigGoogleLogin');
-
-    const btnLoginGoogle =
-        document.getElementById('btnLoginGoogle');
-
-    if (btnConfigGoogleLogin && btnLoginGoogle) {
-
-        btnConfigGoogleLogin.addEventListener('click', () => {
-            btnLoginGoogle.click();
-        });
-    }
-
-    const btnConfigGoogleLogout =
-        document.getElementById('btnConfigGoogleLogout');
-
-    const btnLogoutGoogle =
-        document.getElementById('btnLogoutGoogle');
-
-    if (btnConfigGoogleLogout && btnLogoutGoogle) {
-
-        btnConfigGoogleLogout.addEventListener('click', () => {
-            btnLogoutGoogle.click();
-        });
-    }
-
-    /* =====================================================
-       VALOR DE PRODUÇÃO
-       ===================================================== */
-
-    const valorUnitario =
-        document.getElementById('valorUnitario');
-
-    const configValorUnitario =
-        document.getElementById('configValorUnitario');
-
-    const btnConfigSalvarProducao =
-        document.getElementById('btnConfigSalvarProducao');
-
-    if (valorUnitario && configValorUnitario) {
-
-        configValorUnitario.value =
-            valorUnitario.value || '';
-    }
-
-    if (
-        btnConfigSalvarProducao &&
-        valorUnitario &&
-        configValorUnitario
-    ) {
-
-        btnConfigSalvarProducao.addEventListener(
-            'click',
-            () => {
-
-                if (configValorUnitario.value !== '') {
-
-                    valorUnitario.value =
-                        configValorUnitario.value;
-
-                    valorUnitario.dispatchEvent(
-                        new Event('input', {
-                            bubbles: true
-                        })
-                    );
-                }
-            }
+        configurarSecao(
+            "btnConfigGoogle",
+            "painelConfigGoogle"
         );
-    }
 
-    /* =====================================================
-       META
-       ===================================================== */
-
-    const inputMetaValor =
-        document.getElementById('inputMetaValor');
-
-    const configMetaValor =
-        document.getElementById('configMetaValor');
-
-    const btnConfigSalvarMeta =
-        document.getElementById('btnConfigSalvarMeta');
-
-    const btnSalvarMeta =
-        document.getElementById('btnSalvarMeta');
-
-    if (inputMetaValor && configMetaValor) {
-
-        configMetaValor.value =
-            inputMetaValor.value || '';
-    }
-
-    if (
-        btnConfigSalvarMeta &&
-        inputMetaValor &&
-        configMetaValor
-    ) {
-
-        btnConfigSalvarMeta.addEventListener(
-            'click',
-            () => {
-
-                if (configMetaValor.value !== '') {
-
-                    inputMetaValor.value =
-                        configMetaValor.value;
-
-                    if (btnSalvarMeta) {
-                        btnSalvarMeta.click();
-                    }
-                }
-            }
+        configurarSecao(
+            "btnConfigProducao",
+            "painelConfigProducao"
         );
-    }
 
-    /* =====================================================
-       BACKUP
-       ===================================================== */
+        configurarSecao(
+            "btnConfigMeta",
+            "painelConfigMeta"
+        );
 
-    const btnConfigBackup =
-        document.getElementById('btnConfigBackup');
+        configurarSecao(
+            "btnConfigNotificacoes",
+            "painelConfigNotificacoes"
+        );
 
-    const btnEnviarNuvem =
-        document.getElementById('btnEnviarNuvem');
+        configurarSecao(
+            "btnConfigDados",
+            "painelConfigDados"
+        );
 
-    if (btnConfigBackup && btnEnviarNuvem) {
+        configurarSecao(
+            "btnConfigSobre",
+            "painelConfigSobre"
+        );
 
-        btnConfigBackup.addEventListener('click', () => {
-            btnEnviarNuvem.click();
-        });
-    }
 
-    /* =====================================================
-       FECHAR CONFIGURAÇÃO AO FECHAR O MENU
-       ===================================================== */
+        /* =================================================
+           SEÇÕES PRINCIPAIS DO MENU
+        ================================================= */
 
-    const menuLateral =
-        document.getElementById('menuLateral');
+        configurarSecao(
+            "btnMenuGoogle",
+            "painelMenuGoogle"
+        );
 
-    const observer =
-        new MutationObserver(() => {
+        configurarSecao(
+            "btnMenuMeta",
+            "painelMenuMeta"
+        );
+
+        configurarSecao(
+            "btnMenuAjuda",
+            "painelMenuAjuda"
+        );
+
+
+        /* =================================================
+           SINCRONIZA O ESTADO VISUAL DA CONFIGURAÇÃO
+           COM O APP.JS
+        ================================================= */
+
+        const painelConfiguracao =
+            document.getElementById(
+                "painelConfiguracao"
+            );
+
+        const btnAbrirConfiguracao =
+            document.getElementById(
+                "btnAbrirConfiguracao"
+            );
+
+
+        function atualizarEstadoConfiguracao() {
 
             if (
-                menuLateral &&
-                !menuLateral.classList.contains('ativo')
+                !painelConfiguracao ||
+                !btnAbrirConfiguracao
             ) {
-
-                if (painelConfiguracao) {
-                    painelConfiguracao.style.display =
-                        'none';
-                }
-
-                if (btnConfiguracao) {
-                    btnConfiguracao.classList.remove(
-                        'aberto'
-                    );
-
-                    btnConfiguracao.setAttribute(
-                        'aria-expanded',
-                        'false'
-                    );
-                }
-
-                if (configArrow) {
-                    configArrow.style.transform =
-                        'rotate(0deg)';
-                }
-
-                document
-                    .querySelectorAll(
-                        '.config-section-panel.aberto'
-                    )
-                    .forEach(painel => {
-                        painel.classList.remove('aberto');
-                    });
-
-                document
-                    .querySelectorAll(
-                        '.config-section-button.aberto'
-                    )
-                    .forEach(botao => {
-
-                        botao.classList.remove('aberto');
-
-                        botao.setAttribute(
-                            'aria-expanded',
-                            'false'
-                        );
-                    });
+                return;
             }
-        });
 
-    if (menuLateral) {
+            const aberto =
+                painelConfiguracao.classList.contains(
+                    "ativo"
+                );
 
-        observer.observe(menuLateral, {
-            attributes: true,
-            attributeFilter: ['class']
-        });
+            btnAbrirConfiguracao.classList.toggle(
+                "aberto",
+                aberto
+            );
+
+            btnAbrirConfiguracao.setAttribute(
+                "aria-expanded",
+                aberto ? "true" : "false"
+            );
+
+        }
+
+
+        if (painelConfiguracao) {
+
+            const observador =
+                new MutationObserver(
+                    atualizarEstadoConfiguracao
+                );
+
+            observador.observe(
+                painelConfiguracao,
+                {
+                    attributes: true,
+                    attributeFilter: ["class"]
+                }
+            );
+
+            atualizarEstadoConfiguracao();
+
+        }
+
+
+        /* =================================================
+           AO VOLTAR DA CONFIGURAÇÃO,
+           FECHA AS SUBSEÇÕES
+        ================================================= */
+
+        const btnFecharConfiguracao =
+            document.getElementById(
+                "btnFecharConfiguracao"
+            );
+
+
+        if (btnFecharConfiguracao) {
+
+            btnFecharConfiguracao.addEventListener(
+                "click",
+                () => {
+
+                    const secoes = [
+                        [
+                            "btnConfigGoogle",
+                            "painelConfigGoogle"
+                        ],
+                        [
+                            "btnConfigProducao",
+                            "painelConfigProducao"
+                        ],
+                        [
+                            "btnConfigMeta",
+                            "painelConfigMeta"
+                        ],
+                        [
+                            "btnConfigNotificacoes",
+                            "painelConfigNotificacoes"
+                        ],
+                        [
+                            "btnConfigDados",
+                            "painelConfigDados"
+                        ],
+                        [
+                            "btnConfigSobre",
+                            "painelConfigSobre"
+                        ]
+                    ];
+
+
+                    secoes.forEach(
+                        ([botaoId, painelId]) => {
+
+                            const botao =
+                                document.getElementById(
+                                    botaoId
+                                );
+
+                            const painel =
+                                document.getElementById(
+                                    painelId
+                                );
+
+                            if (botao && painel) {
+
+                                painel.classList.remove(
+                                    "ativo"
+                                );
+
+                                botao.classList.remove(
+                                    "aberto"
+                                );
+
+                                botao.setAttribute(
+                                    "aria-expanded",
+                                    "false"
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+
     }
+);
 
-});
 </script>
+
+
+<!-- =====================================================
+     SERVICE WORKER
+===================================================== -->
+
+<script>
+
+if ('serviceWorker' in navigator) {
+
+    window.addEventListener(
+        'load',
+        async () => {
+
+            try {
+
+                const registration =
+                    await navigator.serviceWorker.register(
+                        './sw.js'
+                    );
+
+                console.log(
+                    'Service Worker registrado:',
+                    registration.scope
+                );
+
+            } catch (erro) {
+
+                console.error(
+                    'Falha ao registrar Service Worker:',
+                    erro
+                );
+
+            }
+
+        }
+    );
+
+}
+
+</script>
+
 
 </body>
 </html>
