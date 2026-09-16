@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ajuda e Atualizações - Controle de Travete</title>
+    
+    <meta name="theme-color" content="#121212">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #4caf50;
+            --border-color: #333;
+            --info-color: #2196F3;
+            --warning-color: #ff9800;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+        .container { width: 100%; max-width: 600px; }
+        
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.3rem; margin: 0; color: #fff; }
+        
+        .btn-voltar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-voltar:hover { background-color: #2c2c2c; }
+
+        .card { 
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+        }
+        .card h2 { font-size: 1.1rem; margin-top: 0; color: var(--info-color); display: flex; align-items: center; gap: 8px; }
+        .card h3 { font-size: 1rem; color: #fff; margin-bottom: 6px; }
+        
+        p { font-size: 0.9rem; color: #aaa; line-height: 1.4; margin-top: 0; }
+
+        /* Responsividade para Vídeos do YouTube */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* Proporção 16:9 */
+            height: 0;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .changelog-item {
+            border-left: 3px solid var(--accent-color);
+            padding-left: 12px;
+            margin-bottom: 14px;
+        }
+        .changelog-date { font-size: 0.75rem; color: var(--warning-color); font-weight: bold; margin-bottom: 2px; }
+        ul { padding-left: 18px; margin: 6px 0; color: #ccc; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Cabeçalho -->
+    <div class="app-header">
+        <h1>Central de Ajuda</h1>
+        <a href="index.html" class="btn-voltar">⬅ Voltar ao App</a>
+    </div>
+
+    <!-- Seção de Vídeos / Tutoriais -->
+    <div class="card">
+        <h2>🎥 Vídeo Tutorial</h2>
+        <p>Aprenda a utilizar todas as funções do aplicativo rapidamente através do vídeo abaixo:</p>
+        
+        <h3>Como registrar lançamentos e calcular o dia</h3>
+        <p>Veja como preencher o campo de lançamento corretamente.</p>
+        
+        <!-- Vídeo Principal Funcionando -->
+        <div class="video-container">
+        <iframe 
+  width="560" 
+  height="315" 
+  src="https://www.youtube.com/embed/zW7BLhunECY" 
+  title="Caderno Eletrônico" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen>
+</iframe>
+           <!-- <iframe src="https://www.youtube.com/watch?v=zW7BLhunECY" allowfullscreen></iframe> -->
+        </div>
+    </div>
+
+    <!-- Seção de Mudanças e Atualizações (Changelog) -->
+    <div class="card">
+        <h2>🚀 Notas de Atualização</h2>
+        <p>Acompanhe o que há de novo e as melhorias aplicadas no sistema:</p>
+
+        <div class="changelog-item">
+            <div class="changelog-date">Versão 1.2.0 — Março de 2026</div>
+            <h3>Menu Lateral e Sincronização</h3>
+            <ul>
+                <li>Adicionado menu lateral (Drawer) com atalhos organizados.</li>
+                <li>Implementada integração com o Google Drive para backup automático.</li>
+                <li>Correções de layout e responsividade para dispositivos móveis.</li>
+            </ul>
+        </div>
+
+        <div class="changelog-item">
+            <div class="changelog-date">Versão 1.1.0 — Fevereiro de 2026</div>
+            <h3>Arquitetura Modular</h3>
+            <ul>
+                <li>Refatoração completa do código utilizando POO em JavaScript.</li>
+                <li>Melhoria no cálculo em tempo real dos valores e peças da semana.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

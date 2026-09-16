@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controle de Travete</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<!-- Google Identity Services (GIS) para o Login com Google -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>:root{--bg-color:#121212;--card-bg:#1e1e1e;--text-color:#e0e0e0;--accent-color:#4caf50;--accent-hover:#45a049;--border-color:#333;--info-color:#2196f3;--whatsapp-color:#25d366;--warning-color:#ff9800}*{box-sizing:border-box}html{scroll-behavior:smooth}body{background-color:var(--bg-color);color:var(--text-color);justify-content:center;margin:0;padding:16px 16px 105px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;display:flex}.container{width:100%;max-width:500px}.app-header{justify-content:flex-start;align-items:center;gap:12px;margin-bottom:20px;display:flex}.app-header-titles h1{color:#fff;margin:0 0 4px;font-size:1.5rem}.app-header-titles p.subtitle{color:#aaa;margin:0;font-size:.85rem}.btn-hamburger{background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-color);cursor:pointer;border-radius:8px;justify-content:center;align-items:center;padding:10px 16px;font-size:1.4rem;display:flex;width:auto!important;margin-top:0!important}.btn-hamburger:hover{background-color:#2c2c2c}.menu-overlay{-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);z-index:998;opacity:0;background:#0009;width:100%;height:100%;transition:opacity .3s;display:none;position:fixed;top:0;left:0}.menu-overlay.ativo{opacity:1;display:block}.menu-lateral{background-color:var(--card-bg);border-right:1px solid var(--border-color);z-index:999;box-sizing:border-box;flex-direction:column;width:290px;height:100%;padding:20px;transition:left .3s;display:flex;position:fixed;top:0;left:-320px;overflow-y:auto;box-shadow:5px 0 25px #00000080}.menu-lateral.ativo{left:0;right:0}.menu-header{border-bottom:1px solid var(--border-color);justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;display:flex}.menu-header h3{color:#fff;margin:0;font-size:1.1rem}.btn-fechar-menu{color:#aaa;cursor:pointer;background:0 0;border:none;padding:4px 8px;font-size:1.2rem;width:auto!important}.btn-fechar-menu:hover{color:#fff}.card{background-color:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:16px;padding:16px}label{color:#aaa;margin-bottom:6px;font-size:.85rem;display:block}input,textarea{border:1px solid var(--border-color);color:#fff;box-sizing:border-box;background-color:#2c2c2c;border-radius:8px;width:100%;margin-bottom:12px;padding:12px;font-size:1rem}textarea{resize:vertical;height:100px}button{background-color:var(--accent-color);color:#fff;cursor:pointer;border:none;border-radius:8px;width:100%;margin-top:4px;padding:14px;font-size:1rem;font-weight:700}button:hover{background-color:var(--accent-hover)}.history-item{border-bottom:1px solid var(--border-color);justify-content:space-between;align-items:flex-start;padding:10px 0;font-size:.9rem;display:flex}ul{color:#ccc;margin:4px 0;padding-left:20px}.btn-whatsapp{background-color:var(--whatsapp-color);color:#fff;justify-content:center;align-items:center;gap:6px;margin-top:8px;padding:8px;font-size:.85rem;display:flex}.archive-box{border-left:4px solid var(--info-color);background-color:#252525;border-radius:8px;margin-top:10px;padding:12px}.btn-close{background-color:var(--info-color);margin-top:12px}.btn-backup{background-color:#607d8b;margin-top:8px;padding:10px;font-size:.9rem}.btn-backup:hover{background-color:#546e7a}.preview-box{border-left:4px solid var(--accent-color);background-color:#252525;border-radius:8px;margin-top:12px;padding:12px;font-size:.95rem;display:none}.preview-box span{color:var(--accent-color);font-weight:700}.btn-link-tutoriais{background-color:var(--info-color);color:#fff;box-sizing:border-box;border-radius:8px;justify-content:center;align-items:center;gap:8px;width:100%;margin-top:4px;padding:12px;font-size:.9rem;font-weight:700;text-decoration:none;transition:opacity .2s;display:inline-flex}.btn-link-tutoriais:hover{opacity:.9}.bottom-bar{z-index:997;left:50%;bottom:max(10px, env(safe-area-inset-bottom));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);background:#1e1e1ef5;border:1px solid #3a3a3a;border-radius:16px;grid-template-columns:repeat(3,1fr);gap:6px;width:min(100% - 20px,500px);padding:7px;display:grid;position:fixed;transform:translate(-50%);box-shadow:0 8px 30px #00000073}.bottom-item{color:#aaa;background:0 0;border-radius:11px;flex-direction:column;justify-content:center;align-items:center;gap:2px;min-height:58px;margin-top:0;padding:6px;transition:background .15s,color .15s;display:flex}.bottom-item:hover,.bottom-item:focus-visible{color:#fff;background:#292929;outline:none}.bottom-icon{font-size:1.35rem;line-height:1}.bottom-label{font-size:.68rem;font-weight:700}#btnBottomSync.pendente{color:var(--warning-color)}#btnBottomSync.sincronizado{color:var(--accent-color)}#btnBottomSync.desconectado{color:#aaa}#bottomSyncStatus{font-size:.78rem}@media (width>=700px){body{padding-bottom:110px}}</style>
+
+  <script type="module" crossorigin src="/assets/index-BIwmll_y.js"></script>
+</head>
+<body>
+
+<!-- Menu Lateral (Drawer) -->
+
+<div id="menuOverlay" class="menu-overlay"></div>
+
+<nav id="menuLateral" class="menu-lateral">
+    <div class="menu-header">
+        <h3>Menu do Sistema</h3>
+        <button id="btnFecharMenu" class="btn-fechar-menu">✕</button>
+    </div>
+
+<div class="menu-content" id="cardSincronizacao" style="display: flex; flex-direction: column; gap: 12px;">
+
+    <div style="color: var(--warning-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
+        ☁️ Sincronização Google
+    </div>
+
+    <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">
+        Conecte sua conta para salvar dados na nuvem com facilidade.
+    </p>
+    
+    <div id="statusLogin" style="font-size: 0.85rem; color: #bbb; margin-bottom: 6px;">
+        Status: Desconectado
+    </div>
+    
+    <button
+        id="btnLoginGoogle"
+        style="background-color: #4285F4; color: white; font-size: 0.9rem; padding: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0;">
+        🔑 Entrar com o Google
+    </button>
+
+    <button
+        id="btnLogoutGoogle"
+        style="background-color: #d32f2f; color: white; font-size: 0.85rem; padding: 8px; display: none; margin: 0;">
+        🚪 Sair da Conta
+    </button>
+
+    <div id="cardSincronizacaoMenu" style="margin-top: 4px;">
+        <button
+            id="btnEnviarNuvem"
+            class="btn-backup"
+            style="background-color: var(--warning-color); color: #000; font-weight: bold; width: 100%; margin: 0;">
+            🚀 Sincronizar com o Drive
+        </button>
+    </div>
+
+    <!--
+        IMPORTANTE:
+        O app.js pode criar dinamicamente o botão
+        "📊 Ver Planilha no Google Drive".
+        Não removemos nenhum espaço/função para ele.
+    -->
+
+    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
+    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
+
+    <!-- Seção de Meta de Produção -->
+    <div style="color: var(--accent-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
+        🎯 Meta Semanal
+    </div>
+
+    <div style="background-color: #252525; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+            <span id="textoMetaProgresso">R$ 0,00 / R$ 0,00</span>
+            <span id="porcentagemMeta" style="font-weight: bold; color: var(--accent-color);">0%</span>
+        </div>
+
+        <!-- Barra de Progresso -->
+        <div style="background: #333; border-radius: 4px; height: 8px; width: 100%; overflow: hidden;">
+            <div
+                id="barraProgressoMeta"
+                style="background: var(--accent-color); height: 100%; width: 0%; transition: width 0.3s ease;">
+            </div>
+        </div>
+
+        <div style="margin-top: 8px; display: flex; gap: 4px;">
+            <input
+                type="number"
+                id="inputMetaValor"
+                placeholder="Definir Meta R$"
+                style="margin: 0; padding: 6px; font-size: 0.85rem;"
+                step="50">
+
+            <button
+                id="btnSalvarMeta"
+                style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem;">
+                Salvar
+            </button>
+        </div>
+    </div>
+
+    <!-- Seção de Ajuda e Tutoriais -->
+    <div style="color: var(--info-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
+        💡 Ajuda & Novidades
+    </div>
+
+    <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">
+        Veja vídeos de uso, dicas e atualizações do app.
+    </p>
+    
+    <a
+        href="ajuda.html"
+        id="btnTutoriais"
+        class="btn-link-tutoriais">
+        🎥 Tutoriais e Atualizações
+    </a>
+</div>
+
+</nav>
+
+<div class="container">
+
+<!-- Cabeçalho com Botão Hambúrguer -->
+<div class="app-header">
+
+    <button
+        id="btnMenuHamburger"
+        class="btn-hamburger"
+        aria-label="Abrir Menu"
+        type="button">
+        ☰
+    </button>
+
+    <div class="app-header-titles">
+        <h1>Controle de Travete</h1>
+        <p class="subtitle">Arquitetura Modular em POO</p>
+    </div>
+
+</div>
+
+<!-- Bloco de Entrada e Preview -->
+<div class="card">
+    <label for="valorUnitario">Valor Unitário (R$)</label>
+
+    <input
+        type="number"
+        id="valorUnitario"
+        step="0.01"
+        value="0.21">
+
+    <label for="textoProducao">Lançamento do Dia</label>
+
+    <textarea
+        id="textoProducao"
+        placeholder="Ex: 251 calças patricia"></textarea>
+
+    <button id="btnSalvar">
+        Salvar Lançamento
+    </button>
+
+    <!-- Preview que aparece em tempo real -->
+    <div id="previewResult" class="preview-box">
+        <div>Total de Peças: <span id="previewPecas">0</span></div>
+        <div>Total a Receber: <span id="previewValor">R$ 0,00</span></div>
+    </div>
+</div>
+
+<!-- Bloco da Semana Atual -->
+<div class="card">
+    <h3 style="margin-top:0;">Semana Atual</h3>
+    
+    <!-- Campo de Busca -->
+    <input
+        type="text"
+        id="inputBusca"
+        placeholder="🔍 Buscar na semana (ex: patricia)..."
+        style="margin-bottom: 12px; font-size: 0.9rem; padding: 10px;">
+
+    <div id="listaHistorico"></div>
+
+    <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <strong>Total:</strong>
+        <span id="totalGeralValor" style="color: var(--accent-color);">
+            R$ 0,00
+        </span>
+        <span id="totalGeralPecas">0</span>
+    </div>
+
+    <button id="btnFecharSemana" class="btn-close">
+        🔒 Fechar e Salvar Semana
+    </button>
+</div>
+
+<!-- Bloco do Histórico de Semanas -->
+<div class="card" id="cardArquivo" style="display: none;">
+    <h3 style="margin-top:0; color: var(--info-color);">
+        Histórico de Semanas
+    </h3>
+
+    <div id="listaArquivo"></div>
+</div>
+
+</div>
+
+<!-- =========================================================
+     BOTTOM BAR
+     ========================================================= -->
+
+<nav class="bottom-bar" aria-label="Navegação rápida">
+
+<!-- Google: somente indicador de sincronização -->
+<button
+    id="btnBottomSync"
+    class="bottom-item desconectado"
+    aria-label="Status da sincronização"
+    type="button">
+
+    <span
+        class="bottom-icon"
+        id="bottomSyncStatus">
+        ⚪
+    </span>
+
+    <span
+        class="bottom-label"
+        id="bottomSyncLabel">
+        Google
+    </span>
+</button>
+
+<!-- Buscar: atalho para o campo de busca existente -->
+<button
+    id="btnBottomBusca"
+    class="bottom-item"
+    aria-label="Buscar na semana"
+    type="button">
+
+    <span class="bottom-icon">🔎</span>
+
+    <span class="bottom-label">
+        Buscar
+    </span>
+</button>
+
+<!-- Menu: atalho para o menu hambúrguer -->
+<button
+    id="btnBottomMenu"
+    class="bottom-item"
+    aria-label="Abrir menu"
+    type="button">
+
+    <span class="bottom-icon">☰</span>
+
+    <span class="bottom-label">
+        Menu
+    </span>
+</button>
+
+</nav>
+
+<!-- Importação como módulo JavaScript ES6 -->
+
+
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+            .register('./sw.js')
+            .catch(err => console.log('SW falhou'));
+    }
+</script>
+
+</body>
+</html>
+
