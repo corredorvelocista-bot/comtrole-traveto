@@ -1,655 +1,1543 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Controle de Travete</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#121212">
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-<!-- Google Identity Services (GIS) para o Login com Google -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<style>
-    :root {
-        --bg-color: #121212;
-        --card-bg: #1e1e1e;
-        --text-color: #e0e0e0;
-        --accent-color: #4caf50;
-        --accent-hover: #45a049;
-        --border-color: #333;
-        --info-color: #2196F3;
-        --whatsapp-color: #25D366;
-        --warning-color: #ff9800;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    html {
-        scroll-behavior: smooth;
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        margin: 0;
-        padding: 16px 16px 105px;
-        display: flex;
-        justify-content: center;
-    }
-
-    .container {
-        width: 100%;
-        max-width: 500px;
-    }
-    
-    /* Cabeçalho com Menu Hambúrguer */
-    .app-header {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-    .app-header-titles h1 {
-        font-size: 1.5rem;
-        margin: 0 0 4px 0;
-        color: #fff;
-    }
-
-    .app-header-titles p.subtitle {
-        font-size: 0.85rem;
-        color: #aaa;
-        margin: 0;
-    }
-    
-    .btn-hamburger {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 1.4rem;
-        color: var(--text-color);
-        cursor: pointer;
-        padding: 10px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: auto !important;
-        margin-top: 0 !important;
-    }
-
-    .btn-hamburger:hover {
-        background-color: #2c2c2c;
-    }
-
-    /* Estilos do Menu Lateral (Drawer) */
-    .menu-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(2px);
-        z-index: 998;
-        display: none;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .menu-overlay.ativo {
-        display: block;
-        opacity: 1;
-    }
-
-    .menu-lateral {
-    position: fixed;
-    top: 0;
-    left: -320px;
-    width: 290px;
-    height: 100%;
-    background-color: var(--card-bg);
-    border-right: 1px solid var(--border-color);
-    z-index: 999;
-    transition: left 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    box-sizing: border-box;
-    box-shadow: 5px 0 25px rgba(0,0,0,0.5);
-    overflow-y: auto;
-}
-
-.menu-lateral.ativo {
-    left: 0;
-}
-
-    .menu-lateral.ativo {
-        right: 0;
-    }
-
-    .menu-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 12px;
-    }
-
-    .menu-header h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #fff;
-    }
-
-    .btn-fechar-menu {
-        background: transparent;
-        border: none;
-        color: #aaa;
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 4px 8px;
-        width: auto !important;
-    }
-
-    .btn-fechar-menu:hover {
-        color: #fff;
-    }
-
-    .card {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-
-    label {
-        display: block;
-        font-size: 0.85rem;
-        color: #aaa;
-        margin-bottom: 6px;
-    }
-
-    input,
-    textarea {
-        width: 100%;
-        padding: 12px;
-        background-color: #2c2c2c;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: #fff;
-        font-size: 1rem;
-        box-sizing: border-box;
-        margin-bottom: 12px;
-    }
-
-    textarea {
-        height: 100px;
-        resize: vertical;
-    }
-
-    button {
-        width: 100%;
-        padding: 14px;
-        background-color: var(--accent-color);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 4px;
-    }
-
-    button:hover {
-        background-color: var(--accent-hover);
-    }
-
-    .history-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.9rem;
-    }
-
-    ul {
-        padding-left: 20px;
-        margin: 4px 0;
-        color: #ccc;
-    }
-
-    .btn-whatsapp {
-        background-color: var(--whatsapp-color);
-        color: #fff;
-        font-size: 0.85rem;
-        padding: 8px;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
-
-    .archive-box {
-        background-color: #252525;
-        padding: 12px;
-        border-radius: 8px;
-        margin-top: 10px;
-        border-left: 4px solid var(--info-color);
-    }
-
-    .btn-close {
-        background-color: var(--info-color);
-        margin-top: 12px;
-    }
-
-    .btn-backup {
-        background-color: #607d8b;
-        margin-top: 8px;
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-
-    .btn-backup:hover {
-        background-color: #546e7a;
-    }
-    
-    /* Caixa de pré-visualização em tempo real */
-    .preview-box {
-        display: none;
-        background-color: #252525;
-        padding: 12px;
-        border-radius: 8px;
-        margin-top: 12px;
-        font-size: 0.95rem;
-        border-left: 4px solid var(--accent-color);
-    }
-
-    .preview-box span {
-        font-weight: bold;
-        color: var(--accent-color);
-    }
-
-    /* Estilo limpo para o Link de Tutoriais */
-    .btn-link-tutoriais {
-        background-color: var(--info-color);
-        color: white;
-        font-size: 0.9rem;
-        font-weight: bold;
-        padding: 12px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        text-decoration: none;
-        box-sizing: border-box;
-        margin-top: 4px;
-        transition: opacity 0.2s;
-    }
-
-    .btn-link-tutoriais:hover {
-        opacity: 0.9;
-    }
-
-    /* =========================================================
-       BOTTOM BAR
-       Apenas atalhos rápidos:
-       Google = indicador de sincronização
-       Buscar = atalho para a busca existente
-       Menu = atalho para o menu hambúrguer
-       ========================================================= */
-
-    .bottom-bar {
-        position: fixed;
-        z-index: 997;
-        left: 50%;
-        bottom: max(10px, env(safe-area-inset-bottom));
-        transform: translateX(-50%);
-        width: min(calc(100% - 20px), 500px);
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        padding: 7px;
-        background: rgba(30, 30, 30, 0.96);
-        border: 1px solid #3a3a3a;
-        border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(10px);
-    }
-
-    .bottom-item {
-        min-height: 58px;
-        background: transparent;
-        color: #aaa;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        border-radius: 11px;
-        transition: background 0.15s ease, color 0.15s ease;
-        margin-top: 0;
-        padding: 6px;
-    }
-
-    .bottom-item:hover,
-    .bottom-item:focus-visible {
-        background: #292929;
-        color: white;
-        outline: none;
-    }
-
-    .bottom-icon {
-        font-size: 1.35rem;
-        line-height: 1;
-    }
-
-    .bottom-label {
-        font-size: 0.68rem;
-        font-weight: bold;
-    }
-
-    /* Estados do indicador Google */
-    #btnBottomSync.pendente {
-        color: var(--warning-color);
-    }
-
-    #btnBottomSync.sincronizado {
-        color: var(--accent-color);
-    }
-
-    #btnBottomSync.desconectado {
-        color: #aaa;
-    }
-
-    #bottomSyncStatus {
-        font-size: 0.78rem;
-    }
-
-    @media (min-width: 700px) {
-        body {
-            padding-bottom: 110px;
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --card-bg-2: #252525;
+            --text-color: #e0e0e0;
+            --accent-color: #4caf50;
+            --accent-hover: #45a049;
+            --border-color: #333;
+            --info-color: #2196F3;
+            --whatsapp-color: #25D366;
+            --warning-color: #ff9800;
+            --danger-color: #d32f2f;
         }
-    }
-</style>
 
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px 16px 105px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* =====================================================
+           CABEÇALHO
+           ===================================================== */
+
+        .app-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .app-header-titles h1 {
+            font-size: 1.5rem;
+            margin: 0 0 4px 0;
+            color: #fff;
+        }
+
+        .app-header-titles p.subtitle {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin: 0;
+        }
+
+        .btn-hamburger {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1.4rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto !important;
+            margin-top: 0 !important;
+        }
+
+        .btn-hamburger:hover {
+            background-color: #2c2c2c;
+        }
+
+        /* =====================================================
+           MENU LATERAL
+           ===================================================== */
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-overlay.ativo {
+            display: block;
+            opacity: 1;
+        }
+
+        .menu-lateral {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 290px;
+            height: 100%;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            z-index: 999;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .menu-lateral.ativo {
+            left: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .menu-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .btn-fechar-menu {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            width: auto !important;
+        }
+
+        .btn-fechar-menu:hover {
+            color: #fff;
+        }
+
+        /* =====================================================
+           CARDS
+           ===================================================== */
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c2c2c;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 4px 0;
+            color: #ccc;
+        }
+
+        .btn-whatsapp {
+            background-color: var(--whatsapp-color);
+            color: #fff;
+            font-size: 0.85rem;
+            padding: 8px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .archive-box {
+            background-color: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid var(--info-color);
+        }
+
+        .btn-close {
+            background-color: var(--info-color);
+            margin-top: 12px;
+        }
+
+        .btn-backup {
+            background-color: #607d8b;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+
+        .btn-backup:hover {
+            background-color: #546e7a;
+        }
+
+        /* =====================================================
+           PREVIEW
+           ===================================================== */
+
+        .preview-box {
+            display: none;
+            background-color: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .preview-box span {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* =====================================================
+           LINK TUTORIAIS
+           ===================================================== */
+
+        .btn-link-tutoriais {
+            background-color: var(--info-color);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-link-tutoriais:hover {
+            opacity: 0.9;
+        }
+
+        /* =====================================================
+           SEÇÕES EXPANSÍVEIS DA CONFIGURAÇÃO
+           ===================================================== */
+
+        .config-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .config-section {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #202020;
+        }
+
+        .config-section-button {
+            width: 100%;
+            margin: 0;
+            padding: 13px 14px;
+            background: #252525;
+            color: #fff;
+            border: none;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+
+        .config-section-button:hover {
+            background: #2c2c2c;
+        }
+
+        .config-section-button.aberto {
+            background: #2c2c2c;
+        }
+
+        .config-arrow {
+            transition: transform 0.2s ease;
+            font-size: 0.8rem;
+        }
+
+        .config-section-button.aberto .config-arrow {
+            transform: rotate(180deg);
+        }
+
+        .config-section-panel {
+            display: none;
+            padding: 13px;
+            border-top: 1px solid var(--border-color);
+            background: #1b1b1b;
+        }
+
+        .config-section-panel.aberto {
+            display: block;
+        }
+
+        .config-description {
+            color: #999;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            margin: 0 0 10px;
+        }
+
+        .config-status {
+            background: #252525;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.82rem;
+            color: #bbb;
+            margin-bottom: 10px;
+        }
+
+        .config-small-button {
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+
+        /* =====================================================
+           SEÇÕES EXPANSÍVEIS DO MENU
+           ===================================================== */
+
+        .menu-section {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #202020;
+            margin-bottom: 8px;
+        }
+
+        .menu-section-button {
+            width: 100%;
+            margin: 0;
+            padding: 12px 14px;
+            background: #252525;
+            border-radius: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .menu-section-button:hover {
+            background: #2c2c2c;
+        }
+
+        .menu-section-panel {
+            display: none;
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background: #1b1b1b;
+        }
+
+        .menu-section-panel.aberto {
+            display: block;
+        }
+
+        .menu-section-arrow {
+            transition: transform 0.2s ease;
+        }
+
+        .menu-section-button.aberto .menu-section-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* =====================================================
+           BOTTOM BAR
+           ===================================================== */
+
+        .bottom-bar {
+            position: fixed;
+            z-index: 997;
+            left: 50%;
+            bottom: max(10px, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            width: min(calc(100% - 20px), 500px);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 7px;
+            background: rgba(30, 30, 30, 0.96);
+            border: 1px solid #3a3a3a;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(10px);
+        }
+
+        .bottom-item {
+            min-height: 58px;
+            background: transparent;
+            color: #aaa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            border-radius: 11px;
+            transition: background 0.15s ease, color 0.15s ease;
+            margin-top: 0;
+            padding: 6px;
+        }
+
+        .bottom-item:hover,
+        .bottom-item:focus-visible {
+            background: #292929;
+            color: white;
+            outline: none;
+        }
+
+        .bottom-icon {
+            font-size: 1.35rem;
+            line-height: 1;
+        }
+
+        .bottom-label {
+            font-size: 0.68rem;
+            font-weight: bold;
+        }
+
+        #btnBottomSync.pendente {
+            color: var(--warning-color);
+        }
+
+        #btnBottomSync.sincronizado {
+            color: var(--accent-color);
+        }
+
+        #btnBottomSync.desconectado {
+            color: #aaa;
+        }
+
+        #bottomSyncStatus {
+            font-size: 0.78rem;
+        }
+
+        @media (min-width: 700px) {
+            body {
+                padding-bottom: 110px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- Menu Lateral (Drawer) -->
+<!-- =========================================================
+     MENU LATERAL
+     ========================================================= -->
 
 <div id="menuOverlay" class="menu-overlay"></div>
 
 <nav id="menuLateral" class="menu-lateral">
+
     <div class="menu-header">
         <h3>Menu do Sistema</h3>
-        <button id="btnFecharMenu" class="btn-fechar-menu">✕</button>
-    </div>
 
-<div class="menu-content" id="cardSincronizacao" style="display: flex; flex-direction: column; gap: 12px;">
-
-    <div style="color: var(--warning-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
-        ☁️ Sincronização Google
-    </div>
-
-    <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">
-        Conecte sua conta para salvar dados na nuvem com facilidade.
-    </p>
-    
-    <div id="statusLogin" style="font-size: 0.85rem; color: #bbb; margin-bottom: 6px;">
-        Status: Desconectado
-    </div>
-    
-    <button
-        id="btnLoginGoogle"
-        style="background-color: #4285F4; color: white; font-size: 0.9rem; padding: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0;">
-        🔑 Entrar com o Google
-    </button>
-
-    <button
-        id="btnLogoutGoogle"
-        style="background-color: #d32f2f; color: white; font-size: 0.85rem; padding: 8px; display: none; margin: 0;">
-        🚪 Sair da Conta
-    </button>
-
-    <div id="cardSincronizacaoMenu" style="margin-top: 4px;">
         <button
-            id="btnEnviarNuvem"
-            class="btn-backup"
-            style="background-color: var(--warning-color); color: #000; font-weight: bold; width: 100%; margin: 0;">
-            🚀 Sincronizar com o Drive
+            id="btnFecharMenu"
+            class="btn-fechar-menu"
+            type="button">
+            ✕
         </button>
     </div>
 
-    <!--
-        IMPORTANTE:
-        O app.js pode criar dinamicamente o botão
-        "📊 Ver Planilha no Google Drive".
-        Não removemos nenhum espaço/função para ele.
-    -->
+    <!-- =====================================================
+         SINCRONIZAÇÃO GOOGLE
+         ===================================================== -->
 
-    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
-    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
+    <div class="menu-section">
 
-    <!-- Seção de Meta de Produção -->
-    <div style="color: var(--accent-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
-        🎯 Meta Semanal
-    </div>
+        <button
+            id="btnMenuGoogle"
+            class="menu-section-button"
+            type="button"
+            aria-expanded="false">
 
-    <div style="background-color: #252525; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
-            <span id="textoMetaProgresso">R$ 0,00 / R$ 0,00</span>
-            <span id="porcentagemMeta" style="font-weight: bold; color: var(--accent-color);">0%</span>
-        </div>
+            <span>☁️ Sincronização Google</span>
+            <span class="menu-section-arrow">▼</span>
+        </button>
 
-        <!-- Barra de Progresso -->
-        <div style="background: #333; border-radius: 4px; height: 8px; width: 100%; overflow: hidden;">
+        <div
+            id="painelMenuGoogle"
+            class="menu-section-panel">
+
+            <p class="config-description">
+                Conecte sua conta Google para sincronizar os dados do aplicativo.
+            </p>
+
             <div
-                id="barraProgressoMeta"
-                style="background: var(--accent-color); height: 100%; width: 0%; transition: width 0.3s ease;">
+                id="statusLogin"
+                class="config-status">
+                Status: Desconectado
             </div>
-        </div>
-
-        <div style="margin-top: 8px; display: flex; gap: 4px;">
-            <input
-                type="number"
-                id="inputMetaValor"
-                placeholder="Definir Meta R$"
-                style="margin: 0; padding: 6px; font-size: 0.85rem;"
-                step="50">
 
             <button
-                id="btnSalvarMeta"
-                style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem;">
-                Salvar
+                id="btnLoginGoogle"
+                style="background-color:#4285F4; margin:0 0 8px;">
+                🔑 Entrar com o Google
             </button>
+
+            <button
+                id="btnLogoutGoogle"
+                style="background-color:#d32f2f; display:none; margin:0 0 8px;">
+                🚪 Sair da Conta
+            </button>
+
+            <button
+                id="btnEnviarNuvem"
+                class="btn-backup"
+                style="background-color:var(--warning-color); color:#000; font-weight:bold; margin:0;">
+                🚀 Sincronizar com o Drive
+            </button>
+
         </div>
     </div>
 
-    <!-- Seção de Ajuda e Tutoriais -->
-    <div style="color: var(--info-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
-        💡 Ajuda & Novidades
+    <!-- =====================================================
+         META
+         ===================================================== -->
+
+    <div class="menu-section">
+
+        <button
+            id="btnMenuMeta"
+            class="menu-section-button"
+            type="button"
+            aria-expanded="false">
+
+            <span>🎯 Meta Semanal</span>
+            <span class="menu-section-arrow">▼</span>
+        </button>
+
+        <div
+            id="painelMenuMeta"
+            class="menu-section-panel">
+
+            <div
+                style="background-color:#252525; padding:10px; border-radius:8px;">
+
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+
+                    <span id="textoMetaProgresso">
+                        R$ 0,00 / R$ 0,00
+                    </span>
+
+                    <span
+                        id="porcentagemMeta"
+                        style="font-weight:bold; color:var(--accent-color);">
+                        0%
+                    </span>
+                </div>
+
+                <div
+                    style="background:#333; border-radius:4px; height:8px; width:100%; overflow:hidden;">
+
+                    <div
+                        id="barraProgressoMeta"
+                        style="background:var(--accent-color); height:100%; width:0%; transition:width .3s ease;">
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top:8px; display:flex; gap:4px;">
+
+                    <input
+                        type="number"
+                        id="inputMetaValor"
+                        placeholder="Definir Meta R$"
+                        step="50"
+                        style="margin:0; padding:6px; font-size:0.85rem;">
+
+                    <button
+                        id="btnSalvarMeta"
+                        style="width:auto; margin:0; padding:6px 12px; font-size:0.85rem;">
+                        Salvar
+                    </button>
+                </div>
+
+            </div>
+        </div>
     </div>
 
-    <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">
-        Veja vídeos de uso, dicas e atualizações do app.
-    </p>
-    
-    <a
-        href="ajuda.html"
-        id="btnTutoriais"
-        class="btn-link-tutoriais">
-        🎥 Tutoriais e Atualizações
-    </a>
-</div>
+    <!-- =====================================================
+         AJUDA
+         ===================================================== -->
+
+    <div class="menu-section">
+
+        <button
+            id="btnMenuAjuda"
+            class="menu-section-button"
+            type="button"
+            aria-expanded="false">
+
+            <span>💡 Ajuda & Novidades</span>
+            <span class="menu-section-arrow">▼</span>
+        </button>
+
+        <div
+            id="painelMenuAjuda"
+            class="menu-section-panel">
+
+            <p class="config-description">
+                Veja vídeos de uso, dicas e atualizações do aplicativo.
+            </p>
+
+            <a
+                href="ajuda.html"
+                id="btnTutoriais"
+                class="btn-link-tutoriais">
+                🎥 Tutoriais e Atualizações
+            </a>
+
+        </div>
+    </div>
+
+    <!-- =====================================================
+         CONFIGURAÇÃO
+         ===================================================== -->
+
+    <button
+        id="btnAbrirConfiguracao"
+        type="button"
+        style="
+            margin-top:8px;
+            background:#333;
+            border:1px solid #444;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            text-align:left;
+        "
+        aria-expanded="false">
+
+        <span>⚙️ Configuração</span>
+        <span id="configArrow">▼</span>
+    </button>
+
+    <div
+        id="painelConfiguracao"
+        style="display:none; margin-top:8px;">
+
+        <div class="config-menu">
+
+            <!-- GOOGLE -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigGoogle"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>☁️ Google e Sincronização</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigGoogle"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Controle o acesso à conta Google e a sincronização dos dados.
+                    </p>
+
+                    <div class="config-status">
+                        A sincronização utiliza sua conta Google conectada.
+                    </div>
+
+                    <button
+                        id="btnConfigGoogleLogin"
+                        class="config-small-button"
+                        type="button"
+                        style="background:#4285F4;">
+                        🔑 Conectar Google
+                    </button>
+
+                    <button
+                        id="btnConfigGoogleLogout"
+                        class="config-small-button"
+                        type="button"
+                        style="background:#d32f2f;">
+                        🚪 Desconectar Google
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- PRODUÇÃO -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigProducao"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>🏭 Produção</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigProducao"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Configure o valor usado para calcular o pagamento por peça.
+                    </p>
+
+                    <label for="configValorUnitario">
+                        Valor unitário
+                    </label>
+
+                    <input
+                        type="number"
+                        id="configValorUnitario"
+                        step="0.01"
+                        placeholder="R$ 0,00">
+
+                    <button
+                        id="btnConfigSalvarProducao"
+                        class="config-small-button"
+                        type="button">
+                        💾 Salvar configuração
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- META -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigMeta"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>🎯 Metas</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigMeta"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Defina uma meta semanal para acompanhar seu progresso.
+                    </p>
+
+                    <label for="configMetaValor">
+                        Meta semanal
+                    </label>
+
+                    <input
+                        type="number"
+                        id="configMetaValor"
+                        step="50"
+                        placeholder="R$ 0,00">
+
+                    <button
+                        id="btnConfigSalvarMeta"
+                        class="config-small-button"
+                        type="button">
+                        🎯 Salvar meta
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- NOTIFICAÇÕES -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigNotificacoes"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>🔔 Notificações</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigNotificacoes"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Área reservada para as preferências de notificações do aplicativo.
+                    </p>
+
+                    <button
+                        id="btnConfigNotificacoesAtivar"
+                        class="config-small-button"
+                        type="button"
+                        style="background:#607d8b;">
+                        🔔 Ativar notificações
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- DADOS -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigDados"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>💾 Dados e Backup</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigDados"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Gerencie o armazenamento e os backups dos seus dados.
+                    </p>
+
+                    <button
+                        id="btnConfigBackup"
+                        class="config-small-button"
+                        type="button"
+                        style="background:#607d8b;">
+                        💾 Fazer backup
+                    </button>
+
+                    <button
+                        id="btnConfigLimparDados"
+                        class="config-small-button"
+                        type="button"
+                        style="background:#d32f2f;">
+                        🗑️ Limpar dados
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- SOBRE -->
+
+            <div class="config-section">
+
+                <button
+                    id="btnConfigSobre"
+                    class="config-section-button"
+                    type="button"
+                    aria-expanded="false">
+
+                    <span>ℹ️ Sobre o aplicativo</span>
+                    <span class="config-arrow">▼</span>
+                </button>
+
+                <div
+                    id="painelConfigSobre"
+                    class="config-section-panel">
+
+                    <p class="config-description">
+                        Controle de Travete
+                    </p>
+
+                    <div class="config-status">
+                        Arquitetura Modular em POO<br>
+                        Aplicativo PWA para controle de produção.
+                    </div>
+
+                    <div
+                        style="font-size:0.75rem; color:#777;">
+                        Versão 1.0
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 </nav>
 
+<!-- =========================================================
+     CONTEÚDO PRINCIPAL
+     ========================================================= -->
+
 <div class="container">
 
-<!-- Cabeçalho com Botão Hambúrguer -->
-<div class="app-header">
+    <div class="app-header">
 
-    <button
-        id="btnMenuHamburger"
-        class="btn-hamburger"
-        aria-label="Abrir Menu"
-        type="button">
-        ☰
-    </button>
+        <button
+            id="btnMenuHamburger"
+            class="btn-hamburger"
+            aria-label="Abrir Menu"
+            type="button">
+            ☰
+        </button>
 
-    <div class="app-header-titles">
-        <h1>Controle de Travete</h1>
-        <p class="subtitle">Arquitetura Modular em POO</p>
+        <div class="app-header-titles">
+
+            <h1>
+                Controle de Travete
+            </h1>
+
+            <p class="subtitle">
+                Arquitetura Modular em POO
+            </p>
+
+        </div>
     </div>
 
-</div>
+    <!-- =====================================================
+         ENTRADA E PREVIEW
+         ===================================================== -->
 
-<!-- Bloco de Entrada e Preview -->
-<div class="card">
-    <label for="valorUnitario">Valor Unitário (R$)</label>
+    <div class="card">
 
-    <input
-        type="number"
-        id="valorUnitario"
-        step="0.01"
-        value="0.21">
+        <label for="valorUnitario">
+            Valor Unitário (R$)
+        </label>
 
-    <label for="textoProducao">Lançamento do Dia</label>
+        <input
+            type="number"
+            id="valorUnitario"
+            step="0.01"
+            value="0.21">
 
-    <textarea
-        id="textoProducao"
-        placeholder="Ex: 251 calças patricia"></textarea>
+        <label for="textoProducao">
+            Lançamento do Dia
+        </label>
 
-    <button id="btnSalvar">
-        Salvar Lançamento
-    </button>
+        <textarea
+            id="textoProducao"
+            placeholder="Ex: 251 calças patricia"></textarea>
 
-    <!-- Preview que aparece em tempo real -->
-    <div id="previewResult" class="preview-box">
-        <div>Total de Peças: <span id="previewPecas">0</span></div>
-        <div>Total a Receber: <span id="previewValor">R$ 0,00</span></div>
-    </div>
-</div>
+        <button id="btnSalvar">
+            Salvar Lançamento
+        </button>
 
-<!-- Bloco da Semana Atual -->
-<div class="card">
-    <h3 style="margin-top:0;">Semana Atual</h3>
-    
-    <!-- Campo de Busca -->
-    <input
-        type="text"
-        id="inputBusca"
-        placeholder="🔍 Buscar na semana (ex: patricia)..."
-        style="margin-bottom: 12px; font-size: 0.9rem; padding: 10px;">
+        <div
+            id="previewResult"
+            class="preview-box">
 
-    <div id="listaHistorico"></div>
+            <div>
+                Total de Peças:
+                <span id="previewPecas">0</span>
+            </div>
 
-    <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-        <strong>Total:</strong>
-        <span id="totalGeralValor" style="color: var(--accent-color);">
-            R$ 0,00
-        </span>
-        <span id="totalGeralPecas">0</span>
+            <div>
+                Total a Receber:
+                <span id="previewValor">R$ 0,00</span>
+            </div>
+
+        </div>
+
     </div>
 
-    <button id="btnFecharSemana" class="btn-close">
-        🔒 Fechar e Salvar Semana
-    </button>
-</div>
+    <!-- =====================================================
+         SEMANA ATUAL
+         ===================================================== -->
 
-<!-- Bloco do Histórico de Semanas -->
-<div class="card" id="cardArquivo" style="display: none;">
-    <h3 style="margin-top:0; color: var(--info-color);">
-        Histórico de Semanas
-    </h3>
+    <div class="card">
 
-    <div id="listaArquivo"></div>
-</div>
+        <h3 style="margin-top:0;">
+            Semana Atual
+        </h3>
+
+        <input
+            type="text"
+            id="inputBusca"
+            placeholder="🔍 Buscar na semana (ex: patricia)..."
+            style="margin-bottom:12px; font-size:0.9rem; padding:10px;">
+
+        <div id="listaHistorico"></div>
+
+        <div
+            style="
+                margin-top:16px;
+                border-top:1px solid var(--border-color);
+                padding-top:12px;">
+
+            <strong>
+                Total:
+            </strong>
+
+            <span
+                id="totalGeralValor"
+                style="color:var(--accent-color);">
+                R$ 0,00
+            </span>
+
+            <span id="totalGeralPecas">
+                0
+            </span>
+
+        </div>
+
+        <button
+            id="btnFecharSemana"
+            class="btn-close">
+            🔒 Fechar e Salvar Semana
+        </button>
+
+    </div>
+
+    <!-- =====================================================
+         HISTÓRICO
+         ===================================================== -->
+
+    <div
+        class="card"
+        id="cardArquivo"
+        style="display:none;">
+
+        <h3
+            style="
+                margin-top:0;
+                color:var(--info-color);">
+
+            Histórico de Semanas
+
+        </h3>
+
+        <div id="listaArquivo"></div>
+
+    </div>
 
 </div>
 
 <!-- =========================================================
-     BOTTOM BAR
+     BARRA INFERIOR
      ========================================================= -->
 
-<nav class="bottom-bar" aria-label="Navegação rápida">
+<nav
+    class="bottom-bar"
+    aria-label="Navegação rápida">
 
-<!-- Google: somente indicador de sincronização -->
-<button
-    id="btnBottomSync"
-    class="bottom-item desconectado"
-    aria-label="Status da sincronização"
-    type="button">
+    <!-- GOOGLE -->
 
-    <span
-        class="bottom-icon"
-        id="bottomSyncStatus">
-        ⚪
-    </span>
+    <button
+        id="btnBottomSync"
+        class="bottom-item desconectado"
+        aria-label="Status da sincronização"
+        type="button">
 
-    <span
-        class="bottom-label"
-        id="bottomSyncLabel">
-        Google
-    </span>
-</button>
+        <span
+            class="bottom-icon"
+            id="bottomSyncStatus">
+            ⚪
+        </span>
 
-<!-- Buscar: atalho para o campo de busca existente -->
-<button
-    id="btnBottomBusca"
-    class="bottom-item"
-    aria-label="Buscar na semana"
-    type="button">
+        <span
+            class="bottom-label"
+            id="bottomSyncLabel">
+            Google
+        </span>
 
-    <span class="bottom-icon">🔎</span>
+    </button>
 
-    <span class="bottom-label">
-        Buscar
-    </span>
-</button>
+    <!-- BUSCA -->
 
-<!-- Menu: atalho para o menu hambúrguer -->
-<button
-    id="btnBottomMenu"
-    class="bottom-item"
-    aria-label="Abrir menu"
-    type="button">
+    <button
+        id="btnBottomBusca"
+        class="bottom-item"
+        aria-label="Buscar na semana"
+        type="button">
 
-    <span class="bottom-icon">☰</span>
+        <span class="bottom-icon">
+            🔎
+        </span>
 
-    <span class="bottom-label">
-        Menu
-    </span>
-</button>
+        <span class="bottom-label">
+            Buscar
+        </span>
+
+    </button>
+
+    <!-- MENU -->
+
+    <button
+        id="btnBottomMenu"
+        class="bottom-item"
+        aria-label="Abrir menu"
+        type="button">
+
+        <span class="bottom-icon">
+            ☰
+        </span>
+
+        <span class="bottom-label">
+            Menu
+        </span>
+
+    </button>
 
 </nav>
 
-<!-- Importação como módulo JavaScript ES6 -->
+<!-- =========================================================
+     APP.JS
+     ========================================================= -->
 
 <script type="module" src="/src/js/app.js"></script>
 
+<!-- =========================================================
+     SERVICE WORKER
+     ========================================================= -->
+
 <script>
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker
-            .register('./sw.js')
-            .catch(err => console.log('SW falhou'));
+        window.addEventListener('load', () => {
+            navigator.serviceWorker
+                .register('./sw.js')
+                .catch(err => {
+                    console.log('SW falhou:', err);
+                });
+        });
     }
+</script>
+
+<!-- =========================================================
+     CONTROLE DAS SEÇÕES EXPANSÍVEIS
+     ========================================================= -->
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    function configurarSecao(botaoId, painelId) {
+
+        const botao = document.getElementById(botaoId);
+        const painel = document.getElementById(painelId);
+
+        if (!botao || !painel) {
+            return;
+        }
+
+        botao.addEventListener('click', () => {
+
+            const aberto =
+                painel.classList.contains('aberto');
+
+            painel.classList.toggle('aberto', !aberto);
+            botao.classList.toggle('aberto', !aberto);
+
+            botao.setAttribute(
+                'aria-expanded',
+                String(!aberto)
+            );
+        });
+    }
+
+    /* =====================================================
+       CONFIGURAÇÃO
+       ===================================================== */
+
+    configurarSecao(
+        'btnConfigGoogle',
+        'painelConfigGoogle'
+    );
+
+    configurarSecao(
+        'btnConfigProducao',
+        'painelConfigProducao'
+    );
+
+    configurarSecao(
+        'btnConfigMeta',
+        'painelConfigMeta'
+    );
+
+    configurarSecao(
+        'btnConfigNotificacoes',
+        'painelConfigNotificacoes'
+    );
+
+    configurarSecao(
+        'btnConfigDados',
+        'painelConfigDados'
+    );
+
+    configurarSecao(
+        'btnConfigSobre',
+        'painelConfigSobre'
+    );
+
+    /* =====================================================
+       MENU
+       ===================================================== */
+
+    configurarSecao(
+        'btnMenuGoogle',
+        'painelMenuGoogle'
+    );
+
+    configurarSecao(
+        'btnMenuMeta',
+        'painelMenuMeta'
+    );
+
+    configurarSecao(
+        'btnMenuAjuda',
+        'painelMenuAjuda'
+    );
+
+    /* =====================================================
+       CONFIGURAÇÃO PRINCIPAL
+       ===================================================== */
+
+    const btnConfiguracao =
+        document.getElementById('btnAbrirConfiguracao');
+
+    const painelConfiguracao =
+        document.getElementById('painelConfiguracao');
+
+    const configArrow =
+        document.getElementById('configArrow');
+
+    if (btnConfiguracao && painelConfiguracao) {
+
+        btnConfiguracao.addEventListener('click', () => {
+
+            const aberto =
+                painelConfiguracao.style.display === 'block';
+
+            painelConfiguracao.style.display =
+                aberto ? 'none' : 'block';
+
+            btnConfiguracao.classList.toggle(
+                'aberto',
+                !aberto
+            );
+
+            btnConfiguracao.setAttribute(
+                'aria-expanded',
+                String(!aberto)
+            );
+
+            if (configArrow) {
+                configArrow.style.transform =
+                    aberto
+                        ? 'rotate(0deg)'
+                        : 'rotate(180deg)';
+            }
+        });
+    }
+
+    /* =====================================================
+       BOTÕES DA CONFIGURAÇÃO
+       ===================================================== */
+
+    const btnConfigGoogleLogin =
+        document.getElementById('btnConfigGoogleLogin');
+
+    const btnLoginGoogle =
+        document.getElementById('btnLoginGoogle');
+
+    if (btnConfigGoogleLogin && btnLoginGoogle) {
+
+        btnConfigGoogleLogin.addEventListener('click', () => {
+            btnLoginGoogle.click();
+        });
+    }
+
+    const btnConfigGoogleLogout =
+        document.getElementById('btnConfigGoogleLogout');
+
+    const btnLogoutGoogle =
+        document.getElementById('btnLogoutGoogle');
+
+    if (btnConfigGoogleLogout && btnLogoutGoogle) {
+
+        btnConfigGoogleLogout.addEventListener('click', () => {
+            btnLogoutGoogle.click();
+        });
+    }
+
+    /* =====================================================
+       VALOR DE PRODUÇÃO
+       ===================================================== */
+
+    const valorUnitario =
+        document.getElementById('valorUnitario');
+
+    const configValorUnitario =
+        document.getElementById('configValorUnitario');
+
+    const btnConfigSalvarProducao =
+        document.getElementById('btnConfigSalvarProducao');
+
+    if (valorUnitario && configValorUnitario) {
+
+        configValorUnitario.value =
+            valorUnitario.value || '';
+    }
+
+    if (
+        btnConfigSalvarProducao &&
+        valorUnitario &&
+        configValorUnitario
+    ) {
+
+        btnConfigSalvarProducao.addEventListener(
+            'click',
+            () => {
+
+                if (configValorUnitario.value !== '') {
+
+                    valorUnitario.value =
+                        configValorUnitario.value;
+
+                    valorUnitario.dispatchEvent(
+                        new Event('input', {
+                            bubbles: true
+                        })
+                    );
+                }
+            }
+        );
+    }
+
+    /* =====================================================
+       META
+       ===================================================== */
+
+    const inputMetaValor =
+        document.getElementById('inputMetaValor');
+
+    const configMetaValor =
+        document.getElementById('configMetaValor');
+
+    const btnConfigSalvarMeta =
+        document.getElementById('btnConfigSalvarMeta');
+
+    const btnSalvarMeta =
+        document.getElementById('btnSalvarMeta');
+
+    if (inputMetaValor && configMetaValor) {
+
+        configMetaValor.value =
+            inputMetaValor.value || '';
+    }
+
+    if (
+        btnConfigSalvarMeta &&
+        inputMetaValor &&
+        configMetaValor
+    ) {
+
+        btnConfigSalvarMeta.addEventListener(
+            'click',
+            () => {
+
+                if (configMetaValor.value !== '') {
+
+                    inputMetaValor.value =
+                        configMetaValor.value;
+
+                    if (btnSalvarMeta) {
+                        btnSalvarMeta.click();
+                    }
+                }
+            }
+        );
+    }
+
+    /* =====================================================
+       BACKUP
+       ===================================================== */
+
+    const btnConfigBackup =
+        document.getElementById('btnConfigBackup');
+
+    const btnEnviarNuvem =
+        document.getElementById('btnEnviarNuvem');
+
+    if (btnConfigBackup && btnEnviarNuvem) {
+
+        btnConfigBackup.addEventListener('click', () => {
+            btnEnviarNuvem.click();
+        });
+    }
+
+    /* =====================================================
+       FECHAR CONFIGURAÇÃO AO FECHAR O MENU
+       ===================================================== */
+
+    const menuLateral =
+        document.getElementById('menuLateral');
+
+    const observer =
+        new MutationObserver(() => {
+
+            if (
+                menuLateral &&
+                !menuLateral.classList.contains('ativo')
+            ) {
+
+                if (painelConfiguracao) {
+                    painelConfiguracao.style.display =
+                        'none';
+                }
+
+                if (btnConfiguracao) {
+                    btnConfiguracao.classList.remove(
+                        'aberto'
+                    );
+
+                    btnConfiguracao.setAttribute(
+                        'aria-expanded',
+                        'false'
+                    );
+                }
+
+                if (configArrow) {
+                    configArrow.style.transform =
+                        'rotate(0deg)';
+                }
+
+                document
+                    .querySelectorAll(
+                        '.config-section-panel.aberto'
+                    )
+                    .forEach(painel => {
+                        painel.classList.remove('aberto');
+                    });
+
+                document
+                    .querySelectorAll(
+                        '.config-section-button.aberto'
+                    )
+                    .forEach(botao => {
+
+                        botao.classList.remove('aberto');
+
+                        botao.setAttribute(
+                            'aria-expanded',
+                            'false'
+                        );
+                    });
+            }
+        });
+
+    if (menuLateral) {
+
+        observer.observe(menuLateral, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+
+});
 </script>
 
 </body>
 </html>
-
