@@ -228,6 +228,14 @@ class AppController {
 
         safeBind('btnFecharMenu', 'click', fecharMenuFunc);
         safeBind('menuOverlay', 'click', fecharMenuFunc);
+
+        safeBind('btnAbrirConfiguracao', 'click', () => {
+            const painelConfiguracao = document.getElementById('painelConfiguracao');
+
+            if (painelConfiguracao) {
+                painelConfiguracao.classList.toggle('ativo');
+            }
+        });
         
         const textoInput = document.getElementById('textoProducao');
         const valorInput = document.getElementById('valorUnitario');
