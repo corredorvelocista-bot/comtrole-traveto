@@ -1,5 +1,5 @@
-const CACHE_NAME = 'travete-v6';
-const APP_VERSION = '1.0.1';
+const CACHE_NAME = 'travete-v7';
+const APP_VERSION = '1.0.2';
 
 const assets = [
     './',
@@ -16,12 +16,6 @@ const assets = [
  * =========================================================
  * INSTALAÇÃO
  * =========================================================
- *
- * IMPORTANTE:
- * Não usamos self.skipWaiting() automaticamente aqui.
- *
- * Isso permite que o novo Service Worker fique em
- * "waiting" até o usuário escolher "Atualizar agora".
  */
 self.addEventListener('install', (event) => {
 
@@ -29,7 +23,6 @@ self.addEventListener('install', (event) => {
 
         caches
             .open(CACHE_NAME)
-
             .then((cache) => {
 
                 return cache.addAll(assets);
@@ -37,6 +30,7 @@ self.addEventListener('install', (event) => {
             })
 
     );
+
 });
 
 
@@ -44,8 +38,6 @@ self.addEventListener('install', (event) => {
  * =========================================================
  * ATIVAÇÃO
  * =========================================================
- *
- * Remove versões antigas do cache.
  */
 self.addEventListener('activate', (event) => {
 
@@ -53,7 +45,6 @@ self.addEventListener('activate', (event) => {
 
         caches
             .keys()
-
             .then((cacheNames) => {
 
                 return Promise.all(
@@ -67,7 +58,6 @@ self.addEventListener('activate', (event) => {
                             );
 
                         })
-
                         .map((cacheName) => {
 
                             return caches.delete(
@@ -79,25 +69,20 @@ self.addEventListener('activate', (event) => {
                 );
 
             })
-
             .then(() => {
 
-                /*
-                 * Depois que este Service Worker estiver
-                 * oficialmente ativo, ele pode assumir
-                 * as páginas abertas.
-                 */
                 return self.clients.claim();
 
             })
 
     );
+
 });
 
 
 /**
  * =========================================================
- * MENSAGENS RECEBIDAS DO APP
+ * MENSAGENS
  * =========================================================
  */
 self.addEventListener('message', (event) => {
@@ -108,12 +93,9 @@ self.addEventListener('message', (event) => {
 
 
     /**
-     * O app pode solicitar a versão
-     * deste Service Worker.
+     * Retorna a versão do Service Worker.
      */
-    if (
-        event.data.type === 'GET_VERSION'
-    ) {
+    if (event.data.type === 'GET_VERSION') {
 
         const resposta = {
             type: 'SW_VERSION',
@@ -121,10 +103,6 @@ self.addEventListener('message', (event) => {
         };
 
 
-        /*
-         * Se o navegador disponibilizar
-         * MessagePort, respondemos por ele.
-         */
         if (
             event.ports &&
             event.ports[0]
@@ -134,13 +112,7 @@ self.addEventListener('message', (event) => {
                 resposta
             );
 
-        }
-
-        /*
-         * Também enviamos para a página
-         * que fez a solicitação.
-         */
-        else if (
+        } else if (
             event.source &&
             typeof event.source.postMessage ===
                 'function'
@@ -157,12 +129,8 @@ self.addEventListener('message', (event) => {
 
 
     /**
-     * O usuário confirmou:
-     *
-     * "Atualizar agora"
-     *
-     * Então o novo Service Worker
-     * pode assumir o controle.
+     * Permite que o novo Service Worker
+     * assuma imediatamente o controle.
      */
     if (
         event.data.type === 'SKIP_WAITING'
@@ -181,25 +149,17 @@ self.addEventListener('message', (event) => {
  * REQUISIÇÕES
  * =========================================================
  *
- * Estratégia:
+ * Para arquivos do próprio aplicativo:
  *
- * 1. Arquivos do próprio aplicativo:
- *    Cache primeiro.
+ * 1. Tenta a rede primeiro.
+ * 2. Se funcionar, atualiza o cache.
+ * 3. Se estiver offline, usa o cache.
  *
- * 2. Se não estiver no cache:
- *    tenta a internet.
- *
- * 3. Se estiver offline:
- *    tenta retornar o index.html.
- *
- * Requisições externas, como Google APIs,
- * não são colocadas no cache.
+ * Isso evita que index.html e app.js antigos
+ * fiquem presos no cache.
  */
 self.addEventListener('fetch', (event) => {
 
-    /*
-     * Só processamos GET.
-     */
     if (
         event.request.method !== 'GET'
     ) {
@@ -214,100 +174,68 @@ self.addEventListener('fetch', (event) => {
         );
 
 
-    /*
-     * Só aplica o cache especial
-     * às requisições do próprio aplicativo.
-     */
     const mesmaOrigem =
         url.origin === self.location.origin;
 
 
     if (!mesmaOrigem) {
 
-        /*
-         * Google, APIs externas etc.
-         * seguem normalmente pela rede.
-         */
         return;
     }
 
 
     event.respondWith(
 
-        caches
-            .match(event.request)
+        fetch(event.request)
 
-            .then((cachedResponse) => {
+            .then((networkResponse) => {
 
                 /*
-                 * Encontrou no cache.
+                 * Se a resposta for válida,
+                 * atualiza o cache.
                  */
-                if (cachedResponse) {
+                if (
+                    networkResponse &&
+                    networkResponse.status === 200
+                ) {
 
-                    return cachedResponse;
+                    const responseClone =
+                        networkResponse.clone();
+
+                    caches
+                        .open(CACHE_NAME)
+                        .then((cache) => {
+
+                            cache.put(
+                                event.request,
+                                responseClone
+                            );
+
+                        })
+                        .catch((erro) => {
+
+                            console.warn(
+                                'Não foi possível atualizar o cache:',
+                                erro
+                            );
+
+                        });
+
                 }
 
+                return networkResponse;
+
+            })
+
+            .catch(() => {
 
                 /*
-                 * Não encontrou.
-                 * Tenta buscar na internet.
+                 * Sem internet:
+                 * utiliza o cache.
                  */
-                return fetch(event.request)
-
-                    .then((networkResponse) => {
-
-                        /*
-                         * Só guarda respostas
-                         * válidas no cache.
-                         */
-                        if (
-                            networkResponse &&
-                            networkResponse.status === 200
-                        ) {
-
-                            const responseClone =
-                                networkResponse.clone();
-
-
-                            caches
-                                .open(CACHE_NAME)
-
-                                .then((cache) => {
-
-                                    cache.put(
-                                        event.request,
-                                        responseClone
-                                    );
-
-                                })
-
-                                .catch((erro) => {
-
-                                    console.warn(
-                                        'Não foi possível atualizar o cache:',
-                                        erro
-                                    );
-
-                                });
-
-                        }
-
-
-                        return networkResponse;
-
-                    })
-
-                    .catch(() => {
-
-                        /*
-                         * Offline:
-                         * tenta abrir o aplicativo.
-                         */
-                        return caches.match(
-                            './index.html'
-                        );
-
-                    });
+                return caches.match(
+                    event.request
+                );
 
             })
 

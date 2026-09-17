@@ -7,6 +7,9 @@ export class LancamentoDia {
         this.detalhes = this.extrairDetalhes(texto);
         this.valorTotal = this.pecas * this.valorUnitario;
         this.data = this.extrairDataOuHoje(texto);
+        
+        // Identificação da semana deste lançamento
+        this.semanaReferencia = null;
     }
 
     extrairPecas(texto) {
