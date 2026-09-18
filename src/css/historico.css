@@ -1,0 +1,789 @@
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --secondary-bg: #252525;
+    --text-color: #f5f5f5;
+    --muted-color: #aaaaaa;
+    --border-color: #333333;
+    --border-light: #444444;
+    --purple-color: #9c27b0;
+    --accent-color: #bb86fc;
+}
+
+/* =========================
+   RESET
+========================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+
+    background: var(--bg-color);
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+
+    margin: 0;
+    padding: 0;
+
+    background: var(--bg-color);
+    color: var(--text-color);
+
+    font-family: Arial, sans-serif;
+
+    overflow-x: hidden;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+
+.container {
+    width: 100%;
+    max-width: 700px;
+
+    margin: 0 auto;
+
+    padding:
+        max(16px, env(safe-area-inset-top))
+        16px
+        max(32px, env(safe-area-inset-bottom));
+}
+
+/* =========================
+   CABEÇALHO
+========================= */
+
+.app-header {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+.btn-voltar {
+    flex: 0 0 44px;
+
+    width: 44px;
+    height: 44px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--secondary-bg);
+    color: var(--text-color);
+
+    font-size: 22px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    touch-action: manipulation;
+}
+
+.btn-voltar:active {
+    transform: scale(0.95);
+}
+
+.titulo {
+    min-width: 0;
+    flex: 1;
+}
+
+.titulo h1 {
+    margin: 0;
+
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    line-height: 1.2;
+
+    overflow-wrap: anywhere;
+}
+
+.titulo p {
+    margin: 5px 0 0;
+
+    color: var(--muted-color);
+
+    font-size: 0.84rem;
+    line-height: 1.35;
+
+    overflow-wrap: anywhere;
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.card {
+    width: 100%;
+
+    background: var(--card-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    margin-bottom: 14px;
+
+    overflow: hidden;
+}
+
+/* =========================
+   BUSCA
+========================= */
+
+.busca {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+
+    padding: 12px 13px;
+
+    border-radius: 10px;
+
+    border: 1px solid var(--border-color);
+
+    background: var(--secondary-bg);
+    color: var(--text-color);
+
+    font-size: 16px;
+
+    outline: none;
+
+    appearance: none;
+}
+
+.busca::placeholder {
+    color: var(--muted-color);
+}
+
+.busca:focus {
+    border-color: var(--purple-color);
+}
+
+/* =========================
+   RESUMO DO HISTÓRICO
+========================= */
+
+.resumo-historico {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 8px;
+
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.resumo-item {
+    min-width: 0;
+
+    background: var(--secondary-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 10px;
+
+    padding: 10px 8px;
+
+    text-align: center;
+}
+
+.resumo-icone {
+    display: block;
+
+    font-size: 18px;
+
+    line-height: 1;
+
+    margin-bottom: 5px;
+}
+
+.resumo-valor {
+    display: block;
+
+    font-weight: bold;
+
+    font-size: 0.9rem;
+
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+}
+
+.resumo-label {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--muted-color);
+
+    font-size: 0.7rem;
+
+    line-height: 1.2;
+}
+
+/* =========================
+   CONTROLES DO HISTÓRICO
+========================= */
+
+.controles-historico {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+}
+
+.btn-controle {
+    width: 100%;
+
+    min-height: 42px;
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 10px;
+
+    background: var(--secondary-bg);
+
+    color: var(--text-color);
+
+    font-size: 0.84rem;
+
+    cursor: pointer;
+
+    touch-action: manipulation;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+.btn-controle:hover {
+    border-color: var(--border-light);
+}
+
+.btn-controle:active {
+    transform: scale(0.98);
+}
+
+/* BOTÃO EXCLUIR SEMANA */
+
+.btn-excluir-semana {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.btn-copiar-semana {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    background: transparent;
+    color: var(--text-color);
+
+    font-size: 16px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    touch-action: manipulation;
+
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.btn-copiar-semana:hover {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.btn-copiar-semana:active {
+    transform: scale(0.92);
+}
+
+.btn-excluir-semana:hover {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.btn-excluir-semana:active {
+    transform: scale(0.92);
+}
+
+.btn-excluir-lancamento {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    background: transparent;
+    color: var(--text-color);
+
+    font-size: 16px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    touch-action: manipulation;
+
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.btn-excluir-lancamento:hover {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.btn-excluir-lancamento:active {
+    transform: scale(0.92);
+}
+/* =========================
+   SEMANA
+========================= */
+
+.semana {
+    width: 100%;
+
+    background: var(--secondary-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 12px;
+
+    padding: 13px;
+
+    margin-bottom: 9px;
+
+    cursor: pointer;
+
+    overflow: hidden;
+
+    touch-action: manipulation;
+
+    transition:
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+.semana:last-child {
+    margin-bottom: 0;
+}
+
+.semana:active {
+    transform: scale(0.99);
+}
+
+.semana-cabecalho {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+.semana-cabecalho > div:first-child {
+    min-width: 0;
+    flex: 1;
+}
+
+.semana-data {
+    min-width: 0;
+
+    font-weight: bold;
+
+    font-size: 0.95rem;
+
+    line-height: 1.3;
+
+    overflow-wrap: anywhere;
+}
+
+.semana-resumo {
+    min-width: 0;
+
+    color: var(--muted-color);
+
+    font-size: 0.82rem;
+
+    line-height: 1.4;
+
+    margin-top: 5px;
+
+    overflow-wrap: anywhere;
+}
+
+.seta {
+    flex: 0 0 24px;
+
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--accent-color);
+
+    font-size: 20px;
+}
+
+/* =========================
+   DETALHES DA SEMANA
+========================= */
+
+.detalhes-semana {
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding-top: 10px;
+
+    border-top: 1px solid var(--border-color);
+}
+
+/* =========================
+   LANÇAMENTO
+========================= */
+
+.lancamento {
+    width: 100%;
+
+    padding: 12px;
+    margin-bottom: 8px;
+
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+.lancamento:last-child {
+    margin-bottom: 0;
+}
+
+.lancamento:last-child {
+    border-bottom: none;
+}
+
+.lancamento-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+
+    min-width: 0;
+
+    padding-bottom: 9px;
+    margin-bottom: 9px;
+
+    border-bottom: 1px solid var(--border-color);
+}
+
+.lancamento-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.lancamento-numero {
+    margin-bottom: 4px;
+    color: var(--accent-color);
+    font-size: 0.78rem;
+    font-weight: bold;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.lancamento-data {
+    font-weight: bold;
+
+    font-size: 0.9rem;
+
+    line-height: 1.35;
+
+    overflow-wrap: anywhere;
+}
+
+.lancamento-resumo {
+    margin-top: 4px;
+
+    color: var(--muted-color);
+
+    font-size: 0.82rem;
+
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+/* =========================
+   TIPOS DE ROUPA
+========================= */
+
+.tipos-roupa {
+    width: 100%;
+
+    margin-top: 9px;
+
+    padding-left: 4px;
+}
+
+.tipo-roupa {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    padding: 8px 10px;
+    margin-bottom: 5px;
+
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    color: var(--text-color);
+    font-size: 0.82rem;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+.tipo-roupa:last-child {
+    margin-bottom: 0;
+}
+
+.tipo-roupa::before {
+    content: "👕";
+    flex: 0 0 auto;
+}
+
+.tipo-roupa::before {
+    content: "👕";
+
+    flex: 0 0 auto;
+}
+
+/* =========================
+   VAZIO
+========================= */
+
+.vazio {
+    width: 100%;
+
+    text-align: center;
+
+    padding: 28px 10px;
+
+    color: var(--muted-color);
+
+    font-size: 0.9rem;
+
+    line-height: 1.5;
+}
+
+/* =========================
+   CELULARES PEQUENOS
+========================= */
+
+@media (max-width: 380px) {
+
+    .container {
+        padding-left: 11px;
+        padding-right: 11px;
+    }
+
+    .card {
+        padding: 11px;
+
+        border-radius: 12px;
+    }
+
+    .app-header {
+        gap: 9px;
+    }
+
+    .btn-voltar {
+        flex-basis: 42px;
+
+        width: 42px;
+        height: 42px;
+    }
+
+    .titulo h1 {
+        font-size: 1.18rem;
+    }
+
+    .titulo p {
+        font-size: 0.78rem;
+    }
+
+    .resumo-historico {
+        gap: 5px;
+    }
+
+    .resumo-item {
+        padding: 8px 5px;
+    }
+
+    .resumo-icone {
+        font-size: 16px;
+    }
+
+    .resumo-valor {
+        font-size: 0.78rem;
+    }
+
+    .resumo-label {
+        font-size: 0.64rem;
+    }
+
+    .btn-controle {
+        min-height: 40px;
+
+        font-size: 0.76rem;
+    }
+
+    .semana {
+        padding: 11px;
+    }
+
+    .semana-data {
+        font-size: 0.88rem;
+    }
+
+    .semana-resumo {
+        font-size: 0.76rem;
+    }
+
+    .lancamento-data {
+        font-size: 0.84rem;
+    }
+
+    .lancamento-resumo,
+    .tipo-roupa {
+        font-size: 0.75rem;
+    }
+}
+
+/* =========================
+   TABLET / DESKTOP
+========================= */
+
+@media (min-width: 701px) {
+
+    .container {
+        padding-top: 28px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .semana {
+        padding: 15px;
+    }
+}
+
+/* =========================
+   CELULAR DEITADO
+========================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .container {
+        padding-top: 10px;
+        padding-bottom: 20px;
+    }
+
+    .app-header {
+        margin-bottom: 12px;
+    }
+
+    .card {
+        margin-bottom: 10px;
+    }
+
+    .btn-voltar {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* =========================
+   ACESSIBILIDADE
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
