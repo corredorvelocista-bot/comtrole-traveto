@@ -4,48 +4,89 @@ import { LancamentoDia, SemanaProducao } from './Producao.js';
 class AppController {
     constructor() {
         this.metaBatidaDisparada =
-            JSON.parse(localStorage.getItem('meta_batida_disparada')) || false;
+            JSON.parse(
+                localStorage.getItem('meta_batida_disparada')
+            ) || false;
 
-        this.storage = new StorageService();
+        this.storage =
+            new StorageService();
 
         this.lancamentosAtuais =
-            JSON.parse(localStorage.getItem('temp_lancamentos')) || [];
+            JSON.parse(
+                localStorage.getItem('temp_lancamentos')
+            ) || [];
 
         this.termoBusca = '';
 
         this.sincronizadoComNuvem =
-            JSON.parse(localStorage.getItem('sincronizado_nuvem')) ?? true;
+            JSON.parse(
+                localStorage.getItem('sincronizado_nuvem')
+            ) ?? true;
+
+        const ambienteLocal =
+            window.location.hostname === 'localhost';
+
+        this.spreadsheetStorageKey =
+            ambienteLocal
+                ? 'google_spreadsheet_id_dev'
+                : 'google_spreadsheet_id';
+
+        this.nomePlanilhaGoogle =
+            ambienteLocal
+                ? 'Controle de Travete - TESTE DEV'
+                : 'Controle de Travete - Meus Dados';
 
         this.spreadsheetIdSalvo =
-            localStorage.getItem('google_spreadsheet_id') || null;
+            localStorage.getItem(
+                this.spreadsheetStorageKey
+            ) || null;
 
         this.metaSemanal =
-            parseFloat(localStorage.getItem('meta_semanal_valor')) || 500.00;
+            parseFloat(
+                localStorage.getItem(
+                    'meta_semanal_valor'
+                )
+            ) || 500.00;
 
         // =====================================================
         // CONFIGURAÇÕES DE PRODUÇÃO
         // =====================================================
 
         this.configSemanaPadrao =
-            localStorage.getItem('config_semana_padrao') || 'atual';
+            localStorage.getItem(
+                'config_semana_padrao'
+            ) || 'atual';
 
         this.configDataSemana =
-            localStorage.getItem('config_data_semana') || '';
+            localStorage.getItem(
+                'config_data_semana'
+            ) || '';
 
         this.configFormatoNumeros =
-            localStorage.getItem('config_formato_numeros') || 'milhar';
+            localStorage.getItem(
+                'config_formato_numeros'
+            ) || 'milhar';
 
         this.configConfirmacaoSalvar =
-            localStorage.getItem('config_confirmacao_salvar') || 'perguntar';
+            localStorage.getItem(
+                'config_confirmacao_salvar'
+            ) || 'perguntar';
 
         this.configValorUnitario =
             parseFloat(
-                localStorage.getItem('config_valor_unitario')
+                localStorage.getItem(
+                    'config_valor_unitario'
+                )
             ) || 0.21;
 
-        // Configuração Google Auth
+        // =====================================================
+        // CONFIGURAÇÃO GOOGLE AUTH
+        // =====================================================
+
         this.CLIENT_ID =
-            '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
+            ambienteLocal
+                ? '751192071126-02fgofvlqbofcks42kb93jd8te7ktq24.apps.googleusercontent.com'
+                : '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
 
         this.SCOPES =
             'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
@@ -53,11 +94,18 @@ class AppController {
         this.tokenClient = null;
 
         this.accessToken =
-            localStorage.getItem('google_access_token') || null;
+            localStorage.getItem(
+                'google_access_token'
+            ) || null;
 
-        // Tema
+        // =====================================================
+        // TEMA
+        // =====================================================
+
         this.tema =
-            localStorage.getItem('tema_aparencia') || 'escuro';
+            localStorage.getItem(
+                'tema_aparencia'
+            ) || 'escuro';
 
         this.aplicarTema();
 
@@ -68,29 +116,45 @@ class AppController {
         this.render();
     }
 
+    // =====================================================
+    // TEMA
+    // =====================================================
+
     aplicarTema() {
         const tema = this.tema;
 
         if (tema === 'claro') {
-            document.documentElement.setAttribute('data-theme', 'claro');
+            document.documentElement.setAttribute(
+                'data-theme',
+                'claro'
+            );
+
             return;
         }
 
         if (tema === 'automatico') {
             const sistemaEscuro =
-                window.matchMedia('(prefers-color-scheme: dark)').matches;
+                window.matchMedia(
+                    '(prefers-color-scheme: dark)'
+                ).matches;
 
             if (sistemaEscuro) {
-                document.documentElement.removeAttribute('data-theme');
+                document.documentElement.removeAttribute(
+                    'data-theme'
+                );
             } else {
-                document.documentElement.setAttribute('data-theme', 'claro');
+                document.documentElement.setAttribute(
+                    'data-theme',
+                    'claro'
+                );
             }
 
             return;
         }
 
-        // Escuro
-        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.removeAttribute(
+            'data-theme'
+        );
     }
 
     // =====================================================
@@ -100,33 +164,67 @@ class AppController {
     tocarSomLancamento() {
         try {
             const audioCtx =
-                new (window.AudioContext || window.webkitAudioContext)();
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
 
-            const now = audioCtx.currentTime;
+            const now =
+                audioCtx.currentTime;
 
-            const tocarNota = (frequencia, inicio, duracao) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+            const tocarNota =
+                (
+                    frequencia,
+                    inicio,
+                    duracao
+                ) => {
+                    const osc =
+                        audioCtx.createOscillator();
 
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(frequencia, inicio);
+                    const gain =
+                        audioCtx.createGain();
 
-                gain.gain.setValueAtTime(0.05, inicio);
+                    osc.type =
+                        'sine';
 
-                gain.gain.exponentialRampToValueAtTime(
-                    0.0001,
-                    inicio + duracao
-                );
+                    osc.frequency.setValueAtTime(
+                        frequencia,
+                        inicio
+                    );
 
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                    gain.gain.setValueAtTime(
+                        0.05,
+                        inicio
+                    );
 
-                osc.start(inicio);
-                osc.stop(inicio + duracao);
-            };
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.0001,
+                        inicio + duracao
+                    );
 
-            tocarNota(523.25, now, 0.15);
-            tocarNota(659.25, now + 0.04, 0.2);
+                    osc.connect(gain);
+                    gain.connect(
+                        audioCtx.destination
+                    );
+
+                    osc.start(inicio);
+
+                    osc.stop(
+                        inicio + duracao
+                    );
+                };
+
+            tocarNota(
+                523.25,
+                now,
+                0.15
+            );
+
+            tocarNota(
+                659.25,
+                now + 0.04,
+                0.2
+            );
 
         } catch (e) {
             // Ignora se o navegador bloquear autoplay
@@ -140,35 +238,79 @@ class AppController {
     tocarSomMetaBatida() {
         try {
             const audioCtx =
-                new (window.AudioContext || window.webkitAudioContext)();
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
 
-            const now = audioCtx.currentTime;
+            const now =
+                audioCtx.currentTime;
 
-            const tocarNota = (frequencia, inicio, duracao) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+            const tocarNota =
+                (
+                    frequencia,
+                    inicio,
+                    duracao
+                ) => {
+                    const osc =
+                        audioCtx.createOscillator();
 
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(frequencia, inicio);
+                    const gain =
+                        audioCtx.createGain();
 
-                gain.gain.setValueAtTime(0.08, inicio);
+                    osc.type =
+                        'triangle';
 
-                gain.gain.exponentialRampToValueAtTime(
-                    0.0001,
-                    inicio + duracao
-                );
+                    osc.frequency.setValueAtTime(
+                        frequencia,
+                        inicio
+                    );
 
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                    gain.gain.setValueAtTime(
+                        0.08,
+                        inicio
+                    );
 
-                osc.start(inicio);
-                osc.stop(inicio + duracao);
-            };
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.0001,
+                        inicio + duracao
+                    );
 
-            tocarNota(523.25, now, 0.15);
-            tocarNota(659.25, now + 0.12, 0.15);
-            tocarNota(783.99, now + 0.24, 0.15);
-            tocarNota(1046.50, now + 0.36, 0.4);
+                    osc.connect(gain);
+                    gain.connect(
+                        audioCtx.destination
+                    );
+
+                    osc.start(inicio);
+
+                    osc.stop(
+                        inicio + duracao
+                    );
+                };
+
+            tocarNota(
+                523.25,
+                now,
+                0.15
+            );
+
+            tocarNota(
+                659.25,
+                now + 0.12,
+                0.15
+            );
+
+            tocarNota(
+                783.99,
+                now + 0.24,
+                0.15
+            );
+
+            tocarNota(
+                1046.50,
+                now + 0.36,
+                0.4
+            );
 
         } catch (e) {
             // Ignora se bloqueado pelo navegador
@@ -192,45 +334,83 @@ class AppController {
             '#ffeb3b'
         ];
 
-        for (let i = 0; i < quantidade; i++) {
-            const confete = document.createElement('div');
+        for (
+            let i = 0;
+            i < quantidade;
+            i++
+        ) {
+            const confete =
+                document.createElement(
+                    'div'
+                );
 
-            confete.style.position = 'fixed';
-            confete.style.width = `${Math.random() * 8 + 6}px`;
-            confete.style.height = `${Math.random() * 8 + 6}px`;
+            confete.style.position =
+                'fixed';
+
+            confete.style.width =
+                `${Math.random() * 8 + 6}px`;
+
+            confete.style.height =
+                `${Math.random() * 8 + 6}px`;
 
             confete.style.backgroundColor =
-                cores[Math.floor(Math.random() * cores.length)];
+                cores[
+                    Math.floor(
+                        Math.random() *
+                        cores.length
+                    )
+                ];
 
-            confete.style.top = '-10px';
-            confete.style.left = `${Math.random() * window.innerWidth}px`;
-            confete.style.opacity = '1';
-            confete.style.borderRadius = '50%';
-            confete.style.zIndex = '9999';
-            confete.style.pointerEvents = 'none';
+            confete.style.top =
+                '-10px';
 
-            const anim = confete.animate(
-                [
+            confete.style.left =
+                `${Math.random() * window.innerWidth}px`;
+
+            confete.style.opacity =
+                '1';
+
+            confete.style.borderRadius =
+                '50%';
+
+            confete.style.zIndex =
+                '9999';
+
+            confete.style.pointerEvents =
+                'none';
+
+            const anim =
+                confete.animate(
+                    [
+                        {
+                            transform:
+                                'translate3d(0, 0, 0) rotate(0deg)',
+                            opacity: 1
+                        },
+                        {
+                            transform:
+                                `translate3d(${(Math.random() - 0.5) * 200}px, ${window.innerHeight + 50}px, 0) rotate(${Math.random() * 720}deg)`,
+                            opacity: 0
+                        }
+                    ],
                     {
-                        transform:
-                            'translate3d(0, 0, 0) rotate(0deg)',
-                        opacity: 1
-                    },
-                    {
-                        transform:
-                            `translate3d(${(Math.random() - 0.5) * 200}px, ${window.innerHeight + 50}px, 0) rotate(${Math.random() * 720}deg)`,
-                        opacity: 0
+                        duration:
+                            Math.random() *
+                            1000 +
+                            1500,
+
+                        easing:
+                            'cubic-bezier(0.25, 1, 0.5, 1)'
                     }
-                ],
-                {
-                    duration: Math.random() * 1000 + 1500,
-                    easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
-                }
+                );
+
+            document.body.appendChild(
+                confete
             );
 
-            document.body.appendChild(confete);
-
-            anim.onfinish = () => confete.remove();
+            anim.onfinish =
+                () =>
+                    confete.remove();
         }
     }
 
@@ -240,17 +420,39 @@ class AppController {
 
     initGoogleAuth() {
         if (
-            typeof google !== 'undefined' &&
-            google.accounts
+            typeof google === 'undefined' ||
+            !google.accounts ||
+            !google.accounts.oauth2
         ) {
-            this.tokenClient =
-                google.accounts.oauth2.initTokenClient({
-                    client_id: this.CLIENT_ID,
-                    scope: this.SCOPES,
+            console.warn(
+                'Google Identity Services ainda não carregou. Tentando novamente...'
+            );
 
-                    callback: (response) => {
-                        if (response.error) {
-                            console.error(response);
+            setTimeout(
+                () =>
+                    this.initGoogleAuth(),
+                500
+            );
+
+            return;
+        }
+
+        this.tokenClient =
+            google.accounts.oauth2.initTokenClient({
+                client_id:
+                    this.CLIENT_ID,
+
+                scope:
+                    this.SCOPES,
+
+                callback:
+                    (response) => {
+                        if (
+                            response.error
+                        ) {
+                            console.error(
+                                response
+                            );
 
                             alert(
                                 'Erro na autenticação com o Google.'
@@ -267,7 +469,9 @@ class AppController {
                             this.accessToken
                         );
 
-                        this.atualizarInterfaceLogin(true);
+                        this.atualizarInterfaceLogin(
+                            true
+                        );
 
                         this.render();
 
@@ -275,27 +479,40 @@ class AppController {
                             'Conta Google conectada com sucesso!'
                         );
                     }
-                });
-        }
+            });
 
         if (this.accessToken) {
-            this.atualizarInterfaceLogin(true);
+            this.atualizarInterfaceLogin(
+                true
+            );
         } else {
-            this.atualizarInterfaceLogin(false);
+            this.atualizarInterfaceLogin(
+                false
+            );
         }
     }
 
     atualizarInterfaceLogin(logado) {
         const statusEl =
-            document.getElementById('statusLogin');
+            document.getElementById(
+                'statusLogin'
+            );
 
         const btnLogin =
-            document.getElementById('btnLoginGoogle');
+            document.getElementById(
+                'btnLoginGoogle'
+            );
 
         const btnLogout =
-            document.getElementById('btnLogoutGoogle');
+            document.getElementById(
+                'btnLogoutGoogle'
+            );
 
-        if (statusEl && btnLogin && btnLogout) {
+        if (
+            statusEl &&
+            btnLogin &&
+            btnLogout
+        ) {
             if (logado) {
                 statusEl.innerText =
                     'Status: Conectado ao Google Drive ✅';
@@ -303,8 +520,11 @@ class AppController {
                 statusEl.style.color =
                     'var(--accent-color)';
 
-                btnLogin.style.display = 'none';
-                btnLogout.style.display = 'inline-block';
+                btnLogin.style.display =
+                    'none';
+
+                btnLogout.style.display =
+                    'inline-block';
 
             } else {
                 statusEl.innerText =
@@ -313,8 +533,11 @@ class AppController {
                 statusEl.style.color =
                     'var(--muted-color)';
 
-                btnLogin.style.display = 'inline-flex';
-                btnLogout.style.display = 'none';
+                btnLogin.style.display =
+                    'inline-flex';
+
+                btnLogout.style.display =
+                    'none';
             }
         }
     }
@@ -338,19 +561,23 @@ class AppController {
             google.accounts.oauth2.revoke(
                 this.accessToken,
                 () => {
-                    this.accessToken = null;
+                    this.accessToken =
+                        null;
 
                     localStorage.removeItem(
                         'google_access_token'
                     );
 
                     localStorage.removeItem(
-                        'google_spreadsheet_id'
+                        this.spreadsheetStorageKey
                     );
 
-                    this.spreadsheetIdSalvo = null;
+                    this.spreadsheetIdSalvo =
+                        null;
 
-                    this.atualizarInterfaceLogin(false);
+                    this.atualizarInterfaceLogin(
+                        false
+                    );
 
                     this.render();
 
@@ -367,87 +594,121 @@ class AppController {
     // =====================================================
 
     initEvents() {
-        const safeBind = (id, event, callback) => {
-            const el = document.getElementById(id);
+        const safeBind =
+            (
+                id,
+                event,
+                callback
+            ) => {
+                const el =
+                    document.getElementById(
+                        id
+                    );
 
-            if (el) {
-                el.addEventListener(event, callback);
-            }
-        };
+                if (el) {
+                    el.addEventListener(
+                        event,
+                        callback
+                    );
+                }
+            };
 
         safeBind(
             'btnSalvar',
             'click',
-            () => this.salvarLancamento()
+            () =>
+                this.salvarLancamento()
         );
 
         safeBind(
             'btnFecharSemana',
             'click',
-            () => this.fecharSemana()
+            () =>
+                this.fecharSemana()
         );
 
         safeBind(
             'btnSalvarMeta',
             'click',
-            () => this.salvarMetaSemanal()
+            () =>
+                this.salvarMetaSemanal()
         );
 
         // Google
         safeBind(
             'btnLoginGoogle',
             'click',
-            () => this.fazerLoginGoogle()
+            () =>
+                this.fazerLoginGoogle()
         );
 
         safeBind(
             'btnLogoutGoogle',
             'click',
-            () => this.fazerLogoutGoogle()
+            () =>
+                this.fazerLogoutGoogle()
         );
 
         safeBind(
             'btnEnviarNuvem',
             'click',
-            () => this.enviarParaGoogleSheetsAutomatico()
+            () =>
+                this.enviarParaGoogleSheetsAutomatico()
         );
 
         safeBind(
             'btnAbrirPlanilhaDrive',
             'click',
-            () => this.abrirPlanilhaNoNavegador()
+            () =>
+                this.abrirPlanilhaNoNavegador()
         );
 
-        // Menu
+        // =================================================
+        // MENU
+        // =================================================
+
         const menuLateral =
-            document.getElementById('menuLateral');
+            document.getElementById(
+                'menuLateral'
+            );
 
         const menuOverlay =
-            document.getElementById('menuOverlay');
+            document.getElementById(
+                'menuOverlay'
+            );
 
         safeBind(
             'btnMenuHamburger',
             'click',
             () => {
                 if (menuLateral) {
-                    menuLateral.classList.add('ativo');
+                    menuLateral.classList.add(
+                        'ativo'
+                    );
                 }
 
                 if (menuOverlay) {
-                    menuOverlay.classList.add('ativo');
+                    menuOverlay.classList.add(
+                        'ativo'
+                    );
                 }
             }
         );
 
-        const fecharMenuFunc = () => {
-            if (menuLateral) {
-                menuLateral.classList.remove('ativo');
-            }
+        const fecharMenuFunc =
+            () => {
+                if (menuLateral) {
+                    menuLateral.classList.remove(
+                        'ativo'
+                    );
+                }
 
-            if (menuOverlay) {
-                menuOverlay.classList.remove('ativo');
-            }
-        };
+                if (menuOverlay) {
+                    menuOverlay.classList.remove(
+                        'ativo'
+                    );
+                }
+            };
 
         safeBind(
             'btnFecharMenu',
@@ -486,7 +747,8 @@ class AppController {
             'configTema',
             'change',
             (event) => {
-                this.tema = event.target.value;
+                this.tema =
+                    event.target.value;
 
                 localStorage.setItem(
                     'tema_aparencia',
@@ -495,8 +757,6 @@ class AppController {
 
                 this.aplicarTema();
 
-                // Re-renderiza para garantir que
-                // elementos dinâmicos usem o novo tema.
                 this.render();
             }
         );
@@ -509,7 +769,8 @@ class AppController {
             'configSemanaAtual',
             'change',
             () => {
-                this.configSemanaPadrao = 'atual';
+                this.configSemanaPadrao =
+                    'atual';
 
                 localStorage.setItem(
                     'config_semana_padrao',
@@ -517,6 +778,7 @@ class AppController {
                 );
 
                 this.atualizarCampoSemana();
+
                 this.render();
             }
         );
@@ -525,7 +787,8 @@ class AppController {
             'configSemanaEscolhida',
             'change',
             () => {
-                this.configSemanaPadrao = 'escolhida';
+                this.configSemanaPadrao =
+                    'escolhida';
 
                 localStorage.setItem(
                     'config_semana_padrao',
@@ -533,6 +796,7 @@ class AppController {
                 );
 
                 this.atualizarCampoSemana();
+
                 this.render();
             }
         );
@@ -548,6 +812,7 @@ class AppController {
                     'config_data_semana',
                     this.configDataSemana
                 );
+
                 this.render();
             }
         );
@@ -556,7 +821,8 @@ class AppController {
             'configFormatoMilhar',
             'change',
             () => {
-                this.configFormatoNumeros = 'milhar';
+                this.configFormatoNumeros =
+                    'milhar';
 
                 localStorage.setItem(
                     'config_formato_numeros',
@@ -571,7 +837,8 @@ class AppController {
             'configFormatoSimples',
             'change',
             () => {
-                this.configFormatoNumeros = 'simples';
+                this.configFormatoNumeros =
+                    'simples';
 
                 localStorage.setItem(
                     'config_formato_numeros',
@@ -586,7 +853,8 @@ class AppController {
             'configPerguntarSalvar',
             'change',
             () => {
-                this.configConfirmacaoSalvar = 'perguntar';
+                this.configConfirmacaoSalvar =
+                    'perguntar';
 
                 localStorage.setItem(
                     'config_confirmacao_salvar',
@@ -599,7 +867,8 @@ class AppController {
             'configSalvarDireto',
             'change',
             () => {
-                this.configConfirmacaoSalvar = 'direto';
+                this.configConfirmacaoSalvar =
+                    'direto';
 
                 localStorage.setItem(
                     'config_confirmacao_salvar',
@@ -611,29 +880,38 @@ class AppController {
         safeBind(
             'btnSalvarConfigProducao',
             'click',
-            () => this.salvarConfigProducao()
+            () =>
+                this.salvarConfigProducao()
         );
 
         const textoInput =
-            document.getElementById('textoProducao');
+            document.getElementById(
+                'textoProducao'
+            );
 
         const valorInput =
-            document.getElementById('valorUnitario');
+            document.getElementById(
+                'valorUnitario'
+            );
 
         const inputBusca =
-            document.getElementById('inputBusca');
+            document.getElementById(
+                'inputBusca'
+            );
 
         if (textoInput) {
             textoInput.addEventListener(
                 'input',
-                () => this.atualizarPreviewTempoReal()
+                () =>
+                    this.atualizarPreviewTempoReal()
             );
         }
 
         if (valorInput) {
             valorInput.addEventListener(
                 'input',
-                () => this.atualizarPreviewTempoReal()
+                () =>
+                    this.atualizarPreviewTempoReal()
             );
         }
 
@@ -651,82 +929,85 @@ class AppController {
             );
         }
 
-        // Bottom Bar
+        // =================================================
+        // BOTTOM BAR
+        // =================================================
+
         safeBind(
             'btnBottomSync',
             'click',
-            () => this.acaoBottomSync()
+            () =>
+                this.acaoBottomSync()
         );
 
         safeBind(
             'btnBottomBusca',
             'click',
-            () => this.abrirBuscaRapida()
+            () =>
+                this.abrirBuscaRapida()
         );
 
         safeBind(
             'btnBottomMenu',
             'click',
-            () => this.abrirMenuBottom()
+            () =>
+                this.abrirMenuBottom()
         );
+
         this.carregarConfigProducao();
     }
-
-
-    // =====================================================
-    // CONFIGURAÇÕES DE PRODUÇÃO
-    // =====================================================
 
     // =====================================================
     // SEMANA DE PRODUÇÃO
     // =====================================================
 
     obterSemanaReferencia() {
+        if (
+            this.configSemanaPadrao ===
+            'atual'
+        ) {
+            const agora =
+                new Date();
 
-        // Semana atual
-        if (this.configSemanaPadrao === 'atual') {
-
-            const agora = new Date();
-
-            return agora.toISOString().slice(0, 10);
+            return agora
+                .toISOString()
+                .slice(0, 10);
         }
 
-        // Semana escolhida
         if (
-            this.configSemanaPadrao === 'escolhida' &&
+            this.configSemanaPadrao ===
+            'escolhida' &&
             this.configDataSemana
         ) {
-
             return this.configDataSemana;
         }
 
-        // Se escolher semana, mas nenhuma data foi definida,
-        // usa a semana atual como segurança.
-        const agora = new Date();
+        const agora =
+            new Date();
 
-        return agora.toISOString().slice(0, 10);
+        return agora
+            .toISOString()
+            .slice(0, 10);
     }
 
-
     obterLancamentosDaSemana() {
-
         const referencia =
             this.obterSemanaReferencia();
 
         return this.lancamentosAtuais.filter(
             reg => {
-
-                // Compatibilidade com lançamentos antigos
-                // que ainda não possuem semanaReferencia.
-                if (!reg.semanaReferencia) {
-
+                if (
+                    !reg.semanaReferencia
+                ) {
                     return (
-                        this.configSemanaPadrao === 'atual'
+                        this.configSemanaPadrao ===
+                        'atual'
                     );
                 }
 
                 return (
-                    reg.semanaReferencia === referencia
+                    reg.semanaReferencia ===
+                    referencia
                 );
             }
         );
@@ -734,36 +1015,43 @@ class AppController {
 
     atualizarCampoSemana() {
         const campo =
-            document.getElementById('configDataSemana');
+            document.getElementById(
+                'configDataSemana'
+            );
 
         if (!campo) return;
 
-        if (this.configSemanaPadrao === 'escolhida') {
+        if (
+            this.configSemanaPadrao ===
+            'escolhida'
+        ) {
+            campo.style.display =
+                'block';
 
-            campo.style.display = 'block';
-
-            if (this.configDataSemana) {
+            if (
+                this.configDataSemana
+            ) {
                 campo.value =
                     this.configDataSemana;
             }
 
         } else {
-
-            campo.style.display = 'none';
+            campo.style.display =
+                'none';
         }
     }
 
     salvarConfigProducao() {
-
         const valorEl =
             document.getElementById(
                 'configValorUnitario'
             );
 
         if (valorEl) {
-
             const valor =
-                parseFloat(valorEl.value);
+                parseFloat(
+                    valorEl.value
+                );
 
             if (
                 isNaN(valor) ||
@@ -803,7 +1091,6 @@ class AppController {
     }
 
     formatarNumero(numero) {
-
         const valor =
             Number(numero) || 0;
 
@@ -824,7 +1111,6 @@ class AppController {
     }
 
     carregarConfigProducao() {
-
         const semanaAtual =
             document.getElementById(
                 'configSemanaAtual'
@@ -867,12 +1153,14 @@ class AppController {
 
         if (semanaAtual) {
             semanaAtual.checked =
-                this.configSemanaPadrao === 'atual';
+                this.configSemanaPadrao ===
+                'atual';
         }
 
         if (semanaEscolhida) {
             semanaEscolhida.checked =
-                this.configSemanaPadrao === 'escolhida';
+                this.configSemanaPadrao ===
+                'escolhida';
         }
 
         if (dataSemana) {
@@ -882,22 +1170,26 @@ class AppController {
 
         if (formatoMilhar) {
             formatoMilhar.checked =
-                this.configFormatoNumeros === 'milhar';
+                this.configFormatoNumeros ===
+                'milhar';
         }
 
         if (formatoSimples) {
             formatoSimples.checked =
-                this.configFormatoNumeros === 'simples';
+                this.configFormatoNumeros ===
+                'simples';
         }
 
         if (perguntarSalvar) {
             perguntarSalvar.checked =
-                this.configConfirmacaoSalvar === 'perguntar';
+                this.configConfirmacaoSalvar ===
+                'perguntar';
         }
 
         if (salvarDireto) {
             salvarDireto.checked =
-                this.configConfirmacaoSalvar === 'direto';
+                this.configConfirmacaoSalvar ===
+                'direto';
         }
 
         if (valorUnitario) {
@@ -914,12 +1206,16 @@ class AppController {
 
     salvarMetaSemanal() {
         const inputMeta =
-            document.getElementById('inputMetaValor');
+            document.getElementById(
+                'inputMetaValor'
+            );
 
         if (!inputMeta) return;
 
         const novoValor =
-            parseFloat(inputMeta.value);
+            parseFloat(
+                inputMeta.value
+            );
 
         if (
             isNaN(novoValor) ||
@@ -932,9 +1228,11 @@ class AppController {
             return;
         }
 
-        this.metaSemanal = novoValor;
+        this.metaSemanal =
+            novoValor;
 
-        this.metaBatidaDisparada = false;
+        this.metaBatidaDisparada =
+            false;
 
         localStorage.setItem(
             'meta_batida_disparada',
@@ -961,25 +1259,41 @@ class AppController {
 
     atualizarPreviewTempoReal() {
         const textoEl =
-            document.getElementById('textoProducao');
+            document.getElementById(
+                'textoProducao'
+            );
 
         const valorEl =
-            document.getElementById('valorUnitario');
+            document.getElementById(
+                'valorUnitario'
+            );
 
         const previewBox =
-            document.getElementById('previewResult');
+            document.getElementById(
+                'previewResult'
+            );
 
-        if (!textoEl || !previewBox) return;
+        if (
+            !textoEl ||
+            !previewBox
+        ) {
+            return;
+        }
 
-        const texto = textoEl.value;
+        const texto =
+            textoEl.value;
 
         const valorUnitario =
             parseFloat(
-                valorEl ? valorEl.value : 0
+                valorEl
+                    ? valorEl.value
+                    : 0
             ) || 0;
 
         if (!texto.trim()) {
-            previewBox.style.display = 'none';
+            previewBox.style.display =
+                'none';
+
             return;
         }
 
@@ -989,7 +1303,9 @@ class AppController {
                 valorUnitario
             );
 
-        if (tempLancamento.pecas > 0) {
+        if (
+            tempLancamento.pecas > 0
+        ) {
             const pecasEl =
                 document.getElementById(
                     'previewPecas'
@@ -1010,10 +1326,12 @@ class AppController {
                     `R$ ${tempLancamento.valorTotal.toFixed(2)}`;
             }
 
-            previewBox.style.display = 'block';
+            previewBox.style.display =
+                'block';
 
         } else {
-            previewBox.style.display = 'none';
+            previewBox.style.display =
+                'none';
         }
     }
 
@@ -1023,27 +1341,35 @@ class AppController {
 
     salvarLancamento() {
         const textoEl =
-            document.getElementById('textoProducao');
+            document.getElementById(
+                'textoProducao'
+            );
 
-        const valorEl =
-            document.getElementById('valorUnitario');
-
-        if (!textoEl) return;
-
-        const texto = textoEl.value;
-
-        const valorUnitario =
-            parseFloat(
-                valorEl ? valorEl.value : 0
-            ) || 0;
-
-        if (!texto.trim()) {
-            alert(
-                'Digite a produção do dia.'
+        if (!textoEl) {
+            console.error(
+                'Campo textoProducao não encontrado.'
             );
 
             return;
         }
+
+        const texto =
+            textoEl.value.trim();
+
+        if (!texto) {
+            alert(
+                'Digite um lançamento antes de salvar.'
+            );
+
+            return;
+        }
+
+        const valorUnitario =
+            parseFloat(
+                document.getElementById(
+                    'valorUnitario'
+                )?.value
+            ) || 0.21;
 
         const lancamento =
             new LancamentoDia(
@@ -1051,16 +1377,41 @@ class AppController {
                 valorUnitario
             );
 
+        lancamento.sincronizado =
+            false;
+
         lancamento.semanaReferencia =
             this.obterSemanaReferencia();
 
-        if (lancamento.pecas === 0) {
-            alert(
-                'Nenhum número de peças identificado.'
-            );
+        // =================================================
+        // CORREÇÃO DA DATA DA SEMANA ESCOLHIDA
+        // =================================================
 
-            return;
+        if (
+            !texto.match(/\d{2}\/\d{2}/) &&
+            this.configSemanaPadrao ===
+            'escolhida' &&
+            this.configDataSemana
+        ) {
+            const dataEscolhida =
+                new Date(
+                    this.configDataSemana +
+                    'T00:00:00'
+                );
+
+            lancamento.data =
+                dataEscolhida.toLocaleDateString(
+                    'pt-BR',
+                    {
+                        day: '2-digit',
+                        month: '2-digit'
+                    }
+                );
         }
+
+        // =================================================
+        // CONFIRMAÇÃO
+        // =================================================
 
         if (
             this.configConfirmacaoSalvar ===
@@ -1078,6 +1429,10 @@ class AppController {
             }
         }
 
+        // =================================================
+        // SALVAR
+        // =================================================
+
         this.lancamentosAtuais.push(
             lancamento
         );
@@ -1091,7 +1446,8 @@ class AppController {
 
         this.tocarSomLancamento();
 
-        this.sincronizadoComNuvem = false;
+        this.sincronizadoComNuvem =
+            false;
 
         localStorage.setItem(
             'sincronizado_nuvem',
@@ -1106,7 +1462,8 @@ class AppController {
             );
 
         if (previewBox) {
-            previewBox.style.display = 'none';
+            previewBox.style.display =
+                'none';
         }
 
         this.render();
@@ -1134,7 +1491,8 @@ class AppController {
                 )
             );
 
-            this.sincronizadoComNuvem = false;
+            this.sincronizadoComNuvem =
+                false;
 
             localStorage.setItem(
                 'sincronizado_nuvem',
@@ -1151,7 +1509,9 @@ class AppController {
 
     editarLancamento(index) {
         const reg =
-            this.lancamentosAtuais[index];
+            this.lancamentosAtuais[
+                index
+            ];
 
         if (!reg) return;
 
@@ -1209,64 +1569,66 @@ class AppController {
     // =====================================================
 
     async fecharSemana() {
+        const lancamentosDaSemana =
+            this.obterLancamentosDaSemana();
 
-    const lancamentosDaSemana =
-        this.obterLancamentosDaSemana();
+        if (
+            lancamentosDaSemana.length ===
+            0
+        ) {
+            alert(
+                'Não há lançamentos nesta semana.'
+            );
 
-    if (lancamentosDaSemana.length === 0) {
+            return;
+        }
+
+        if (
+            !confirm(
+                'Deseja fechar esta semana e salvá-la no histórico?'
+            )
+        ) {
+            return;
+        }
+
+        const semana =
+            new SemanaProducao(
+                lancamentosDaSemana
+            );
+
+        await this.storage.salvarSemana(
+            semana
+        );
+
+        this.lancamentosAtuais =
+            this.lancamentosAtuais.filter(
+                reg =>
+                    !lancamentosDaSemana.includes(
+                        reg
+                    )
+            );
+
+        localStorage.setItem(
+            'temp_lancamentos',
+            JSON.stringify(
+                this.lancamentosAtuais
+            )
+        );
+
+        this.sincronizadoComNuvem =
+            true;
+
+        localStorage.setItem(
+            'sincronizado_nuvem',
+            'true'
+        );
+
+        this.render();
+
         alert(
-            'Não há lançamentos nesta semana.'
+            'Semana fechada com sucesso!'
         );
-
-        return;
     }
-
-    if (
-        !confirm(
-            'Deseja fechar esta semana e salvá-la no histórico?'
-        )
-    ) {
-        return;
-    }
-
-    // Cria o histórico somente com os lançamentos
-    // da semana selecionada.
-    const semana =
-        new SemanaProducao(
-            lancamentosDaSemana
-        );
-
-    await this.storage.salvarSemana(
-        semana
-    );
-
-    // Remove somente os lançamentos da semana fechada.
-    this.lancamentosAtuais =
-        this.lancamentosAtuais.filter(
-            reg =>
-                !lancamentosDaSemana.includes(reg)
-        );
-
-    localStorage.setItem(
-        'temp_lancamentos',
-        JSON.stringify(
-            this.lancamentosAtuais
-        )
-    );
-
-    this.sincronizadoComNuvem = true;
-
-    localStorage.setItem(
-        'sincronizado_nuvem',
-        'true'
-    );
-
-    this.render();
-
-    alert(
-        'Semana fechada com sucesso!'
-    );
-}
 
     // =====================================================
     // GOOGLE SHEETS
@@ -1274,7 +1636,7 @@ class AppController {
 
     async obterOuCriarPlanilhaDrive() {
         const nomePlanilha =
-            'Controle de Travete - Meus Dados';
+            this.nomePlanilhaGoogle;
 
         const query =
             encodeURIComponent(
@@ -1297,7 +1659,8 @@ class AppController {
 
         if (
             searchData.files &&
-            searchData.files.length > 0
+            searchData.files.length >
+            0
         ) {
             const idEncontrado =
                 searchData.files[0].id;
@@ -1306,7 +1669,7 @@ class AppController {
                 idEncontrado;
 
             localStorage.setItem(
-                'google_spreadsheet_id',
+                this.spreadsheetStorageKey,
                 idEncontrado
             );
 
@@ -1329,7 +1692,8 @@ class AppController {
 
                     body: JSON.stringify({
                         properties: {
-                            title: nomePlanilha
+                            title:
+                                nomePlanilha
                         }
                     })
                 }
@@ -1345,7 +1709,7 @@ class AppController {
             spreadsheetId;
 
         localStorage.setItem(
-            'google_spreadsheet_id',
+            this.spreadsheetStorageKey,
             spreadsheetId
         );
 
@@ -1392,19 +1756,23 @@ class AppController {
 
         if (!this.spreadsheetIdSalvo) {
             this.obterOuCriarPlanilhaDrive()
-                .then(id => {
-                    if (id) {
-                        window.open(
-                            `https://docs.google.com/spreadsheets/d/${id}/edit`,
-                            '_blank'
+                .then(
+                    id => {
+                        if (id) {
+                            window.open(
+                                `https://docs.google.com/spreadsheets/d/${id}/edit`,
+                                '_blank'
+                            );
+                        }
+                    }
+                )
+                .catch(
+                    () => {
+                        alert(
+                            'Não foi possível localizar sua planilha no Drive. Tente sincronizar primeiro.'
                         );
                     }
-                })
-                .catch(() => {
-                    alert(
-                        'Não foi possível localizar sua planilha no Drive. Tente sincronizar primeiro.'
-                    );
-                });
+                );
 
             return;
         }
@@ -1427,7 +1795,8 @@ class AppController {
         }
 
         if (
-            this.lancamentosAtuais.length === 0
+            this.lancamentosAtuais.length ===
+            0
         ) {
             alert(
                 'Não há lançamentos atuais na tela para sincronizar.'
@@ -1450,8 +1819,40 @@ class AppController {
             const spreadsheetId =
                 await this.obterOuCriarPlanilhaDrive();
 
+            const lancamentosDaSemana =
+                this.obterLancamentosDaSemana();
+
+            if (
+                lancamentosDaSemana.length ===
+                0
+            ) {
+                alert(
+                    'Não há lançamentos na semana selecionada para sincronizar.'
+                );
+
+                return;
+            }
+
+            const lancamentosPendentes =
+                lancamentosDaSemana.filter(
+                    reg =>
+                        reg.sincronizado !==
+                        true
+                );
+
+            if (
+                lancamentosPendentes.length ===
+                0
+            ) {
+                alert(
+                    'Todos os lançamentos da semana selecionada já estão sincronizados.'
+                );
+
+                return;
+            }
+
             const linhasNovas =
-                this.lancamentosAtuais.map(
+                lancamentosPendentes.map(
                     reg => [
                         reg.data ||
                         new Date().toLocaleDateString(
@@ -1462,11 +1863,14 @@ class AppController {
                         reg.textoOriginal ||
                         '',
 
-                        reg.pecas || 0,
+                        reg.pecas ||
+                        0,
 
-                        reg.valorUnitario || 0,
+                        reg.valorUnitario ||
+                        0,
 
-                        reg.valorTotal || 0
+                        reg.valorTotal ||
+                        0
                     ]
                 );
 
@@ -1485,7 +1889,8 @@ class AppController {
                         },
 
                         body: JSON.stringify({
-                            values: linhasNovas
+                            values:
+                                linhasNovas
                         })
                     }
                 );
@@ -1495,6 +1900,20 @@ class AppController {
                     'Falha ao gravar dados na planilha.'
                 );
             }
+
+            lancamentosPendentes.forEach(
+                reg => {
+                    reg.sincronizado =
+                        true;
+                }
+            );
+
+            localStorage.setItem(
+                'temp_lancamentos',
+                JSON.stringify(
+                    this.lancamentosAtuais
+                )
+            );
 
             this.sincronizadoComNuvem =
                 true;
@@ -1507,7 +1926,7 @@ class AppController {
             this.render();
 
             alert(
-                "Sincronizado com sucesso! Seus lançamentos foram enviados para a planilha 'Controle de Travete - Meus Dados'."
+                `Sincronizado com sucesso! ${lancamentosPendentes.length} lançamento(s) foram enviados para a planilha.`
             );
 
         } catch (e) {
@@ -1521,7 +1940,8 @@ class AppController {
                     'google_access_token'
                 );
 
-                this.accessToken = null;
+                this.accessToken =
+                    null;
 
                 this.atualizarInterfaceLogin(
                     false
@@ -1568,10 +1988,13 @@ class AppController {
         }
 
         if (inputBusca) {
-            setTimeout(() => {
-                inputBusca.focus();
-                inputBusca.select();
-            }, 350);
+            setTimeout(
+                () => {
+                    inputBusca.focus();
+                    inputBusca.select();
+                },
+                350
+            );
         }
     }
 
@@ -1602,9 +2025,14 @@ class AppController {
         const conectado =
             !!this.accessToken;
 
+        const lancamentosDaSemana =
+            this.obterLancamentosDaSemana();
+
         const pendente =
-            !this.sincronizadoComNuvem &&
-            this.lancamentosAtuais.length > 0;
+            lancamentosDaSemana.some(
+                reg =>
+                    reg.sincronizado !== true
+            );
 
         btnSync.classList.remove(
             'sincronizado',
@@ -1613,8 +2041,11 @@ class AppController {
         );
 
         if (!conectado) {
-            status.textContent = '⚪';
-            label.textContent = 'Google';
+            status.textContent =
+                '⚪';
+
+            label.textContent =
+                'Google';
 
             btnSync.classList.add(
                 'desconectado'
@@ -1624,8 +2055,11 @@ class AppController {
                 'Conectar ao Google';
 
         } else if (pendente) {
-            status.textContent = '🟡';
-            label.textContent = 'Pendente';
+            status.textContent =
+                '🟡';
+
+            label.textContent =
+                'Pendente';
 
             btnSync.classList.add(
                 'pendente'
@@ -1635,8 +2069,11 @@ class AppController {
                 'Sincronizar lançamentos';
 
         } else {
-            status.textContent = '🟢';
-            label.textContent = 'Sincronizado';
+            status.textContent =
+                '🟢';
+
+            label.textContent =
+                'Sincronizado';
 
             btnSync.classList.add(
                 'sincronizado'
@@ -1650,14 +2087,24 @@ class AppController {
     acaoBottomSync() {
         if (!this.accessToken) {
             this.fazerLoginGoogle();
+
             return;
         }
 
+        const lancamentosDaSemana =
+            this.obterLancamentosDaSemana();
+
+        const existemLancamentosPendentes =
+            lancamentosDaSemana.some(
+                reg =>
+                    reg.sincronizado !== true
+            );
+
         if (
-            !this.sincronizadoComNuvem &&
-            this.lancamentosAtuais.length > 0
+            existemLancamentosPendentes
         ) {
             this.enviarParaGoogleSheetsAutomatico();
+
             return;
         }
 
@@ -1705,7 +2152,6 @@ class AppController {
         let totalPecas = 0;
         let totalValor = 0;
 
-
         const lancamentosDaSemana =
             this.obterLancamentosDaSemana();
 
@@ -1720,7 +2166,8 @@ class AppController {
 
                 const dataRef =
                     (
-                        reg.data || ''
+                        reg.data ||
+                        ''
                     ).toLowerCase();
 
                 if (
@@ -1736,13 +2183,16 @@ class AppController {
                 }
 
                 totalPecas +=
-                    reg.pecas || 0;
+                    Number(
+                        reg.pecas
+                    ) || 0;
 
                 totalValor +=
-                    reg.valorTotal || 0;
+                    Number(
+                        reg.valorTotal
+                    ) || 0;
             }
         );
-
 
         // =================================================
         // BARRA DE META
@@ -1808,9 +2258,12 @@ class AppController {
                         'true'
                     );
 
-                    setTimeout(() => {
-                        this.dispararAnimacaoMetaBatida();
-                    }, 100);
+                    setTimeout(
+                        () => {
+                            this.dispararAnimacaoMetaBatida();
+                        },
+                        100
+                    );
                 }
 
             } else {
@@ -1835,8 +2288,12 @@ class AppController {
             let htmlAtuais = '';
 
             lancamentosDaSemana.forEach(
-                (reg) => {
-                    const index = this.lancamentosAtuais.indexOf(reg);
+                reg => {
+                    const index =
+                        this.lancamentosAtuais.indexOf(
+                            reg
+                        );
+
                     const textoBuscaRef =
                         (
                             reg.textoBruto ||
@@ -1846,7 +2303,8 @@ class AppController {
 
                     const dataRef =
                         (
-                            reg.data || ''
+                            reg.data ||
+                            ''
                         ).toLowerCase();
 
                     if (
@@ -1891,7 +2349,7 @@ class AppController {
                                 <strong>${reg.data}</strong>
                                 -
                                 ${this.formatarNumero(reg.pecas)} pçs
-                                (R$ ${reg.valorTotal.toFixed(2)})
+                                (R$ ${Number(reg.valorTotal || 0).toFixed(2)})
 
                                 <ul>
                                     ${detalhesList}
@@ -1979,7 +2437,184 @@ class AppController {
 
         if (totalGeralPecasEl) {
             totalGeralPecasEl.innerText =
-                this.formatarNumero(totalPecas);
+                this.formatarNumero(
+                    totalPecas
+                );
+        }
+
+        // =================================================
+        // RESUMO SEMANAL POR VALOR UNITÁRIO
+        // =================================================
+
+        const resumoSemanalPrecoEl =
+            document.getElementById(
+                'resumoSemanalPreco'
+            );
+
+        if (resumoSemanalPrecoEl) {
+            const gruposPorPreco = {};
+
+            lancamentosDaSemana.forEach(
+                reg => {
+                    const valorUnitario =
+                        Number(
+                            reg.valorUnitario
+                        ) || 0.21;
+
+                    const chave =
+                        valorUnitario.toFixed(
+                            2
+                        );
+
+                    if (
+                        !gruposPorPreco[
+                            chave
+                        ]
+                    ) {
+                        gruposPorPreco[
+                            chave
+                        ] = {
+                            valorUnitario:
+                                valorUnitario,
+
+                            pecas: 0,
+
+                            valor: 0,
+
+                            lancamentos: []
+                        };
+                    }
+
+                    const pecas =
+                        Number(
+                            reg.pecas
+                        ) || 0;
+
+                    const valorTotal =
+                        Number(
+                            reg.valorTotal
+                        ) ||
+                        (
+                            pecas *
+                            valorUnitario
+                        );
+
+                    gruposPorPreco[
+                        chave
+                    ].pecas +=
+                        pecas;
+
+                    gruposPorPreco[
+                        chave
+                    ].valor +=
+                        valorTotal;
+
+                    gruposPorPreco[
+                        chave
+                    ].lancamentos.push(
+                        {
+                            data:
+                                reg.data ||
+                                '',
+
+                            pecas:
+                                pecas,
+
+                            valorTotal:
+                                valorTotal,
+
+                            texto:
+                                reg.textoBruto ||
+                                reg.textoOriginal ||
+                                ''
+                        }
+                    );
+                }
+            );
+
+            const chaves =
+                Object.keys(
+                    gruposPorPreco
+                ).sort(
+                    (a, b) =>
+                        Number(a) -
+                        Number(b)
+                );
+
+            if (
+                chaves.length ===
+                0
+            ) {
+                resumoSemanalPrecoEl.innerHTML =
+                    '';
+
+            } else {
+                let htmlResumo = `
+                    <div class="resumo-preco-titulo">
+                        📦 Resumo por valor unitário
+                    </div>
+                `;
+
+                chaves.forEach(
+                    chave => {
+                        const grupo =
+                            gruposPorPreco[
+                                chave
+                            ];
+
+                        htmlResumo += `
+                            <div class="resumo-preco-grupo">
+
+                                <div class="resumo-preco-grupo-titulo">
+                                    💰 R$ ${grupo.valorUnitario.toFixed(2)}
+                                    por peça
+                                </div>
+                        `;
+
+                        grupo.lancamentos.forEach(
+                            reg => {
+                                htmlResumo += `
+                                    <div class="resumo-preco-item">
+
+                                        <span>
+                                            ${reg.data}
+                                            -
+                                            ${this.formatarNumero(reg.pecas)}
+                                            pçs
+                                        </span>
+
+                                        <span>
+                                            R$ ${reg.valorTotal.toFixed(2)}
+                                        </span>
+
+                                    </div>
+                                `;
+                            }
+                        );
+
+                        htmlResumo += `
+                                <div class="resumo-preco-total">
+
+                                    <span>
+                                        Total:
+                                        ${this.formatarNumero(grupo.pecas)}
+                                        pçs
+                                    </span>
+
+                                    <span>
+                                        R$ ${grupo.valor.toFixed(2)}
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        `;
+                    }
+                );
+
+                resumoSemanalPrecoEl.innerHTML =
+                    htmlResumo;
+            }
         }
 
         // =================================================
@@ -1997,9 +2632,15 @@ class AppController {
                     'avisoSyncPendenteMenu'
                 );
 
+            const existemLancamentosPendentes =
+                lancamentosDaSemana.some(
+                    reg =>
+                        reg.sincronizado !==
+                        true
+                );
+
             if (
-                !this.sincronizadoComNuvem &&
-                this.lancamentosAtuais.length > 0
+                existemLancamentosPendentes
             ) {
                 if (!avisoEl) {
                     avisoEl =
@@ -2032,6 +2673,10 @@ class AppController {
             } else if (avisoEl) {
                 avisoEl.remove();
             }
+
+            // =================================================
+            // BOTÃO PARA ABRIR A PLANILHA
+            // =================================================
 
             let btnAbrirPlanilha =
                 document.getElementById(
@@ -2071,7 +2716,9 @@ class AppController {
                     );
                 }
 
-            } else if (btnAbrirPlanilha) {
+            } else if (
+                btnAbrirPlanilha
+            ) {
                 btnAbrirPlanilha.remove();
             }
         }
@@ -2085,12 +2732,19 @@ class AppController {
                 'listaArquivo'
             );
 
-        if (!historicoEl) return;
+        if (!historicoEl) {
+            this.atualizarBottomBar();
+            return;
+        }
 
         const semanasSalvas =
             await this.storage.obterTodasSemanas();
 
         let htmlHistorico = '';
+
+        // =================================================
+        // RESUMO MENSAL
+        // =================================================
 
         const resumoMensal = {};
 
@@ -2098,22 +2752,29 @@ class AppController {
             semana => {
                 const partesPeriodo =
                     semana.periodo
-                        ? semana.periodo.split(' ')
+                        ? semana.periodo.split(
+                            ' '
+                        )
                         : [];
 
-                let mesAnoKey = 'Outros';
+                let mesAnoKey =
+                    'Outros';
 
                 if (
-                    partesPeriodo.length > 0
+                    partesPeriodo.length >
+                    0
                 ) {
                     const dataInicioStr =
                         partesPeriodo[0];
 
                     const subPartes =
-                        dataInicioStr.split('/');
+                        dataInicioStr.split(
+                            '/'
+                        );
 
                     if (
-                        subPartes.length === 3
+                        subPartes.length ===
+                        3
                     ) {
                         const mesesNomes = [
                             'Janeiro',
@@ -2137,7 +2798,9 @@ class AppController {
                             ) - 1;
 
                         if (
-                            mesesNomes[mesIndex]
+                            mesesNomes[
+                                mesIndex
+                            ]
                         ) {
                             mesAnoKey =
                                 `${mesesNomes[mesIndex]} de ${subPartes[2]}`;
@@ -2146,36 +2809,48 @@ class AppController {
                 }
 
                 if (
-                    !resumoMensal[mesAnoKey]
+                    !resumoMensal[
+                        mesAnoKey
+                    ]
                 ) {
-                    resumoMensal[mesAnoKey] = {
+                    resumoMensal[
+                        mesAnoKey
+                    ] = {
                         valor: 0,
                         pecas: 0,
                         semanasCount: 0
                     };
                 }
 
-                resumoMensal[mesAnoKey].valor +=
-                    semana.valorTotal || 0;
+                resumoMensal[
+                    mesAnoKey
+                ].valor +=
+                    semana.valorTotal ||
+                    0;
 
-                resumoMensal[mesAnoKey].pecas +=
-                    semana.pecasTotal || 0;
+                resumoMensal[
+                    mesAnoKey
+                ].pecas +=
+                    semana.pecasTotal ||
+                    0;
 
-                resumoMensal[mesAnoKey].semanasCount +=
+                resumoMensal[
+                    mesAnoKey
+                ].semanasCount +=
                     1;
             }
         );
 
-        // =================================================
-        // RESUMO MENSAL
-        // =================================================
-
         let htmlResumoMensal = '';
 
-        Object.keys(resumoMensal).forEach(
+        Object.keys(
+            resumoMensal
+        ).forEach(
             mes => {
                 const dados =
-                    resumoMensal[mes];
+                    resumoMensal[
+                        mes
+                    ];
 
                 htmlResumoMensal += `
                     <div
@@ -2268,7 +2943,8 @@ class AppController {
 
         semanasSalvas
             .sort(
-                (a, b) => b.id - a.id
+                (a, b) =>
+                    b.id - a.id
             )
             .forEach(
                 semana => {
@@ -2430,7 +3106,7 @@ class AppController {
             );
 
         // =================================================
-        // MOSTRAR/OCULTAR ARQUIVO
+        // MOSTRAR / OCULTAR ARQUIVO
         // =================================================
 
         const cardArquivo =
@@ -2448,7 +3124,10 @@ class AppController {
         historicoEl.innerHTML =
             htmlHistorico;
 
-        // Atualiza a barra inferior
+        // =================================================
+        // BARRA INFERIOR
+        // =================================================
+
         this.atualizarBottomBar();
     }
 }
@@ -2458,11 +3137,13 @@ class AppController {
 // =========================================================
 
 if (
-    document.readyState === 'loading'
+    document.readyState ===
+    'loading'
 ) {
     document.addEventListener(
         'DOMContentLoaded',
-        () => new AppController()
+        () =>
+            new AppController()
     );
 } else {
     new AppController();
