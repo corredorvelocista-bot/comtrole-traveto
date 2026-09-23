@@ -144,7 +144,7 @@ export class ProducaoController {
 
     fecharSemana() {
 
-    this.iniciarNovaSemana();
+        this.iniciarNovaSemana();
 
-}
+    }
 }

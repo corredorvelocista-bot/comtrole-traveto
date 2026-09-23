@@ -6,6 +6,7 @@ import { MenuController } from './menu/MenuController.js';
 import { TemaController } from './TemaController.js';
 import { PerfilController } from './PerfilController.js';
 import { ProducaoController } from './ProducaoController.js';
+import { SincronizacaoController } from './SincronizacaoController.js';
 
 class AppController {
     constructor() {
@@ -26,6 +27,9 @@ class AppController {
 
         this.producaoController =
             new ProducaoController();
+
+        this.sincronizacaoController =
+            new SincronizacaoController();
 
         this.lancamentosAtuais =
             JSON.parse(
