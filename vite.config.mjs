@@ -6,7 +6,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: resolve(import.meta.dirname, 'index.html'),
-                historico: resolve(import.meta.dirname, 'historico.html')
+                historico: resolve(import.meta.dirname, 'historico.html'),
+		perfil: resolve(import.meta.dirname, 'perfil.html')
             }
         }
     }

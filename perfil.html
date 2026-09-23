@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar Perfil - Controle de Travete</title>
+
+    <link rel="stylesheet" href="./src/css/index.css">
+    <link rel="stylesheet" href="./src/css/perfil.css">
+</head>
+
+<body>
+
+    <div class="perfil-page">
+
+        <div class="perfil-header">
+
+            <button id="btnVoltarPerfil" type="button">
+                ←
+            </button>
+
+            <h1>
+                Editar Perfil
+            </h1>
+
+        </div>
+
+        <div class="perfil-card">
+
+            <label for="campoFoto" id="perfilFoto" class="perfil-foto">
+                👤
+                <input type="file" id="campoFoto" accept="image/*" hidden>
+            </label>
+
+            <h2 id="perfilNome">
+                Usuário
+            </h2>
+
+            <p id="perfilStatus">
+                Conta local
+            </p>
+
+            <label for="campoNome">
+                Nome
+            </label>
+
+            <input type="text" id="campoNome" placeholder="Digite seu nome" maxlength="50">
+
+            <button id="btnSalvarNome" type="button">
+                Salvar nome
+            </button>
+
+        </div>
+
+    </div>
+
+    <script type="module" src="./src/js/perfil.js"></script>
+
+</body>
+
+</html>

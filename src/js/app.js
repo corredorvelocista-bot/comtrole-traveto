@@ -1,8 +1,15 @@
 import { StorageService } from './StorageService.js';
 import { LancamentoDia, SemanaProducao } from './Producao.js';
+import { tocarSomLancamento, tocarSomMetaBatida, dispararAnimacaoMetaBatida } from './efeitos.js';
+import { GoogleService } from './GoogleService.js';
+import { MenuController } from './menu/MenuController.js';
+import { TemaController } from './TemaController.js';
+import { PerfilController } from './PerfilController.js';
+import { ProducaoController } from './ProducaoController.js';
 
 class AppController {
     constructor() {
+
         this.metaBatidaDisparada =
             JSON.parse(
                 localStorage.getItem('meta_batida_disparada')
@@ -10,6 +17,15 @@ class AppController {
 
         this.storage =
             new StorageService();
+
+        this.menuController =
+            new MenuController();
+
+        this.perfilController =
+            new PerfilController();
+
+        this.producaoController =
+            new ProducaoController();
 
         this.lancamentosAtuais =
             JSON.parse(
@@ -25,21 +41,6 @@ class AppController {
 
         const ambienteLocal =
             window.location.hostname === 'localhost';
-
-        this.spreadsheetStorageKey =
-            ambienteLocal
-                ? 'google_spreadsheet_id_dev'
-                : 'google_spreadsheet_id';
-
-        this.nomePlanilhaGoogle =
-            ambienteLocal
-                ? 'Controle de Travete - TESTE DEV'
-                : 'Controle de Travete - Meus Dados';
-
-        this.spreadsheetIdSalvo =
-            localStorage.getItem(
-                this.spreadsheetStorageKey
-            ) || null;
 
         this.metaSemanal =
             parseFloat(
@@ -83,335 +84,52 @@ class AppController {
         // CONFIGURAÇÃO GOOGLE AUTH
         // =====================================================
 
-        this.CLIENT_ID =
-            ambienteLocal
-                ? '751192071126-02fgofvlqbofcks42kb93jd8te7ktq24.apps.googleusercontent.com'
-                : '751192071126-02l99756dcqr65orhm2iqs5hajnjr54i.apps.googleusercontent.com';
+        this.googleService = new GoogleService({
+            ambienteLocal:
+                ambienteLocal,
 
-        this.SCOPES =
-            'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+            onLoginStatusChange:
+                (logado) => {
+                    this.atualizarInterfaceLogin(
+                        logado
+                    );
+                },
 
-        this.tokenClient = null;
+            onRender:
+                () => {
+                    this.render();
+                }
+        });
 
         this.accessToken =
-            localStorage.getItem(
-                'google_access_token'
-            ) || null;
+            this.googleService?.accessToken || null;
 
         // =====================================================
         // TEMA
         // =====================================================
 
-        this.tema =
-            localStorage.getItem(
-                'tema_aparencia'
-            ) || 'escuro';
+        this.temaController =
+            new TemaController();
 
-        this.aplicarTema();
+        this.temaController.aplicar();
+
+        this.animacoesAtivas = localStorage.getItem('animacoes_interface') !== 'false';
+        this.aplicarAnimacoes();
+
+        const configAnimacoes =
+            document.getElementById('configAnimacoes');
+
+        if (configAnimacoes) {
+            configAnimacoes.checked =
+                this.animacoesAtivas;
+        }
 
         window.app = this;
 
         this.initGoogleAuth();
         this.initEvents();
+        this.atualizarPerfilMenu();
         this.render();
-    }
-
-    // =====================================================
-    // TEMA
-    // =====================================================
-
-    aplicarTema() {
-        const tema = this.tema;
-
-        if (tema === 'claro') {
-            document.documentElement.setAttribute(
-                'data-theme',
-                'claro'
-            );
-
-            return;
-        }
-
-        if (tema === 'automatico') {
-            const sistemaEscuro =
-                window.matchMedia(
-                    '(prefers-color-scheme: dark)'
-                ).matches;
-
-            if (sistemaEscuro) {
-                document.documentElement.removeAttribute(
-                    'data-theme'
-                );
-            } else {
-                document.documentElement.setAttribute(
-                    'data-theme',
-                    'claro'
-                );
-            }
-
-            return;
-        }
-
-        document.documentElement.removeAttribute(
-            'data-theme'
-        );
-    }
-
-    // =====================================================
-    // SOM DO LANÇAMENTO
-    // =====================================================
-
-    tocarSomLancamento() {
-        try {
-            const audioCtx =
-                new (
-                    window.AudioContext ||
-                    window.webkitAudioContext
-                )();
-
-            const now =
-                audioCtx.currentTime;
-
-            const tocarNota =
-                (
-                    frequencia,
-                    inicio,
-                    duracao
-                ) => {
-                    const osc =
-                        audioCtx.createOscillator();
-
-                    const gain =
-                        audioCtx.createGain();
-
-                    osc.type =
-                        'sine';
-
-                    osc.frequency.setValueAtTime(
-                        frequencia,
-                        inicio
-                    );
-
-                    gain.gain.setValueAtTime(
-                        0.05,
-                        inicio
-                    );
-
-                    gain.gain.exponentialRampToValueAtTime(
-                        0.0001,
-                        inicio + duracao
-                    );
-
-                    osc.connect(gain);
-                    gain.connect(
-                        audioCtx.destination
-                    );
-
-                    osc.start(inicio);
-
-                    osc.stop(
-                        inicio + duracao
-                    );
-                };
-
-            tocarNota(
-                523.25,
-                now,
-                0.15
-            );
-
-            tocarNota(
-                659.25,
-                now + 0.04,
-                0.2
-            );
-
-        } catch (e) {
-            // Ignora se o navegador bloquear autoplay
-        }
-    }
-
-    // =====================================================
-    // SOM DA META
-    // =====================================================
-
-    tocarSomMetaBatida() {
-        try {
-            const audioCtx =
-                new (
-                    window.AudioContext ||
-                    window.webkitAudioContext
-                )();
-
-            const now =
-                audioCtx.currentTime;
-
-            const tocarNota =
-                (
-                    frequencia,
-                    inicio,
-                    duracao
-                ) => {
-                    const osc =
-                        audioCtx.createOscillator();
-
-                    const gain =
-                        audioCtx.createGain();
-
-                    osc.type =
-                        'triangle';
-
-                    osc.frequency.setValueAtTime(
-                        frequencia,
-                        inicio
-                    );
-
-                    gain.gain.setValueAtTime(
-                        0.08,
-                        inicio
-                    );
-
-                    gain.gain.exponentialRampToValueAtTime(
-                        0.0001,
-                        inicio + duracao
-                    );
-
-                    osc.connect(gain);
-                    gain.connect(
-                        audioCtx.destination
-                    );
-
-                    osc.start(inicio);
-
-                    osc.stop(
-                        inicio + duracao
-                    );
-                };
-
-            tocarNota(
-                523.25,
-                now,
-                0.15
-            );
-
-            tocarNota(
-                659.25,
-                now + 0.12,
-                0.15
-            );
-
-            tocarNota(
-                783.99,
-                now + 0.24,
-                0.15
-            );
-
-            tocarNota(
-                1046.50,
-                now + 0.36,
-                0.4
-            );
-
-        } catch (e) {
-            // Ignora se bloqueado pelo navegador
-        }
-    }
-
-    // =====================================================
-    // ANIMAÇÃO DA META
-    // =====================================================
-
-    dispararAnimacaoMetaBatida() {
-        this.tocarSomMetaBatida();
-
-        const quantidade = 30;
-
-        const cores = [
-            '#4caf50',
-            '#ff9800',
-            '#2196f3',
-            '#e91e63',
-            '#ffeb3b'
-        ];
-
-        for (
-            let i = 0;
-            i < quantidade;
-            i++
-        ) {
-            const confete =
-                document.createElement(
-                    'div'
-                );
-
-            confete.style.position =
-                'fixed';
-
-            confete.style.width =
-                `${Math.random() * 8 + 6}px`;
-
-            confete.style.height =
-                `${Math.random() * 8 + 6}px`;
-
-            confete.style.backgroundColor =
-                cores[
-                    Math.floor(
-                        Math.random() *
-                        cores.length
-                    )
-                ];
-
-            confete.style.top =
-                '-10px';
-
-            confete.style.left =
-                `${Math.random() * window.innerWidth}px`;
-
-            confete.style.opacity =
-                '1';
-
-            confete.style.borderRadius =
-                '50%';
-
-            confete.style.zIndex =
-                '9999';
-
-            confete.style.pointerEvents =
-                'none';
-
-            const anim =
-                confete.animate(
-                    [
-                        {
-                            transform:
-                                'translate3d(0, 0, 0) rotate(0deg)',
-                            opacity: 1
-                        },
-                        {
-                            transform:
-                                `translate3d(${(Math.random() - 0.5) * 200}px, ${window.innerHeight + 50}px, 0) rotate(${Math.random() * 720}deg)`,
-                            opacity: 0
-                        }
-                    ],
-                    {
-                        duration:
-                            Math.random() *
-                            1000 +
-                            1500,
-
-                        easing:
-                            'cubic-bezier(0.25, 1, 0.5, 1)'
-                    }
-                );
-
-            document.body.appendChild(
-                confete
-            );
-
-            anim.onfinish =
-                () =>
-                    confete.remove();
-        }
     }
 
     // =====================================================
@@ -419,77 +137,7 @@ class AppController {
     // =====================================================
 
     initGoogleAuth() {
-        if (
-            typeof google === 'undefined' ||
-            !google.accounts ||
-            !google.accounts.oauth2
-        ) {
-            console.warn(
-                'Google Identity Services ainda não carregou. Tentando novamente...'
-            );
-
-            setTimeout(
-                () =>
-                    this.initGoogleAuth(),
-                500
-            );
-
-            return;
-        }
-
-        this.tokenClient =
-            google.accounts.oauth2.initTokenClient({
-                client_id:
-                    this.CLIENT_ID,
-
-                scope:
-                    this.SCOPES,
-
-                callback:
-                    (response) => {
-                        if (
-                            response.error
-                        ) {
-                            console.error(
-                                response
-                            );
-
-                            alert(
-                                'Erro na autenticação com o Google.'
-                            );
-
-                            return;
-                        }
-
-                        this.accessToken =
-                            response.access_token;
-
-                        localStorage.setItem(
-                            'google_access_token',
-                            this.accessToken
-                        );
-
-                        this.atualizarInterfaceLogin(
-                            true
-                        );
-
-                        this.render();
-
-                        alert(
-                            'Conta Google conectada com sucesso!'
-                        );
-                    }
-            });
-
-        if (this.accessToken) {
-            this.atualizarInterfaceLogin(
-                true
-            );
-        } else {
-            this.atualizarInterfaceLogin(
-                false
-            );
-        }
+        this.googleService.initGoogleAuth();
     }
 
     atualizarInterfaceLogin(logado) {
@@ -542,51 +190,52 @@ class AppController {
         }
     }
 
-    fazerLoginGoogle() {
-        if (!this.tokenClient) {
-            alert(
-                'A biblioteca do Google ainda está carregando ou falhou. Verifique sua conexão.'
+    atualizarPerfilMenu() {
+        const nomeEl =
+            document.querySelector(
+                '.menu-profile-name'
             );
 
+        const fotoEl =
+            document.querySelector(
+                '.menu-profile-photo'
+            );
+
+        if (!nomeEl || !fotoEl) {
             return;
         }
 
-        this.tokenClient.requestAccessToken({
-            prompt: 'consent'
-        });
+        const nome =
+            this.perfilController.obterNome();
+
+        const foto =
+            this.perfilController.obterFoto();
+
+        if (nome) {
+            nomeEl.textContent =
+                nome;
+        }
+
+        if (foto) {
+            fotoEl.textContent = '';
+
+            fotoEl.style.backgroundImage =
+                `url("${foto}")`;
+
+            fotoEl.style.backgroundSize =
+                'cover';
+
+            fotoEl.style.backgroundPosition =
+                '50% 50%';
+        }
+    }
+
+    fazerLoginGoogle() {
+        this.googleService.fazerLoginGoogle();
     }
 
     fazerLogoutGoogle() {
-        if (this.accessToken) {
-            google.accounts.oauth2.revoke(
-                this.accessToken,
-                () => {
-                    this.accessToken =
-                        null;
-
-                    localStorage.removeItem(
-                        'google_access_token'
-                    );
-
-                    localStorage.removeItem(
-                        this.spreadsheetStorageKey
-                    );
-
-                    this.spreadsheetIdSalvo =
-                        null;
-
-                    this.atualizarInterfaceLogin(
-                        false
-                    );
-
-                    this.render();
-
-                    alert(
-                        'Você desconectou sua conta do Google.'
-                    );
-                }
-            );
-        }
+        this.googleService.fazerLogoutGoogle();
     }
 
     // =====================================================
@@ -612,6 +261,14 @@ class AppController {
                     );
                 }
             };
+
+        safeBind(
+            'btnEditarPerfil',
+            'click',
+            () => {
+                window.location.href = 'perfil.html';
+            }
+        );
 
         safeBind(
             'btnSalvar',
@@ -666,76 +323,34 @@ class AppController {
         // =================================================
         // MENU
         // =================================================
-
-        const menuLateral =
-            document.getElementById(
-                'menuLateral'
-            );
-
-        const menuOverlay =
-            document.getElementById(
-                'menuOverlay'
-            );
-
         safeBind(
             'btnMenuHamburger',
             'click',
             () => {
-                if (menuLateral) {
-                    menuLateral.classList.add(
-                        'ativo'
-                    );
-                }
-
-                if (menuOverlay) {
-                    menuOverlay.classList.add(
-                        'ativo'
-                    );
-                }
+                this.menuController.abrirMenu();
             }
         );
-
-        const fecharMenuFunc =
-            () => {
-                if (menuLateral) {
-                    menuLateral.classList.remove(
-                        'ativo'
-                    );
-                }
-
-                if (menuOverlay) {
-                    menuOverlay.classList.remove(
-                        'ativo'
-                    );
-                }
-            };
 
         safeBind(
             'btnFecharMenu',
             'click',
-            fecharMenuFunc
+            () => {
+                this.menuController.fecharMenu();
+            }
         );
 
         safeBind(
             'menuOverlay',
             'click',
-            fecharMenuFunc
+            () => {
+                this.menuController.fecharMenu();
+            }
         );
-
         safeBind(
             'btnAbrirConfiguracao',
             'click',
             () => {
-                const painelConfiguracao =
-                    document.getElementById(
-                        'painelConfiguracao'
-                    );
-
-                if (painelConfiguracao) {
-                    painelConfiguracao.classList.toggle(
-                        'ativo'
-                    );
-                }
+                this.menuController.abrirConfiguracao();
             }
         );
 
@@ -747,17 +362,26 @@ class AppController {
             'configTema',
             'change',
             (event) => {
-                this.tema =
-                    event.target.value;
+                this.temaController.definirTema(
+                    event.target.value
+                );
+                this.render();
+            }
+        );
+
+        safeBind(
+            'configAnimacoes',
+            'change',
+            (event) => {
+                this.animacoesAtivas =
+                    event.target.checked;
 
                 localStorage.setItem(
-                    'tema_aparencia',
-                    this.tema
+                    'animacoes_interface',
+                    this.animacoesAtivas
                 );
 
-                this.aplicarTema();
-
-                this.render();
+                this.aplicarAnimacoes();
             }
         );
 
@@ -948,10 +572,22 @@ class AppController {
         );
 
         safeBind(
+            'btnBottomHome',
+            'click',
+            () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        )
+
+        safeBind(
             'btnBottomMenu',
             'click',
-            () =>
-                this.abrirMenuBottom()
+            () => {
+                this.menuController.abrirMenu();
+            }
         );
 
         this.carregarConfigProducao();
@@ -960,58 +596,6 @@ class AppController {
     // =====================================================
     // SEMANA DE PRODUÇÃO
     // =====================================================
-
-    obterSemanaReferencia() {
-        if (
-            this.configSemanaPadrao ===
-            'atual'
-        ) {
-            const agora =
-                new Date();
-
-            return agora
-                .toISOString()
-                .slice(0, 10);
-        }
-
-        if (
-            this.configSemanaPadrao ===
-            'escolhida' &&
-            this.configDataSemana
-        ) {
-            return this.configDataSemana;
-        }
-
-        const agora =
-            new Date();
-
-        return agora
-            .toISOString()
-            .slice(0, 10);
-    }
-
-    obterLancamentosDaSemana() {
-        const referencia =
-            this.obterSemanaReferencia();
-
-        return this.lancamentosAtuais.filter(
-            reg => {
-                if (
-                    !reg.semanaReferencia
-                ) {
-                    return (
-                        this.configSemanaPadrao ===
-                        'atual'
-                    );
-                }
-
-                return (
-                    reg.semanaReferencia ===
-                    referencia
-                );
-            }
-        );
-    }
 
     atualizarCampoSemana() {
         const campo =
@@ -1380,34 +964,20 @@ class AppController {
         lancamento.sincronizado =
             false;
 
-        lancamento.semanaReferencia =
-            this.obterSemanaReferencia();
+        this.producaoController
+            .definirSemanaDoLancamento(
+                lancamento,
+                this.configSemanaPadrao,
+                this.configDataSemana
+            );
 
-        // =================================================
-        // CORREÇÃO DA DATA DA SEMANA ESCOLHIDA
-        // =================================================
-
-        if (
-            !texto.match(/\d{2}\/\d{2}/) &&
-            this.configSemanaPadrao ===
-            'escolhida' &&
-            this.configDataSemana
-        ) {
-            const dataEscolhida =
-                new Date(
-                    this.configDataSemana +
-                    'T00:00:00'
-                );
-
-            lancamento.data =
-                dataEscolhida.toLocaleDateString(
-                    'pt-BR',
-                    {
-                        day: '2-digit',
-                        month: '2-digit'
-                    }
-                );
-        }
+        this.producaoController
+            .definirDataDoLancamento(
+                lancamento,
+                texto,
+                this.configSemanaPadrao,
+                this.configDataSemana
+            );
 
         // =================================================
         // CONFIRMAÇÃO
@@ -1444,7 +1014,7 @@ class AppController {
             )
         );
 
-        this.tocarSomLancamento();
+        tocarSomLancamento();
 
         this.sincronizadoComNuvem =
             false;
@@ -1510,7 +1080,7 @@ class AppController {
     editarLancamento(index) {
         const reg =
             this.lancamentosAtuais[
-                index
+            index
             ];
 
         if (!reg) return;
@@ -1570,7 +1140,12 @@ class AppController {
 
     async fecharSemana() {
         const lancamentosDaSemana =
-            this.obterLancamentosDaSemana();
+            this.producaoController
+                .obterLancamentosDaSemana(
+                    this.lancamentosAtuais,
+                    this.configSemanaPadrao,
+                    this.configDataSemana
+                );
 
         if (
             lancamentosDaSemana.length ===
@@ -1623,6 +1198,14 @@ class AppController {
             'true'
         );
 
+        if (
+            this.configSemanaPadrao ===
+            'atual'
+        ) {
+            this.producaoController
+                .fecharSemana();
+        }
+
         this.render();
 
         alert(
@@ -1635,112 +1218,7 @@ class AppController {
     // =====================================================
 
     async obterOuCriarPlanilhaDrive() {
-        const nomePlanilha =
-            this.nomePlanilhaGoogle;
-
-        const query =
-            encodeURIComponent(
-                `name = '${nomePlanilha}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`
-            );
-
-        const searchRes =
-            await fetch(
-                `https://www.googleapis.com/drive/v3/files?q=${query}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${this.accessToken}`
-                    }
-                }
-            );
-
-        const searchData =
-            await searchRes.json();
-
-        if (
-            searchData.files &&
-            searchData.files.length >
-            0
-        ) {
-            const idEncontrado =
-                searchData.files[0].id;
-
-            this.spreadsheetIdSalvo =
-                idEncontrado;
-
-            localStorage.setItem(
-                this.spreadsheetStorageKey,
-                idEncontrado
-            );
-
-            return idEncontrado;
-        }
-
-        const createRes =
-            await fetch(
-                'https://sheets.googleapis.com/v4/spreadsheets',
-                {
-                    method: 'POST',
-
-                    headers: {
-                        Authorization:
-                            `Bearer ${this.accessToken}`,
-
-                        'Content-Type':
-                            'application/json'
-                    },
-
-                    body: JSON.stringify({
-                        properties: {
-                            title:
-                                nomePlanilha
-                        }
-                    })
-                }
-            );
-
-        const createData =
-            await createRes.json();
-
-        const spreadsheetId =
-            createData.spreadsheetId;
-
-        this.spreadsheetIdSalvo =
-            spreadsheetId;
-
-        localStorage.setItem(
-            this.spreadsheetStorageKey,
-            spreadsheetId
-        );
-
-        await fetch(
-            `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A1:E1?valueInputOption=USER_ENTERED`,
-            {
-                method: 'PUT',
-
-                headers: {
-                    Authorization:
-                        `Bearer ${this.accessToken}`,
-
-                    'Content-Type':
-                        'application/json'
-                },
-
-                body: JSON.stringify({
-                    values: [
-                        [
-                            'Data do Lançamento',
-                            'Descrição / Texto Bruto',
-                            'Peças',
-                            'Valor Unitário',
-                            'Valor Total'
-                        ]
-                    ]
-                })
-            }
-        );
-
-        return spreadsheetId;
+        return await this.googleService.obterOuCriarPlanilhaDrive();
     }
 
     abrirPlanilhaNoNavegador() {
@@ -1754,13 +1232,13 @@ class AppController {
             return;
         }
 
-        if (!this.spreadsheetIdSalvo) {
-            this.obterOuCriarPlanilhaDrive()
+        if (!this.googleService.spreadsheetIdSalvo) {
+            this.googleService.obterOuCriarPlanilhaDrive()
                 .then(
                     id => {
                         if (id) {
                             window.open(
-                                `https://docs.google.com/spreadsheets/d/${id}/edit`,
+                                `https://docs.google.com/spreadsheets/d/${this.googleService.spreadsheetIdSalvo}/edit`,
                                 '_blank'
                             );
                         }
@@ -1778,7 +1256,7 @@ class AppController {
         }
 
         window.open(
-            `https://docs.google.com/spreadsheets/d/${this.spreadsheetIdSalvo}/edit`,
+            `https://docs.google.com/spreadsheets/d/${this.googleService.spreadsheetIdSalvo}/edit`,
             '_blank'
         );
     }
@@ -1816,11 +1294,15 @@ class AppController {
                     'Sincronizando com o Drive...';
             }
 
-            const spreadsheetId =
-                await this.obterOuCriarPlanilhaDrive();
+            await this.googleService.obterOuCriarPlanilhaDrive();
 
             const lancamentosDaSemana =
-                this.obterLancamentosDaSemana();
+                this.producaoController
+                    .obterLancamentosDaSemana(
+                        this.lancamentosAtuais,
+                        this.configSemanaPadrao,
+                        this.configDataSemana
+                    );
 
             if (
                 lancamentosDaSemana.length ===
@@ -1874,32 +1356,9 @@ class AppController {
                     ]
                 );
 
-            const appendRes =
-                await fetch(
-                    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Página1!A:E:append?valueInputOption=USER_ENTERED`,
-                    {
-                        method: 'POST',
-
-                        headers: {
-                            Authorization:
-                                `Bearer ${this.accessToken}`,
-
-                            'Content-Type':
-                                'application/json'
-                        },
-
-                        body: JSON.stringify({
-                            values:
-                                linhasNovas
-                        })
-                    }
-                );
-
-            if (!appendRes.ok) {
-                throw new Error(
-                    'Falha ao gravar dados na planilha.'
-                );
-            }
+            await this.googleService.enviarLancamentos(
+                linhasNovas
+            );
 
             lancamentosPendentes.forEach(
                 reg => {
@@ -2026,7 +1485,12 @@ class AppController {
             !!this.accessToken;
 
         const lancamentosDaSemana =
-            this.obterLancamentosDaSemana();
+            this.producaoController
+                .obterLancamentosDaSemana(
+                    this.lancamentosAtuais,
+                    this.configSemanaPadrao,
+                    this.configDataSemana
+                );
 
         const pendente =
             lancamentosDaSemana.some(
@@ -2092,7 +1556,12 @@ class AppController {
         }
 
         const lancamentosDaSemana =
-            this.obterLancamentosDaSemana();
+            this.producaoController
+                .obterLancamentosDaSemana(
+                    this.lancamentosAtuais,
+                    this.configSemanaPadrao,
+                    this.configDataSemana
+                );
 
         const existemLancamentosPendentes =
             lancamentosDaSemana.some(
@@ -2111,33 +1580,20 @@ class AppController {
         this.abrirPlanilhaNoNavegador();
     }
 
-    abrirMenuBottom() {
-        const menuLateral =
-            document.getElementById(
-                'menuLateral'
-            );
 
-        const menuOverlay =
-            document.getElementById(
-                'menuOverlay'
-            );
-
-        if (menuLateral) {
-            menuLateral.classList.add(
-                'ativo'
-            );
-        }
-
-        if (menuOverlay) {
-            menuOverlay.classList.add(
-                'ativo'
-            );
+    aplicarAnimacoes() {
+        const html = document.documentElement;
+        if (this.animacoesAtivas) {
+            html.classList.remove('sem-animacoes');
+        } else {
+            html.classList.add('sem-animacoes');
         }
     }
 
     // =====================================================
     // RENDER
     // =====================================================
+
 
     async render() {
         const listaAtualEl =
@@ -2153,7 +1609,12 @@ class AppController {
         let totalValor = 0;
 
         const lancamentosDaSemana =
-            this.obterLancamentosDaSemana();
+            this.producaoController
+                .obterLancamentosDaSemana(
+                    this.lancamentosAtuais,
+                    this.configSemanaPadrao,
+                    this.configDataSemana
+                );
 
         lancamentosDaSemana.forEach(
             reg => {
@@ -2260,7 +1721,7 @@ class AppController {
 
                     setTimeout(
                         () => {
-                            this.dispararAnimacaoMetaBatida();
+                            dispararAnimacaoMetaBatida();
                         },
                         100
                     );
@@ -2468,7 +1929,7 @@ class AppController {
 
                     if (
                         !gruposPorPreco[
-                            chave
+                        chave
                         ]
                     ) {
                         gruposPorPreco[
@@ -2559,7 +2020,7 @@ class AppController {
                     chave => {
                         const grupo =
                             gruposPorPreco[
-                                chave
+                            chave
                             ];
 
                         htmlResumo += `
@@ -2799,7 +2260,7 @@ class AppController {
 
                         if (
                             mesesNomes[
-                                mesIndex
+                            mesIndex
                             ]
                         ) {
                             mesAnoKey =
@@ -2810,7 +2271,7 @@ class AppController {
 
                 if (
                     !resumoMensal[
-                        mesAnoKey
+                    mesAnoKey
                     ]
                 ) {
                     resumoMensal[
@@ -2849,7 +2310,7 @@ class AppController {
             mes => {
                 const dados =
                     resumoMensal[
-                        mes
+                    mes
                     ];
 
                 htmlResumoMensal += `

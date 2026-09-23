@@ -1,0 +1,1071 @@
+/* =====================================================
+   VARIÁVEIS DO TEMA ESCURO
+===================================================== */
+
+:root {
+    color-scheme: dark;
+
+    /* Tema escuro */
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --muted-color: #aaaaaa;
+    --input-bg: #2c2c2c;
+    --secondary-bg: #252525;
+    --hover-bg: #353535;
+    --button-secondary-bg: #333333;
+    --border-color: #333333;
+    --border-light: #444444;
+
+    --accent-color: #4caf50;
+    --accent-hover: #45a049;
+    --info-color: #2196f3;
+    --whatsapp-color: #25d366;
+    --warning-color: #ff9800;
+    --purple-color: #bb86fc;
+    --danger-color: #d32f2f;
+
+    --bottom-bar-bg: rgba(30, 30, 30, 0.96);
+    --bottom-bar-border: #3a3a3a;
+
+    --overlay-color: rgba(0, 0, 0, 0.6);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --progress-bg: #333333;
+    --button-on-accent: #ffffff;
+    --button-on-warning: #000000;
+    --danger-bg: #5b2525;
+    --danger-border: #733030;
+    --danger-hover: #713030;
+    --backup-bg: #607d8b;
+    --backup-hover: #546e7a;
+}
+
+:root[data-theme="claro"] {
+    color-scheme: light;
+
+    /* Tema claro */
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-color: #222222;
+    --muted-color: #666666;
+    --input-bg: #ffffff;
+    --secondary-bg: #f5f5f5;
+    --hover-bg: #eeeeee;
+    --button-secondary-bg: #eeeeee;
+    --border-color: #dddddd;
+    --border-light: #cccccc;
+
+    --accent-color: #2e7d32;
+    --accent-hover: #1b5e20;
+    --info-color: #1976d2;
+    --whatsapp-color: #25d366;
+    --warning-color: #f57c00;
+    --purple-color: #7b1fa2;
+    --danger-color: #c62828;
+
+    --bottom-bar-bg: rgba(255, 255, 255, 0.96);
+    --bottom-bar-border: #d9d9d9;
+
+    --overlay-color: rgba(0, 0, 0, 0.35);
+    --shadow-color: rgba(0, 0, 0, 0.20);
+    --progress-bg: #dddddd;
+    --button-on-accent: #ffffff;
+    --button-on-warning: #000000;
+    --danger-bg: #fdecec;
+    --danger-border: #e0aaaa;
+    --danger-hover: #f8dada;
+    --backup-bg: #607d8b;
+    --backup-hover: #546e7a;
+}
+
+/* =====================================================
+   BASE
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+
+    background-color: var(--bg-color);
+    color: var(--text-color);
+
+    margin: 0;
+
+    padding:
+        16px 16px calc(105px + env(safe-area-inset-bottom));
+
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* =====================================================
+   CABEÇALHO
+===================================================== */
+
+.app-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.app-header-titles {
+    min-width: 0;
+}
+
+.app-header-titles h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px 0;
+    color: var(--text-color);
+}
+
+.app-header-titles p.subtitle {
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    margin: 0;
+}
+
+/* =====================================================
+   BOTÃO HAMBURGER
+===================================================== */
+
+.btn-hamburger {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1.4rem;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto !important;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+}
+
+.btn-hamburger:hover {
+    background-color: var(--hover-bg);
+}
+
+/* =====================================================
+   MENU LATERAL
+===================================================== */
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay-color);
+    backdrop-filter: blur(2px);
+    z-index: 998;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-overlay.ativo {
+    display: block;
+    opacity: 1;
+}
+
+.menu-lateral {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: min(290px, 88vw);
+    height: 100%;
+    background-color: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    z-index: 999;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-shadow: 5px 0 25px var(--shadow-color);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.menu-lateral.ativo {
+    left: 0;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+    position: sticky;
+    top: -20px;
+    background: var(--card-bg);
+    z-index: 2;
+    padding-top: 20px;
+}
+
+.menu-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.btn-fechar-menu {
+    background: transparent;
+    border: none;
+    color: var(--muted-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+.btn-fechar-menu:hover {
+    color: var(--text-color);
+}
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    margin-bottom: 6px;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15);
+}
+
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-color);
+    color: var(--button-on-accent);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+}
+
+button:hover {
+    background-color: var(--accent-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* =====================================================
+   HISTÓRICO
+===================================================== */
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+ul {
+    padding-left: 20px;
+    margin: 4px 0;
+    color: var(--muted-color);
+}
+
+/* =====================================================
+   RESUMO POR VALOR UNITÁRIO
+===================================================== */
+
+.resumo-preco {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+}
+
+.resumo-preco-titulo {
+    color: var(--purple-color);
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.resumo-preco-grupo {
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 9px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.resumo-preco-grupo-titulo {
+    color: var(--text-color);
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.resumo-preco-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 0;
+    color: var(--muted-color);
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.resumo-preco-item:last-child {
+    border-bottom: none;
+}
+
+.resumo-preco-total {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border-light);
+    color: var(--accent-color);
+    font-size: 0.84rem;
+    font-weight: bold;
+}
+
+.resumo-geral {
+    background: linear-gradient(135deg,
+            var(--secondary-bg),
+            var(--bg-color));
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 10px;
+}
+
+.resumo-geral-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.resumo-geral-linha strong {
+    color: var(--accent-color);
+}
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+.btn-whatsapp {
+    background-color: var(--whatsapp-color);
+    color: #fff;
+    font-size: 0.85rem;
+    padding: 8px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* =====================================================
+   ARQUIVO / BACKUP
+===================================================== */
+
+.archive-box {
+    background-color: var(--secondary-bg);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    border-left: 4px solid var(--info-color);
+}
+
+.btn-close {
+    background-color: var(--info-color);
+    margin-top: 12px;
+}
+
+.btn-backup {
+    background-color: var(--backup-bg);
+    margin-top: 8px;
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+.btn-backup:hover {
+    background-color: var(--backup-hover);
+}
+
+/* =====================================================
+   PREVIEW
+===================================================== */
+
+.preview-box {
+    display: none;
+    background-color: var(--secondary-bg);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 0.95rem;
+    border-left: 4px solid var(--accent-color);
+}
+
+.preview-box span {
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+/* =====================================================
+   TUTORIAIS
+===================================================== */
+
+.btn-link-tutoriais {
+    background-color: var(--info-color);
+    color: var(--button-on-accent);
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    text-decoration: none;
+    box-sizing: border-box;
+    margin-top: 4px;
+    transition: opacity 0.2s;
+}
+
+.btn-link-tutoriais:hover {
+    opacity: 0.9;
+}
+
+/* =====================================================
+   CONFIGURAÇÃO
+===================================================== */
+.config-menu-button {
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-light);
+    color: var(--text-color);
+}
+
+.config-menu-button:hover {
+    background: var(--hover-bg);
+}
+
+.config-header {
+    background: var(--secondary-bg);
+}
+
+.config-header h4 {
+    color: var(--text-color);
+}
+
+.config-header p {
+    color: var(--muted-color);
+}
+
+.config-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 5px;
+}
+
+.config-section-button {
+    width: 100%;
+    padding: 12px;
+    margin: 0;
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.config-section-button:hover {
+    background: var(--hover-bg);
+}
+
+.config-item {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.config-item-title {
+    color: var(--text-color);
+}
+
+.config-item-description {
+    color: var(--muted-color);
+}
+
+.config-switch {
+    background: var(--button-secondary-bg);
+}
+
+.config-button {
+    background: var(--button-secondary-bg);
+    border: 1px solid var(--border-light);
+    color: var(--text-color);
+}
+
+.config-button:hover {
+    background: var(--hover-bg);
+}
+
+.config-info,
+.config-status {
+    color: var(--muted-color);
+}
+
+.config-voltar {
+    background: var(--button-secondary-bg);
+    color: var(--text-color);
+}
+
+/* =====================================================
+   PAINEL PRINCIPAL DE CONFIGURAÇÃO
+===================================================== */
+
+.configuracao-panel {
+    display: none;
+    margin-top: 8px;
+}
+
+.configuracao-panel.ativo {
+    display: block;
+    animation: aparecerConfig 0.18s ease;
+}
+
+@keyframes aparecerConfig {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.config-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.config-menu-button .config-arrow {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.config-menu-button.aberto .config-arrow {
+    transform: rotate(90deg);
+}
+
+/* =====================================================
+   BOTÕES EXPANSÍVEIS
+===================================================== */
+
+.config-section-button {
+    width: 100%;
+    padding: 12px;
+    margin: 0;
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+    font-size: 0.88rem;
+    font-weight: bold;
+}
+
+.config-section-button:hover {
+    background: var(--hover-bg);
+}
+
+.config-section-button .section-arrow {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.config-section-button.aberto .section-arrow {
+    transform: rotate(90deg);
+}
+
+.config-section-panel {
+    display: none;
+}
+
+.config-section-panel.ativo {
+    display: block;
+    animation: aparecerConfig 0.18s ease;
+}
+
+/* =====================================================
+   ITENS DA CONFIGURAÇÃO
+===================================================== */
+
+.config-item {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.config-item:last-child {
+    border-bottom: none;
+}
+
+.config-item-title {
+    color: var(--text-color);
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.config-item-description {
+    color: var(--muted-color);
+    font-size: 0.74rem;
+    line-height: 1.35;
+}
+
+.config-switch-row {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 !important;
+    cursor: pointer;
+}
+
+.config-switch-row .config-item-text {
+    flex: 1;
+}
+
+.config-switch {
+    position: relative;
+    width: 42px !important;
+    height: 23px;
+    min-width: 42px;
+    margin: 0 !important;
+    padding: 0 !important;
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--button-secondary-bg);
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.config-switch::before {
+    content: "";
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.config-switch:checked {
+    background: var(--accent-color);
+}
+
+.config-switch:checked::before {
+    transform: translateX(19px);
+}
+
+.config-number {
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    font-size: 0.85rem !important;
+    padding: 9px !important;
+}
+
+.config-button {
+    background: var(--button-secondary-bg);
+    border: 1px solid var(--border-light);
+    color: var(--text-color);
+    font-size: 0.82rem;
+    padding: 10px;
+    margin-top: 6px;
+}
+
+.config-button:hover {
+    background: var(--hover-bg);
+}
+
+.config-button.danger {
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+}
+
+.config-button.danger:hover {
+    background: var(--danger-hover);
+}
+
+.config-info {
+    color: var(--muted-color);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.config-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--muted-color);
+}
+
+.config-status-dot {
+    font-size: 0.9rem;
+}
+
+.config-voltar {
+    background: var(--button-secondary-bg);
+    color: var(--text-color);
+    margin-top: 4px;
+    font-size: 0.85rem;
+}
+
+/* =====================================================
+   SEÇÕES DO MENU
+===================================================== */
+
+.menu-section-button {
+    width: 100%;
+    padding: 11px 12px;
+    margin: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.menu-section-button:hover {
+    background: var(--hover-bg);
+}
+
+.menu-section-button .section-arrow {
+    transition: transform 0.2s ease;
+}
+
+.menu-section-button.aberto .section-arrow {
+    transform: rotate(90deg);
+}
+
+.menu-section-panel {
+    display: none;
+    padding-top: 8px;
+}
+
+.menu-section-panel.ativo {
+    display: block;
+    animation: aparecerConfig 0.18s ease;
+}
+
+/* =====================================================
+   STATUS GOOGLE
+===================================================== */
+
+.google-status-box {
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+/* =====================================================
+   BARRA INFERIOR
+===================================================== */
+
+.bottom-bar {
+    position: fixed;
+    z-index: 997;
+    left: 50%;
+
+    bottom: max(10px,
+            env(safe-area-inset-bottom));
+
+    transform: translateX(-50%);
+
+    width: min(calc(100% - 20px),
+            500px);
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 6px;
+    padding: 7px;
+
+    background: var(--bottom-bar-bg);
+    border: 1px solid var(--bottom-bar-border);
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 8px 30px var(--shadow-color);
+
+    backdrop-filter: blur(10px);
+}
+
+.bottom-item {
+    min-height: 58px;
+    background: transparent;
+    color: var(--muted-color);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 2px;
+
+    border-radius: 11px;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+
+    margin-top: 0;
+    padding: 6px;
+}
+
+.bottom-item:hover,
+.bottom-item:focus-visible {
+    background: var(--hover-bg);
+    color: var(--text-color);
+    outline: none;
+}
+
+.bottom-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.bottom-label {
+    font-size: 0.68rem;
+    font-weight: bold;
+}
+
+#btnBottomSync.pendente {
+    color: var(--warning-color);
+}
+
+#btnBottomSync.sincronizado {
+    color: var(--accent-color);
+}
+
+#btnBottomSync.desconectado {
+    color: var(--muted-color);
+}
+
+#bottomSyncStatus {
+    font-size: 0.78rem;
+}
+
+/* =====================================================
+   RESPONSIVO
+===================================================== */
+
+@media (min-width: 700px) {
+    body {
+        padding-bottom: 110px;
+    }
+}
+
+
+/* =====================================================
+   TAMANHO DO TEXTO
+===================================================== */
+
+html[data-text-size="pequeno"] {
+    font-size: 14px;
+}
+
+html[data-text-size="normal"] {
+    font-size: 16px;
+}
+
+html[data-text-size="grande"] {
+    font-size: 18px;
+}
+
+/* Elementos que usam tamanhos fixos passam a acompanhar
+   a preferência de tamanho do texto. */
+html[data-text-size="pequeno"] body {
+    font-size: 14px;
+}
+
+html[data-text-size="normal"] body {
+    font-size: 16px;
+}
+
+html[data-text-size="grande"] body {
+    font-size: 18px;
+}
+
+html[data-text-size="pequeno"] button,
+html[data-text-size="pequeno"] input,
+html[data-text-size="pequeno"] textarea,
+html[data-text-size="pequeno"] select {
+    font-size: 0.9rem;
+}
+
+html[data-text-size="normal"] button,
+html[data-text-size="normal"] input,
+html[data-text-size="normal"] textarea,
+html[data-text-size="normal"] select {
+    font-size: 1rem;
+}
+
+html[data-text-size="grande"] button,
+html[data-text-size="grande"] input,
+html[data-text-size="grande"] textarea,
+html[data-text-size="grande"] select {
+    font-size: 1.1rem;
+}
+
+/* =====================================================
+   ANIMAÇÕES / EFEITOS
+===================================================== */
+
+html.sem-animacoes,
+html.sem-animacoes * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+    caret-color: transparent;
+}
+
+html.sem-animacoes input,
+html.sem-animacoes textarea,
+html.sem-animacoes select {
+    caret-color: currentColor;
+}
+
+/* =====================================================
+   PERFIL DO MENU LATERAL
+===================================================== */
+
+.menu-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-profile-photo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    font-size: 1.3rem;
+}
+
+.menu-profile-info {
+    min-width: 0;
+}
+
+.menu-profile-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.menu-profile-status {
+    margin-top: 3px;
+    font-size: 0.8rem;
+    color: var(--muted-color);
+}
+
