@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 export class SupabaseService {
-
     constructor() {
 
         const url =
@@ -9,6 +8,16 @@ export class SupabaseService {
 
         const chave =
             import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+        if (!url || !chave) {
+            console.warn(
+                'Supabase não configurado. Sincronização desativada.'
+            );
+
+            this.supabase = null;
+
+            return;
+        }
 
         this.supabase =
             createClient(
@@ -18,6 +27,11 @@ export class SupabaseService {
     }
 
     async obterUsuarioAtual() {
+
+        if (!this.supabase) {
+            return null;
+        }
+
         const {
             data,
             error
@@ -31,10 +45,15 @@ export class SupabaseService {
             );
             return null;
         }
+
         return data.user;
     }
 
     async salvarDadosUsuario(usuarioId, dados) {
+
+        if(!this.supabase){
+            return false;
+        }
 
         const { error } =
             await this.supabase
@@ -64,6 +83,10 @@ export class SupabaseService {
 
     async obterDadosUsuario(usuarioId) {
 
+        if(!this.supabase){
+            return null;
+        }
+        
         const { data, error } =
             await this.supabase
                 .from('dados_usuario')
