@@ -7,6 +7,8 @@ import { TemaController } from './TemaController.js';
 import { PerfilController } from './PerfilController.js';
 import { ProducaoController } from './ProducaoController.js';
 import { SincronizacaoController } from './SincronizacaoController.js';
+import { SupabaseService } from './SupabaseService.js';
+
 
 class AppController {
     constructor() {
@@ -30,6 +32,12 @@ class AppController {
 
         this.sincronizacaoController =
             new SincronizacaoController();
+
+        this.supabaseService =
+            new SupabaseService();
+
+        this.usuarioSupabase = null;
+        this.sincronizarAoAbrir();
 
         this.lancamentosAtuais =
             JSON.parse(
@@ -136,10 +144,54 @@ class AppController {
         this.render();
     }
 
+    async sincronizarAoAbrir() {
+
+        const usuario =
+            await this.supabaseService
+                .obterUsuarioAtual();
+
+        if (!usuario) {
+            return;
+        }
+
+        const pacote =
+            await this.supabaseService
+                .obterDadosUsuario(usuario.id);
+
+        if (!pacote) {
+            return;
+        }
+
+        await this.sincronizacaoController
+            .aplicarPacoteCompleto(pacote);
+
+        this.lancamentosAtuais =
+            JSON.parse(
+                localStorage.getItem(
+                    'temp_lancamentos'
+                )
+            ) || [];
+
+        this.render();
+    }
+
+    async carregarUsuarioSupabase() {
+
+        this.usuarioSupabase =
+            await this.supabaseService
+                .obterUsuarioAtual();
+
+        if (this.usuarioSupabase) {
+            console.log(
+                'Usuário Supabase:',
+                this.usuarioSupabase.id
+            );
+        }
+    }
+
     // =====================================================
     // GOOGLE AUTH
     // =====================================================
-
     initGoogleAuth() {
         this.googleService.initGoogleAuth();
     }
@@ -1041,6 +1093,9 @@ class AppController {
         }
 
         this.render();
+
+        this.sincronizacaoController
+            .enviarPacoteParaSupabase();
     }
 
     // =====================================================

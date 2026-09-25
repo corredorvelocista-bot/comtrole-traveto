@@ -314,4 +314,40 @@ export class GoogleService {
 
         return await resposta.json();
     }
+
+    async lerLancamentos() {
+        if (!this.accessToken) {
+            throw new Error(
+                'Usuário não está conectado ao Google.'
+            );
+        }
+
+        if (!this.spreadsheetIdSalvo) {
+            await this.obterOuCriarPlanilhaDrive();
+        }
+
+        const resposta =
+            await fetch(
+                `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetIdSalvo}/values/Página1!A:E`,
+                {
+                    method: 'GET',
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${this.accessToken}`
+                    }
+                }
+            );
+
+        if (!resposta.ok) {
+            throw new Error(
+                `Falha ao ler dados da planilha. Status: ${resposta.status}`
+            );
+        }
+
+        const dados =
+            await resposta.json();
+
+        return dados.values || [];
+    }    
 }
