@@ -115,11 +115,12 @@ class AppController {
                 ambienteLocal,
 
                 onLoginStatusChange:
-                    (logado) => {
-                        this.atualizarInterfaceLogin(
-                            logado
-                        );
+                    (logado, token) => {
 
+                        this.accessToken = token ||
+                        this.googleService?.accessToken || null;
+                        
+                        this.atualizarInterfaceLogin(logado);
                         this.atualizarBottomBar();
                     },
 
