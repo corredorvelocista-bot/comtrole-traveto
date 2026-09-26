@@ -1,6 +1,10 @@
 import { StorageService } from './StorageService.js';
 import { LancamentoDia, SemanaProducao } from './Producao.js';
-import { tocarSomLancamento, tocarSomMetaBatida, dispararAnimacaoMetaBatida } from './efeitos.js';
+import {
+    tocarSomLancamento,
+    tocarSomMetaBatida,
+    dispararAnimacaoMetaBatida
+} from './efeitos.js';
 import { GoogleService } from './GoogleService.js';
 import { MenuController } from './menu/MenuController.js';
 import { TemaController } from './TemaController.js';
@@ -11,12 +15,15 @@ import { SupabaseService } from './SupabaseService.js';
 
 
 class AppController {
+
     constructor() {
 
+        // =====================================================
+        // ESTADO INICIAL
+        // =====================================================
+
         this.metaBatidaDisparada =
-            JSON.parse(
-                localStorage.getItem('meta_batida_disparada')
-            ) || false;
+            localStorage.getItem('meta_batida_disparada') === 'true';
 
         this.storage =
             new StorageService();
@@ -36,23 +43,34 @@ class AppController {
         this.supabaseService =
             new SupabaseService();
 
-        this.usuarioSupabase = null;
-        this.sincronizarAoAbrir();
+        this.usuarioSupabase =
+            null;
+
+        this.termoBusca =
+            '';
 
         this.lancamentosAtuais =
-            JSON.parse(
-                localStorage.getItem('temp_lancamentos')
-            ) || [];
+            this.carregarLancamentosLocais();
 
-        this.termoBusca = '';
+        const sincronizadoSalvo =
+            localStorage.getItem('sincronizado_nuvem');
 
         this.sincronizadoComNuvem =
-            JSON.parse(
-                localStorage.getItem('sincronizado_nuvem')
-            ) ?? true;
+            sincronizadoSalvo === null
+                ? true
+                : sincronizadoSalvo === 'true';
+
+        // =====================================================
+        // AMBIENTE
+        // =====================================================
 
         const ambienteLocal =
-            window.location.hostname === 'localhost';
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+
+        // =====================================================
+        // CONFIGURAÇÕES
+        // =====================================================
 
         this.metaSemanal =
             parseFloat(
@@ -60,10 +78,6 @@ class AppController {
                     'meta_semanal_valor'
                 )
             ) || 500.00;
-
-        // =====================================================
-        // CONFIGURAÇÕES DE PRODUÇÃO
-        // =====================================================
 
         this.configSemanaPadrao =
             localStorage.getItem(
@@ -93,25 +107,27 @@ class AppController {
             ) || 0.21;
 
         // =====================================================
-        // CONFIGURAÇÃO GOOGLE AUTH
+        // GOOGLE
         // =====================================================
 
-        this.googleService = new GoogleService({
-            ambienteLocal:
+        this.googleService =
+            new GoogleService({
                 ambienteLocal,
 
-            onLoginStatusChange:
-                (logado) => {
-                    this.atualizarInterfaceLogin(
-                        logado
-                    );
-                },
+                onLoginStatusChange:
+                    (logado) => {
+                        this.atualizarInterfaceLogin(
+                            logado
+                        );
 
-            onRender:
-                () => {
-                    this.render();
-                }
-        });
+                        this.atualizarBottomBar();
+                    },
+
+                onRender:
+                    () => {
+                        this.render();
+                    }
+            });
 
         this.accessToken =
             this.googleService?.accessToken || null;
@@ -125,54 +141,273 @@ class AppController {
 
         this.temaController.aplicar();
 
-        this.animacoesAtivas = localStorage.getItem('animacoes_interface') !== 'false';
+        // =====================================================
+        // ANIMAÇÕES
+        // =====================================================
+
+        this.animacoesAtivas =
+            localStorage.getItem(
+                'animacoes_interface'
+            ) !== 'false';
+
         this.aplicarAnimacoes();
 
-        const configAnimacoes =
-            document.getElementById('configAnimacoes');
+        // =====================================================
+        // DISPONIBILIZA APP GLOBALMENTE
+        // =====================================================
 
-        if (configAnimacoes) {
-            configAnimacoes.checked =
-                this.animacoesAtivas;
-        }
+        window.app =
+            this;
 
-        window.app = this;
+        // =====================================================
+        // INICIALIZAÇÃO
+        // =====================================================
 
         this.initGoogleAuth();
         this.initEvents();
         this.atualizarPerfilMenu();
         this.render();
+
+        // A sincronização começa somente depois
+        // que o aplicativo já foi completamente inicializado.
+        this.sincronizarAoAbrir();
     }
+
+    // =====================================================
+    // UTILITÁRIOS DE DADOS LOCAIS
+    // =====================================================
+
+    carregarLancamentosLocais() {
+
+        const dados =
+            localStorage.getItem(
+                'temp_lancamentos'
+            );
+
+        if (!dados) {
+            return [];
+        }
+
+        try {
+
+            const lancamentos =
+                JSON.parse(dados);
+
+            return Array.isArray(lancamentos)
+                ? lancamentos
+                : [];
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao carregar lançamentos locais:',
+                erro
+            );
+
+            return [];
+        }
+    }
+
+    salvarLancamentosLocais() {
+
+        localStorage.setItem(
+            'temp_lancamentos',
+            JSON.stringify(
+                this.lancamentosAtuais
+            )
+        );
+    }
+
+    marcarNuvemPendente() {
+
+        this.sincronizadoComNuvem =
+            false;
+
+        localStorage.setItem(
+            'sincronizado_nuvem',
+            'false'
+        );
+    }
+
+    marcarNuvemSincronizada() {
+
+        this.sincronizadoComNuvem =
+            true;
+
+        localStorage.setItem(
+            'sincronizado_nuvem',
+            'true'
+        );
+    }
+
+    // =====================================================
+    // SUPABASE
+    // =====================================================
 
     async sincronizarAoAbrir() {
 
-        const usuario =
-            await this.supabaseService
-                .obterUsuarioAtual();
+        try {
 
-        if (!usuario) {
-            return;
-        }
+            const usuario =
+                await this.supabaseService
+                    .obterUsuarioAtual();
 
-        const pacote =
-            await this.supabaseService
-                .obterDadosUsuario(usuario.id);
+            if (!usuario) {
+                return;
+            }
 
-        if (!pacote) {
-            return;
-        }
+            this.usuarioSupabase =
+                usuario;
 
-        await this.sincronizacaoController
-            .aplicarPacoteCompleto(pacote);
+            const pacote =
+                await this.supabaseService
+                    .obterDadosUsuario(
+                        usuario.id
+                    );
 
-        this.lancamentosAtuais =
-            JSON.parse(
+            // =================================================
+            // PRIMEIRO ACESSO
+            // =================================================
+            //
+            // Se não existe pacote na nuvem, NÃO apagamos
+            // os dados locais.
+            //
+            // Enviamos os dados locais para a nuvem.
+            // =================================================
+
+            if (!pacote) {
+
+                const pacoteLocal =
+                    await this.sincronizacaoController
+                        .montarPacoteCompleto();
+
+                const possuiDadosLocais =
+                    pacoteLocal.lancamentosAbertos.length > 0 ||
+                    pacoteLocal.semanasFechadas.length > 0 ||
+                    !!pacoteLocal.configuracoes.semanaReferenciaAtual ||
+                    !!pacoteLocal.perfil.nome ||
+                    !!pacoteLocal.perfil.foto;
+
+                if (possuiDadosLocais) {
+
+                    const enviado =
+                        await this.sincronizacaoController
+                            .enviarPacoteParaSupabase();
+
+                    if (enviado) {
+                        this.marcarNuvemSincronizada();
+                    }
+                }
+
+                return;
+            }
+
+            // =================================================
+            // PACOTE EXISTENTE
+            // =================================================
+
+            await this.sincronizacaoController
+                .aplicarPacoteCompleto(
+                    pacote
+                );
+
+            this.lancamentosAtuais =
+                this.carregarLancamentosLocais();
+
+            this.metaSemanal =
+                parseFloat(
+                    localStorage.getItem(
+                        'meta_semanal_valor'
+                    )
+                ) || 500.00;
+
+            this.configSemanaPadrao =
                 localStorage.getItem(
-                    'temp_lancamentos'
-                )
-            ) || [];
+                    'config_semana_padrao'
+                ) || 'atual';
 
-        this.render();
+            this.configDataSemana =
+                localStorage.getItem(
+                    'config_data_semana'
+                ) || '';
+
+            this.configFormatoNumeros =
+                localStorage.getItem(
+                    'config_formato_numeros'
+                ) || 'milhar';
+
+            this.configConfirmacaoSalvar =
+                localStorage.getItem(
+                    'config_confirmacao_salvar'
+                ) || 'perguntar';
+
+            this.configValorUnitario =
+                parseFloat(
+                    localStorage.getItem(
+                        'config_valor_unitario'
+                    )
+                ) || 0.21;
+
+            this.animacoesAtivas =
+                localStorage.getItem(
+                    'animacoes_interface'
+                ) !== 'false';
+
+            this.temaController.aplicar();
+            this.aplicarAnimacoes();
+            this.atualizarCampoSemana();
+            this.carregarConfigProducao();
+            this.atualizarPerfilMenu();
+
+            this.render();
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao sincronizar dados ao abrir:',
+                erro
+            );
+        }
+    }
+
+    async sincronizarDadosAgora() {
+
+        try {
+
+            const usuario =
+                await this.supabaseService
+                    .obterUsuarioAtual();
+
+            if (!usuario) {
+                return false;
+            }
+
+            this.usuarioSupabase =
+                usuario;
+
+            const resultado =
+                await this.sincronizacaoController
+                    .enviarPacoteParaSupabase();
+
+            if (resultado) {
+                this.marcarNuvemSincronizada();
+            } else {
+                this.marcarNuvemPendente();
+            }
+
+            return resultado;
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao sincronizar com Supabase:',
+                erro
+            );
+
+            this.marcarNuvemPendente();
+
+            return false;
+        }
     }
 
     async carregarUsuarioSupabase() {
@@ -182,6 +417,7 @@ class AppController {
                 .obterUsuarioAtual();
 
         if (this.usuarioSupabase) {
+
             console.log(
                 'Usuário Supabase:',
                 this.usuarioSupabase.id
@@ -192,11 +428,15 @@ class AppController {
     // =====================================================
     // GOOGLE AUTH
     // =====================================================
+
     initGoogleAuth() {
-        this.googleService.initGoogleAuth();
+
+        this.googleService
+            .initGoogleAuth();
     }
 
     atualizarInterfaceLogin(logado) {
+
         const statusEl =
             document.getElementById(
                 'statusLogin'
@@ -213,40 +453,45 @@ class AppController {
             );
 
         if (
-            statusEl &&
-            btnLogin &&
-            btnLogout
+            !statusEl ||
+            !btnLogin ||
+            !btnLogout
         ) {
-            if (logado) {
-                statusEl.innerText =
-                    'Status: Conectado ao Google Drive ✅';
+            return;
+        }
 
-                statusEl.style.color =
-                    'var(--accent-color)';
+        if (logado) {
 
-                btnLogin.style.display =
-                    'none';
+            statusEl.innerText =
+                'Status: Conectado ao Google Drive ✅';
 
-                btnLogout.style.display =
-                    'inline-block';
+            statusEl.style.color =
+                'var(--accent-color)';
 
-            } else {
-                statusEl.innerText =
-                    'Status: Desconectado';
+            btnLogin.style.display =
+                'none';
 
-                statusEl.style.color =
-                    'var(--muted-color)';
+            btnLogout.style.display =
+                'inline-block';
 
-                btnLogin.style.display =
-                    'inline-flex';
+        } else {
 
-                btnLogout.style.display =
-                    'none';
-            }
+            statusEl.innerText =
+                'Status: Desconectado';
+
+            statusEl.style.color =
+                'var(--muted-color)';
+
+            btnLogin.style.display =
+                'inline-flex';
+
+            btnLogout.style.display =
+                'none';
         }
     }
 
     atualizarPerfilMenu() {
+
         const nomeEl =
             document.querySelector(
                 '.menu-profile-name'
@@ -262,18 +507,23 @@ class AppController {
         }
 
         const nome =
-            this.perfilController.obterNome();
+            this.perfilController
+                .obterNome();
 
         const foto =
-            this.perfilController.obterFoto();
+            this.perfilController
+                .obterFoto();
 
         if (nome) {
+
             nomeEl.textContent =
                 nome;
         }
 
         if (foto) {
-            fotoEl.textContent = '';
+
+            fotoEl.textContent =
+                '';
 
             fotoEl.style.backgroundImage =
                 `url("${foto}")`;
@@ -287,11 +537,15 @@ class AppController {
     }
 
     fazerLoginGoogle() {
-        this.googleService.fazerLoginGoogle();
+
+        this.googleService
+            .fazerLoginGoogle();
     }
 
     fazerLogoutGoogle() {
-        this.googleService.fazerLogoutGoogle();
+
+        this.googleService
+            .fazerLogoutGoogle();
     }
 
     // =====================================================
@@ -299,18 +553,21 @@ class AppController {
     // =====================================================
 
     initEvents() {
+
         const safeBind =
             (
                 id,
                 event,
                 callback
             ) => {
+
                 const el =
                     document.getElementById(
                         id
                     );
 
                 if (el) {
+
                     el.addEventListener(
                         event,
                         callback
@@ -322,7 +579,8 @@ class AppController {
             'btnEditarPerfil',
             'click',
             () => {
-                window.location.href = 'perfil.html';
+                window.location.href =
+                    'perfil.html';
             }
         );
 
@@ -347,7 +605,6 @@ class AppController {
                 this.salvarMetaSemanal()
         );
 
-        // Google
         safeBind(
             'btnLoginGoogle',
             'click',
@@ -379,11 +636,13 @@ class AppController {
         // =================================================
         // MENU
         // =================================================
+
         safeBind(
             'btnMenuHamburger',
             'click',
             () => {
-                this.menuController.abrirMenu();
+                this.menuController
+                    .abrirMenu();
             }
         );
 
@@ -391,7 +650,8 @@ class AppController {
             'btnFecharMenu',
             'click',
             () => {
-                this.menuController.fecharMenu();
+                this.menuController
+                    .fecharMenu();
             }
         );
 
@@ -399,14 +659,17 @@ class AppController {
             'menuOverlay',
             'click',
             () => {
-                this.menuController.fecharMenu();
+                this.menuController
+                    .fecharMenu();
             }
         );
+
         safeBind(
             'btnAbrirConfiguracao',
             'click',
             () => {
-                this.menuController.abrirConfiguracao();
+                this.menuController
+                    .abrirConfiguracao();
             }
         );
 
@@ -418,26 +681,40 @@ class AppController {
             'configTema',
             'change',
             (event) => {
-                this.temaController.definirTema(
-                    event.target.value
-                );
+
+                this.temaController
+                    .definirTema(
+                        event.target.value
+                    );
+
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
+
+        // =================================================
+        // ANIMAÇÕES
+        // =================================================
 
         safeBind(
             'configAnimacoes',
             'change',
             (event) => {
+
                 this.animacoesAtivas =
                     event.target.checked;
 
                 localStorage.setItem(
                     'animacoes_interface',
-                    this.animacoesAtivas
+                    String(
+                        this.animacoesAtivas
+                    )
                 );
 
                 this.aplicarAnimacoes();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -449,6 +726,7 @@ class AppController {
             'configSemanaAtual',
             'change',
             () => {
+
                 this.configSemanaPadrao =
                     'atual';
 
@@ -460,6 +738,8 @@ class AppController {
                 this.atualizarCampoSemana();
 
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -467,6 +747,7 @@ class AppController {
             'configSemanaEscolhida',
             'change',
             () => {
+
                 this.configSemanaPadrao =
                     'escolhida';
 
@@ -478,6 +759,8 @@ class AppController {
                 this.atualizarCampoSemana();
 
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -485,6 +768,7 @@ class AppController {
             'configDataSemana',
             'change',
             (event) => {
+
                 this.configDataSemana =
                     event.target.value;
 
@@ -494,6 +778,8 @@ class AppController {
                 );
 
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -501,6 +787,7 @@ class AppController {
             'configFormatoMilhar',
             'change',
             () => {
+
                 this.configFormatoNumeros =
                     'milhar';
 
@@ -510,6 +797,8 @@ class AppController {
                 );
 
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -517,6 +806,7 @@ class AppController {
             'configFormatoSimples',
             'change',
             () => {
+
                 this.configFormatoNumeros =
                     'simples';
 
@@ -526,6 +816,8 @@ class AppController {
                 );
 
                 this.render();
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -533,6 +825,7 @@ class AppController {
             'configPerguntarSalvar',
             'change',
             () => {
+
                 this.configConfirmacaoSalvar =
                     'perguntar';
 
@@ -540,6 +833,8 @@ class AppController {
                     'config_confirmacao_salvar',
                     'perguntar'
                 );
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -547,6 +842,7 @@ class AppController {
             'configSalvarDireto',
             'change',
             () => {
+
                 this.configConfirmacaoSalvar =
                     'direto';
 
@@ -554,6 +850,8 @@ class AppController {
                     'config_confirmacao_salvar',
                     'direto'
                 );
+
+                this.sincronizarDadosAgora();
             }
         );
 
@@ -563,6 +861,10 @@ class AppController {
             () =>
                 this.salvarConfigProducao()
         );
+
+        // =================================================
+        // INPUTS
+        // =================================================
 
         const textoInput =
             document.getElementById(
@@ -580,6 +882,7 @@ class AppController {
             );
 
         if (textoInput) {
+
             textoInput.addEventListener(
                 'input',
                 () =>
@@ -588,6 +891,7 @@ class AppController {
         }
 
         if (valorInput) {
+
             valorInput.addEventListener(
                 'input',
                 () =>
@@ -596,9 +900,11 @@ class AppController {
         }
 
         if (inputBusca) {
+
             inputBusca.addEventListener(
                 'input',
                 (e) => {
+
                     this.termoBusca =
                         e.target.value
                             .toLowerCase()
@@ -631,18 +937,20 @@ class AppController {
             'btnBottomHome',
             'click',
             () => {
+
                 window.scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
             }
-        )
+        );
 
         safeBind(
             'btnBottomMenu',
             'click',
             () => {
-                this.menuController.abrirMenu();
+                this.menuController
+                    .abrirMenu();
             }
         );
 
@@ -650,44 +958,50 @@ class AppController {
     }
 
     // =====================================================
-    // SEMANA DE PRODUÇÃO
+    // SEMANA
     // =====================================================
 
     atualizarCampoSemana() {
+
         const campo =
             document.getElementById(
                 'configDataSemana'
             );
 
-        if (!campo) return;
+        if (!campo) {
+            return;
+        }
 
         if (
             this.configSemanaPadrao ===
             'escolhida'
         ) {
+
             campo.style.display =
                 'block';
 
-            if (
-                this.configDataSemana
-            ) {
+            if (this.configDataSemana) {
+
                 campo.value =
                     this.configDataSemana;
             }
 
         } else {
+
             campo.style.display =
                 'none';
         }
     }
 
     salvarConfigProducao() {
+
         const valorEl =
             document.getElementById(
                 'configValorUnitario'
             );
 
         if (valorEl) {
+
             const valor =
                 parseFloat(
                     valorEl.value
@@ -697,6 +1011,7 @@ class AppController {
                 isNaN(valor) ||
                 valor <= 0
             ) {
+
                 alert(
                     'Digite um valor unitário válido.'
                 );
@@ -718,19 +1033,25 @@ class AppController {
                 );
 
             if (valorPrincipal) {
+
                 valorPrincipal.value =
                     valor;
             }
         }
 
+        this.atualizarCampoSemana();
+
+        this.render();
+
+        this.sincronizarDadosAgora();
+
         alert(
             'Configurações de produção salvas com sucesso!'
         );
-
-        this.atualizarCampoSemana();
     }
 
     formatarNumero(numero) {
+
         const valor =
             Number(numero) || 0;
 
@@ -738,6 +1059,7 @@ class AppController {
             this.configFormatoNumeros ===
             'simples'
         ) {
+
             return String(
                 Math.round(valor)
             );
@@ -751,6 +1073,7 @@ class AppController {
     }
 
     carregarConfigProducao() {
+
         const semanaAtual =
             document.getElementById(
                 'configSemanaAtual'
@@ -792,47 +1115,55 @@ class AppController {
             );
 
         if (semanaAtual) {
+
             semanaAtual.checked =
                 this.configSemanaPadrao ===
                 'atual';
         }
 
         if (semanaEscolhida) {
+
             semanaEscolhida.checked =
                 this.configSemanaPadrao ===
                 'escolhida';
         }
 
         if (dataSemana) {
+
             dataSemana.value =
                 this.configDataSemana;
         }
 
         if (formatoMilhar) {
+
             formatoMilhar.checked =
                 this.configFormatoNumeros ===
                 'milhar';
         }
 
         if (formatoSimples) {
+
             formatoSimples.checked =
                 this.configFormatoNumeros ===
                 'simples';
         }
 
         if (perguntarSalvar) {
+
             perguntarSalvar.checked =
                 this.configConfirmacaoSalvar ===
                 'perguntar';
         }
 
         if (salvarDireto) {
+
             salvarDireto.checked =
                 this.configConfirmacaoSalvar ===
                 'direto';
         }
 
         if (valorUnitario) {
+
             valorUnitario.value =
                 this.configValorUnitario;
         }
@@ -841,16 +1172,19 @@ class AppController {
     }
 
     // =====================================================
-    // META SEMANAL
+    // META
     // =====================================================
 
     salvarMetaSemanal() {
+
         const inputMeta =
             document.getElementById(
                 'inputMetaValor'
             );
 
-        if (!inputMeta) return;
+        if (!inputMeta) {
+            return;
+        }
 
         const novoValor =
             parseFloat(
@@ -861,6 +1195,7 @@ class AppController {
             isNaN(novoValor) ||
             novoValor <= 0
         ) {
+
             alert(
                 'Digite um valor válido para a meta.'
             );
@@ -884,9 +1219,12 @@ class AppController {
             this.metaSemanal
         );
 
-        inputMeta.value = '';
+        inputMeta.value =
+            '';
 
         this.render();
+
+        this.sincronizarDadosAgora();
 
         alert(
             'Meta semanal atualizada com sucesso!'
@@ -898,6 +1236,7 @@ class AppController {
     // =====================================================
 
     atualizarPreviewTempoReal() {
+
         const textoEl =
             document.getElementById(
                 'textoProducao'
@@ -931,6 +1270,7 @@ class AppController {
             ) || 0;
 
         if (!texto.trim()) {
+
             previewBox.style.display =
                 'none';
 
@@ -943,9 +1283,8 @@ class AppController {
                 valorUnitario
             );
 
-        if (
-            tempLancamento.pecas > 0
-        ) {
+        if (tempLancamento.pecas > 0) {
+
             const pecasEl =
                 document.getElementById(
                     'previewPecas'
@@ -957,11 +1296,13 @@ class AppController {
                 );
 
             if (pecasEl) {
+
                 pecasEl.innerText =
                     tempLancamento.pecas;
             }
 
             if (valorTotalEl) {
+
                 valorTotalEl.innerText =
                     `R$ ${tempLancamento.valorTotal.toFixed(2)}`;
             }
@@ -970,6 +1311,7 @@ class AppController {
                 'block';
 
         } else {
+
             previewBox.style.display =
                 'none';
         }
@@ -979,13 +1321,15 @@ class AppController {
     // SALVAR LANÇAMENTO
     // =====================================================
 
-    salvarLancamento() {
+    async salvarLancamento() {
+
         const textoEl =
             document.getElementById(
                 'textoProducao'
             );
 
         if (!textoEl) {
+
             console.error(
                 'Campo textoProducao não encontrado.'
             );
@@ -997,6 +1341,7 @@ class AppController {
             textoEl.value.trim();
 
         if (!texto) {
+
             alert(
                 'Digite um lançamento antes de salvar.'
             );
@@ -1017,6 +1362,8 @@ class AppController {
                 valorUnitario
             );
 
+        // IMPORTANTE:
+        // novo lançamento ainda não foi enviado ao Google Sheets.
         lancamento.sincronizado =
             false;
 
@@ -1035,14 +1382,11 @@ class AppController {
                 this.configDataSemana
             );
 
-        // =================================================
-        // CONFIRMAÇÃO
-        // =================================================
-
         if (
             this.configConfirmacaoSalvar ===
             'perguntar'
         ) {
+
             const confirmar =
                 confirm(
                     `Deseja salvar este lançamento?\n\n` +
@@ -1055,32 +1399,18 @@ class AppController {
             }
         }
 
-        // =================================================
-        // SALVAR
-        // =================================================
-
         this.lancamentosAtuais.push(
             lancamento
         );
 
-        localStorage.setItem(
-            'temp_lancamentos',
-            JSON.stringify(
-                this.lancamentosAtuais
-            )
-        );
+        this.salvarLancamentosLocais();
+
+        this.marcarNuvemPendente();
 
         tocarSomLancamento();
 
-        this.sincronizadoComNuvem =
-            false;
-
-        localStorage.setItem(
-            'sincronizado_nuvem',
-            'false'
-        );
-
-        textoEl.value = '';
+        textoEl.value =
+            '';
 
         const previewBox =
             document.getElementById(
@@ -1088,48 +1418,49 @@ class AppController {
             );
 
         if (previewBox) {
+
             previewBox.style.display =
                 'none';
         }
 
         this.render();
 
-        this.sincronizacaoController
-            .enviarPacoteParaSupabase();
+        await this.sincronizarDadosAgora();
     }
 
     // =====================================================
     // REMOVER LANÇAMENTO
     // =====================================================
 
-    removerLancamento(index) {
+    async removerLancamento(index) {
+
         if (
-            confirm(
+            !confirm(
                 'Deseja realmente excluir este lançamento?'
             )
         ) {
-            this.lancamentosAtuais.splice(
-                index,
-                1
-            );
-
-            localStorage.setItem(
-                'temp_lancamentos',
-                JSON.stringify(
-                    this.lancamentosAtuais
-                )
-            );
-
-            this.sincronizadoComNuvem =
-                false;
-
-            localStorage.setItem(
-                'sincronizado_nuvem',
-                'false'
-            );
-
-            this.render();
+            return;
         }
+
+        if (
+            index < 0 ||
+            index >= this.lancamentosAtuais.length
+        ) {
+            return;
+        }
+
+        this.lancamentosAtuais.splice(
+            index,
+            1
+        );
+
+        this.salvarLancamentosLocais();
+
+        this.marcarNuvemPendente();
+
+        this.render();
+
+        await this.sincronizarDadosAgora();
     }
 
     // =====================================================
@@ -1137,12 +1468,15 @@ class AppController {
     // =====================================================
 
     editarLancamento(index) {
+
         const reg =
             this.lancamentosAtuais[
-            index
+                index
             ];
 
-        if (!reg) return;
+        if (!reg) {
+            return;
+        }
 
         const textoEl =
             document.getElementById(
@@ -1155,6 +1489,7 @@ class AppController {
             );
 
         if (textoEl) {
+
             textoEl.value =
                 reg.textoBruto ||
                 reg.textoOriginal ||
@@ -1165,6 +1500,7 @@ class AppController {
             valorEl &&
             reg.valorUnitario
         ) {
+
             valorEl.value =
                 reg.valorUnitario;
         }
@@ -1174,16 +1510,14 @@ class AppController {
             1
         );
 
-        localStorage.setItem(
-            'temp_lancamentos',
-            JSON.stringify(
-                this.lancamentosAtuais
-            )
-        );
+        this.salvarLancamentosLocais();
+
+        this.marcarNuvemPendente();
 
         this.render();
 
         if (textoEl) {
+
             textoEl.focus();
         }
 
@@ -1198,6 +1532,7 @@ class AppController {
     // =====================================================
 
     async fecharSemana() {
+
         const lancamentosDaSemana =
             this.producaoController
                 .obterLancamentosDaSemana(
@@ -1210,6 +1545,7 @@ class AppController {
             lancamentosDaSemana.length ===
             0
         ) {
+
             alert(
                 'Não há lançamentos nesta semana.'
             );
@@ -1230,9 +1566,10 @@ class AppController {
                 lancamentosDaSemana
             );
 
-        await this.storage.salvarSemana(
-            semana
-        );
+        await this.storage
+            .salvarSemana(
+                semana
+            );
 
         this.lancamentosAtuais =
             this.lancamentosAtuais.filter(
@@ -1242,30 +1579,22 @@ class AppController {
                     )
             );
 
-        localStorage.setItem(
-            'temp_lancamentos',
-            JSON.stringify(
-                this.lancamentosAtuais
-            )
-        );
-
-        this.sincronizadoComNuvem =
-            true;
-
-        localStorage.setItem(
-            'sincronizado_nuvem',
-            'true'
-        );
+        this.salvarLancamentosLocais();
 
         if (
             this.configSemanaPadrao ===
             'atual'
         ) {
+
             this.producaoController
                 .fecharSemana();
         }
 
+        this.marcarNuvemPendente();
+
         this.render();
+
+        await this.sincronizarDadosAgora();
 
         alert(
             'Semana fechada com sucesso!'
@@ -1277,11 +1606,15 @@ class AppController {
     // =====================================================
 
     async obterOuCriarPlanilhaDrive() {
-        return await this.googleService.obterOuCriarPlanilhaDrive();
+
+        return await this.googleService
+            .obterOuCriarPlanilhaDrive();
     }
 
     abrirPlanilhaNoNavegador() {
+
         if (!this.accessToken) {
+
             alert(
                 'Conecte-se com o Google primeiro para acessar sua planilha.'
             );
@@ -1291,11 +1624,18 @@ class AppController {
             return;
         }
 
-        if (!this.googleService.spreadsheetIdSalvo) {
-            this.googleService.obterOuCriarPlanilhaDrive()
+        if (
+            !this.googleService
+                .spreadsheetIdSalvo
+        ) {
+
+            this.googleService
+                .obterOuCriarPlanilhaDrive()
                 .then(
                     id => {
+
                         if (id) {
+
                             window.open(
                                 `https://docs.google.com/spreadsheets/d/${this.googleService.spreadsheetIdSalvo}/edit`,
                                 '_blank'
@@ -1305,6 +1645,7 @@ class AppController {
                 )
                 .catch(
                     () => {
+
                         alert(
                             'Não foi possível localizar sua planilha no Drive. Tente sincronizar primeiro.'
                         );
@@ -1321,7 +1662,9 @@ class AppController {
     }
 
     async enviarParaGoogleSheetsAutomatico() {
+
         if (!this.accessToken) {
+
             alert(
                 'Por favor, clique em "Entrar com o Google" antes de sincronizar.'
             );
@@ -1335,6 +1678,7 @@ class AppController {
             this.lancamentosAtuais.length ===
             0
         ) {
+
             alert(
                 'Não há lançamentos atuais na tela para sincronizar.'
             );
@@ -1348,12 +1692,15 @@ class AppController {
             );
 
         try {
+
             if (btnNuvem) {
+
                 btnNuvem.innerText =
                     'Sincronizando com o Drive...';
             }
 
-            await this.googleService.obterOuCriarPlanilhaDrive();
+            await this.googleService
+                .obterOuCriarPlanilhaDrive();
 
             const lancamentosDaSemana =
                 this.producaoController
@@ -1367,6 +1714,7 @@ class AppController {
                 lancamentosDaSemana.length ===
                 0
             ) {
+
                 alert(
                     'Não há lançamentos na semana selecionada para sincronizar.'
                 );
@@ -1377,14 +1725,14 @@ class AppController {
             const lancamentosPendentes =
                 lancamentosDaSemana.filter(
                     reg =>
-                        reg.sincronizado !==
-                        true
+                        reg.sincronizado !== true
                 );
 
             if (
                 lancamentosPendentes.length ===
                 0
             ) {
+
                 alert(
                     'Todos os lançamentos da semana selecionada já estão sincronizados.'
                 );
@@ -1395,10 +1743,12 @@ class AppController {
             const linhasNovas =
                 lancamentosPendentes.map(
                     reg => [
+
                         reg.data ||
-                        new Date().toLocaleDateString(
-                            'pt-BR'
-                        ),
+                        new Date()
+                            .toLocaleDateString(
+                                'pt-BR'
+                            ),
 
                         reg.textoBruto ||
                         reg.textoOriginal ||
@@ -1415,45 +1765,42 @@ class AppController {
                     ]
                 );
 
-            await this.googleService.enviarLancamentos(
-                linhasNovas
-            );
+            await this.googleService
+                .enviarLancamentos(
+                    linhasNovas
+                );
 
             lancamentosPendentes.forEach(
                 reg => {
+
                     reg.sincronizado =
                         true;
                 }
             );
 
-            localStorage.setItem(
-                'temp_lancamentos',
-                JSON.stringify(
-                    this.lancamentosAtuais
-                )
-            );
+            this.salvarLancamentosLocais();
 
-            this.sincronizadoComNuvem =
-                true;
-
-            localStorage.setItem(
-                'sincronizado_nuvem',
-                'true'
-            );
+            this.marcarNuvemPendente();
 
             this.render();
+
+            // O Google foi atualizado.
+            // Agora também atualizamos o pacote do Supabase.
+            await this.sincronizarDadosAgora();
 
             alert(
                 `Sincronizado com sucesso! ${lancamentosPendentes.length} lançamento(s) foram enviados para a planilha.`
             );
 
         } catch (e) {
+
             console.error(e);
 
             if (
-                e.message.includes('401') ||
-                e.message.includes('expired')
+                e.message?.includes('401') ||
+                e.message?.includes('expired')
             ) {
+
                 localStorage.removeItem(
                     'google_access_token'
                 );
@@ -1470,13 +1817,16 @@ class AppController {
                 );
 
             } else {
+
                 alert(
                     'Erro ao sincronizar com o Google Drive. Verifique sua conexão.'
                 );
             }
 
         } finally {
+
             if (btnNuvem) {
+
                 btnNuvem.innerText =
                     '🚀 Sincronizar com o Drive';
             }
@@ -1488,6 +1838,7 @@ class AppController {
     // =====================================================
 
     abrirBuscaRapida() {
+
         const inputBusca =
             document.getElementById(
                 'inputBusca'
@@ -1499,6 +1850,7 @@ class AppController {
             );
 
         if (cardSemana) {
+
             cardSemana.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
@@ -1506,10 +1858,13 @@ class AppController {
         }
 
         if (inputBusca) {
+
             setTimeout(
                 () => {
+
                     inputBusca.focus();
                     inputBusca.select();
+
                 },
                 350
             );
@@ -1517,6 +1872,7 @@ class AppController {
     }
 
     atualizarBottomBar() {
+
         const status =
             document.getElementById(
                 'bottomSyncStatus'
@@ -1564,6 +1920,7 @@ class AppController {
         );
 
         if (!conectado) {
+
             status.textContent =
                 '⚪';
 
@@ -1578,6 +1935,7 @@ class AppController {
                 'Conectar ao Google';
 
         } else if (pendente) {
+
             status.textContent =
                 '🟡';
 
@@ -1592,6 +1950,7 @@ class AppController {
                 'Sincronizar lançamentos';
 
         } else {
+
             status.textContent =
                 '🟢';
 
@@ -1608,7 +1967,9 @@ class AppController {
     }
 
     acaoBottomSync() {
+
         if (!this.accessToken) {
+
             this.fazerLoginGoogle();
 
             return;
@@ -1631,6 +1992,7 @@ class AppController {
         if (
             existemLancamentosPendentes
         ) {
+
             this.enviarParaGoogleSheetsAutomatico();
 
             return;
@@ -1639,13 +2001,33 @@ class AppController {
         this.abrirPlanilhaNoNavegador();
     }
 
-
     aplicarAnimacoes() {
-        const html = document.documentElement;
+
+        const html =
+            document.documentElement;
+
         if (this.animacoesAtivas) {
-            html.classList.remove('sem-animacoes');
+
+            html.classList.remove(
+                'sem-animacoes'
+            );
+
         } else {
-            html.classList.add('sem-animacoes');
+
+            html.classList.add(
+                'sem-animacoes'
+            );
+        }
+
+        const configAnimacoes =
+            document.getElementById(
+                'configAnimacoes'
+            );
+
+        if (configAnimacoes) {
+
+            configAnimacoes.checked =
+                this.animacoesAtivas;
         }
     }
 
@@ -1653,8 +2035,8 @@ class AppController {
     // RENDER
     // =====================================================
 
-
     async render() {
+
         const listaAtualEl =
             document.getElementById(
                 'listaHistorico'
@@ -1664,8 +2046,11 @@ class AppController {
         // TOTAIS
         // =================================================
 
-        let totalPecas = 0;
-        let totalValor = 0;
+        let totalPecas =
+            0;
+
+        let totalValor =
+            0;
 
         const lancamentosDaSemana =
             this.producaoController
@@ -1677,6 +2062,7 @@ class AppController {
 
         lancamentosDaSemana.forEach(
             reg => {
+
                 const textoBuscaRef =
                     (
                         reg.textoBruto ||
@@ -1715,7 +2101,7 @@ class AppController {
         );
 
         // =================================================
-        // BARRA DE META
+        // META
         // =================================================
 
         const textoMetaEl =
@@ -1738,6 +2124,7 @@ class AppController {
             porcentagemEl &&
             barraEl
         ) {
+
             const progressoPorcentagem =
                 this.metaSemanal > 0
                     ? (
@@ -1764,12 +2151,14 @@ class AppController {
             if (
                 progressoPorcentagem >= 100
             ) {
+
                 barraEl.style.backgroundColor =
                     'var(--accent-color)';
 
                 if (
                     !this.metaBatidaDisparada
                 ) {
+
                     this.metaBatidaDisparada =
                         true;
 
@@ -1780,13 +2169,18 @@ class AppController {
 
                     setTimeout(
                         () => {
+
+                            tocarSomMetaBatida();
+
                             dispararAnimacaoMetaBatida();
+
                         },
                         100
                     );
                 }
 
             } else {
+
                 barraEl.style.backgroundColor =
                     'var(--accent-color)';
 
@@ -1805,14 +2199,18 @@ class AppController {
         // =================================================
 
         if (listaAtualEl) {
-            let htmlAtuais = '';
+
+            let htmlAtuais =
+                '';
 
             lancamentosDaSemana.forEach(
                 reg => {
+
                     const index =
-                        this.lancamentosAtuais.indexOf(
-                            reg
-                        );
+                        this.lancamentosAtuais
+                            .indexOf(
+                                reg
+                            );
 
                     const textoBuscaRef =
                         (
@@ -1951,11 +2349,13 @@ class AppController {
             );
 
         if (totalGeralValorEl) {
+
             totalGeralValorEl.innerText =
                 `R$ ${totalValor.toFixed(2)}`;
         }
 
         if (totalGeralPecasEl) {
+
             totalGeralPecasEl.innerText =
                 this.formatarNumero(
                     totalPecas
@@ -1963,7 +2363,7 @@ class AppController {
         }
 
         // =================================================
-        // RESUMO SEMANAL POR VALOR UNITÁRIO
+        // RESUMO POR PREÇO
         // =================================================
 
         const resumoSemanalPrecoEl =
@@ -1972,10 +2372,13 @@ class AppController {
             );
 
         if (resumoSemanalPrecoEl) {
-            const gruposPorPreco = {};
+
+            const gruposPorPreco =
+                {};
 
             lancamentosDaSemana.forEach(
                 reg => {
+
                     const valorUnitario =
                         Number(
                             reg.valorUnitario
@@ -1988,20 +2391,24 @@ class AppController {
 
                     if (
                         !gruposPorPreco[
-                        chave
+                            chave
                         ]
                     ) {
+
                         gruposPorPreco[
                             chave
                         ] = {
-                            valorUnitario:
-                                valorUnitario,
 
-                            pecas: 0,
+                            valorUnitario,
 
-                            valor: 0,
+                            pecas:
+                                0,
 
-                            lancamentos: []
+                            valor:
+                                0,
+
+                            lancamentos:
+                                []
                         };
                     }
 
@@ -2031,24 +2438,20 @@ class AppController {
 
                     gruposPorPreco[
                         chave
-                    ].lancamentos.push(
-                        {
-                            data:
-                                reg.data ||
-                                '',
+                    ].lancamentos.push({
+                        data:
+                            reg.data ||
+                            '',
 
-                            pecas:
-                                pecas,
+                        pecas,
 
-                            valorTotal:
-                                valorTotal,
+                        valorTotal,
 
-                            texto:
-                                reg.textoBruto ||
-                                reg.textoOriginal ||
-                                ''
-                        }
-                    );
+                        texto:
+                            reg.textoBruto ||
+                            reg.textoOriginal ||
+                            ''
+                    });
                 }
             );
 
@@ -2065,10 +2468,12 @@ class AppController {
                 chaves.length ===
                 0
             ) {
+
                 resumoSemanalPrecoEl.innerHTML =
                     '';
 
             } else {
+
                 let htmlResumo = `
                     <div class="resumo-preco-titulo">
                         📦 Resumo por valor unitário
@@ -2077,9 +2482,10 @@ class AppController {
 
                 chaves.forEach(
                     chave => {
+
                         const grupo =
                             gruposPorPreco[
-                            chave
+                                chave
                             ];
 
                         htmlResumo += `
@@ -2093,6 +2499,7 @@ class AppController {
 
                         grupo.lancamentos.forEach(
                             reg => {
+
                                 htmlResumo += `
                                     <div class="resumo-preco-item">
 
@@ -2138,7 +2545,7 @@ class AppController {
         }
 
         // =================================================
-        // SINCRONIZAÇÃO
+        // SINCRONIZAÇÃO DO MENU
         // =================================================
 
         const containerMenuSync =
@@ -2147,6 +2554,7 @@ class AppController {
             );
 
         if (containerMenuSync) {
+
             let avisoEl =
                 document.getElementById(
                     'avisoSyncPendenteMenu'
@@ -2160,9 +2568,12 @@ class AppController {
                 );
 
             if (
+                this.accessToken &&
                 existemLancamentosPendentes
             ) {
+
                 if (!avisoEl) {
+
                     avisoEl =
                         document.createElement(
                             'div'
@@ -2191,11 +2602,12 @@ class AppController {
                     '⚠️ Há lançamentos pendentes de sincronização.';
 
             } else if (avisoEl) {
+
                 avisoEl.remove();
             }
 
             // =================================================
-            // BOTÃO PARA ABRIR A PLANILHA
+            // BOTÃO PLANILHA
             // =================================================
 
             let btnAbrirPlanilha =
@@ -2204,7 +2616,9 @@ class AppController {
                 );
 
             if (this.accessToken) {
+
                 if (!btnAbrirPlanilha) {
+
                     btnAbrirPlanilha =
                         document.createElement(
                             'button'
@@ -2229,16 +2643,16 @@ class AppController {
 
                     btnAbrirPlanilha.onclick =
                         () =>
-                            window.app.abrirPlanilhaNoNavegador();
+                            window.app
+                                .abrirPlanilhaNoNavegador();
 
                     containerMenuSync.appendChild(
                         btnAbrirPlanilha
                     );
                 }
 
-            } else if (
-                btnAbrirPlanilha
-            ) {
+            } else if (btnAbrirPlanilha) {
+
                 btnAbrirPlanilha.remove();
             }
         }
@@ -2253,37 +2667,41 @@ class AppController {
             );
 
         if (!historicoEl) {
+
             this.atualizarBottomBar();
+
             return;
         }
 
         const semanasSalvas =
-            await this.storage.obterTodasSemanas();
+            await this.storage
+                .obterTodasSemanas();
 
-        let htmlHistorico = '';
+        let htmlHistorico =
+            '';
 
         // =================================================
         // RESUMO MENSAL
         // =================================================
 
-        const resumoMensal = {};
+        const resumoMensal =
+            {};
 
         semanasSalvas.forEach(
             semana => {
+
                 const partesPeriodo =
                     semana.periodo
-                        ? semana.periodo.split(
-                            ' '
-                        )
+                        ? semana.periodo.split(' ')
                         : [];
 
                 let mesAnoKey =
                     'Outros';
 
                 if (
-                    partesPeriodo.length >
-                    0
+                    partesPeriodo.length > 0
                 ) {
+
                     const dataInicioStr =
                         partesPeriodo[0];
 
@@ -2296,6 +2714,7 @@ class AppController {
                         subPartes.length ===
                         3
                     ) {
+
                         const mesesNomes = [
                             'Janeiro',
                             'Fevereiro',
@@ -2319,9 +2738,10 @@ class AppController {
 
                         if (
                             mesesNomes[
-                            mesIndex
+                                mesIndex
                             ]
                         ) {
+
                             mesAnoKey =
                                 `${mesesNomes[mesIndex]} de ${subPartes[2]}`;
                         }
@@ -2330,15 +2750,22 @@ class AppController {
 
                 if (
                     !resumoMensal[
-                    mesAnoKey
+                        mesAnoKey
                     ]
                 ) {
+
                     resumoMensal[
                         mesAnoKey
                     ] = {
-                        valor: 0,
-                        pecas: 0,
-                        semanasCount: 0
+
+                        valor:
+                            0,
+
+                        pecas:
+                            0,
+
+                        semanasCount:
+                            0
                     };
                 }
 
@@ -2361,15 +2788,17 @@ class AppController {
             }
         );
 
-        let htmlResumoMensal = '';
+        let htmlResumoMensal =
+            '';
 
         Object.keys(
             resumoMensal
         ).forEach(
             mes => {
+
                 const dados =
                     resumoMensal[
-                    mes
+                        mes
                     ];
 
                 htmlResumoMensal += `
@@ -2434,6 +2863,7 @@ class AppController {
         );
 
         if (htmlResumoMensal) {
+
             htmlHistorico += `
                 <div
                     style="
@@ -2468,6 +2898,7 @@ class AppController {
             )
             .forEach(
                 semana => {
+
                     const semObj =
                         new SemanaProducao(
                             semana.registros
@@ -2487,6 +2918,7 @@ class AppController {
 
                     semana.registros.forEach(
                         reg => {
+
                             const valorReg =
                                 reg.valorTotal ||
                                 (
@@ -2626,7 +3058,7 @@ class AppController {
             );
 
         // =================================================
-        // MOSTRAR / OCULTAR ARQUIVO
+        // ARQUIVO
         // =================================================
 
         const cardArquivo =
@@ -2635,6 +3067,7 @@ class AppController {
             );
 
         if (cardArquivo) {
+
             cardArquivo.style.display =
                 semanasSalvas.length
                     ? 'block'
@@ -2652,6 +3085,7 @@ class AppController {
     }
 }
 
+
 // =========================================================
 // INICIALIZAÇÃO
 // =========================================================
@@ -2660,11 +3094,14 @@ if (
     document.readyState ===
     'loading'
 ) {
+
     document.addEventListener(
         'DOMContentLoaded',
         () =>
             new AppController()
     );
+
 } else {
+
     new AppController();
 }
