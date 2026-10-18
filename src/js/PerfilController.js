@@ -79,16 +79,4 @@ export class PerfilController {
             })
         );
     }
-
-    obterFoto(){
-        return localStorage.getItem(
-            this.chaves.foto
-        );
-    }
-
-    salvarFoto(foto){
-        localStorage.setItem(
-            this.chaves.foto, foto
-        );
-    }
 }

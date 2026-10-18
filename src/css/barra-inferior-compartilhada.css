@@ -1,0 +1,84 @@
+
+/* ANOTEI-BARRA-COMPARTILHADA */
+body.has-bottom-navigation {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+}
+
+body.has-bottom-navigation .bottom-bar {
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(500px, calc(100% - 24px));
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 7px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #ece9f4;
+    border-radius: 20px;
+    box-shadow: 0 8px 28px rgba(45, 34, 83, 0.12);
+    backdrop-filter: blur(14px);
+}
+
+body.has-bottom-navigation .bottom-item {
+    min-width: 0;
+    min-height: 56px;
+    margin: 0;
+    padding: 6px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 13px;
+    background: transparent;
+    color: #77748a;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background 160ms ease, color 160ms ease;
+}
+
+body.has-bottom-navigation .bottom-item:hover,
+body.has-bottom-navigation .bottom-item:focus-visible {
+    background: #f3efff;
+    color: #6543c3;
+    outline: none;
+}
+
+body.has-bottom-navigation .bottom-icon {
+    display: grid;
+    place-items: center;
+    font-size: 0;
+    line-height: 1;
+}
+
+body.has-bottom-navigation .bottom-icon svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    color: currentColor;
+}
+
+body.has-bottom-navigation .bottom-label {
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+    text-align: center;
+}
+
+@media (max-width: 360px) {
+    body.has-bottom-navigation .bottom-bar {
+        width: calc(100% - 16px);
+        gap: 2px;
+        padding: 5px;
+    }
+
+    body.has-bottom-navigation .bottom-label {
+        font-size: 10px;
+    }
+}

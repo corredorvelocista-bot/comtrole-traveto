@@ -1,29 +1,56 @@
-import { StorageService } from './StorageService.js';
-import { LancamentoDia, SemanaProducao } from './Producao.js';
+import {
+    StorageService
+} from './StorageService.js';
+import {
+    LancamentoDia,
+    SemanaProducao
+} from './Producao.js';
 import {
     tocarSomLancamento,
     tocarSomMetaBatida,
     dispararAnimacaoMetaBatida
 } from './efeitos.js';
-import { GoogleService } from './GoogleService.js';
-import { MenuController } from './menu/MenuController.js';
-import { TemaController } from './TemaController.js';
-import { PerfilController } from './PerfilController.js';
-import { ProducaoController } from './ProducaoController.js';
-import { SincronizacaoController } from './SincronizacaoController.js';
-import { SupabaseService } from './SupabaseService.js';
+import {
+    MenuController
+} from './menu/MenuController.js';
+import {
+    PerfilController
+} from './PerfilController.js';
+import {
+    ProducaoController
+} from './ProducaoController.js';
+import {
+    ProducaoService
+} from './ProducaoService.js';
+import {
+    UIRenderer
+} from './UIRenderer.js';
+
+import './GlobalAparenciaController.js';
+
+import {
+    ConfiguracaoService
+} from './ConfiguracaoService.js';
+import {
+    GestaoFinanceiraService
+} from './GestaoFinanceiraService.js';
+import {
+    PlanejamentoFinanceiroService
+} from './PlanejamentoFinanceiroService.js';
+import {
+    DespesasPessoaisService
+} from './DespesasPessoaisService.js';
 
 
 class AppController {
 
     constructor() {
+        this.mostrarTodosLancamentos = false;
+        this.mostrarTodosResumo = false;
 
         // =====================================================
         // ESTADO INICIAL
         // =====================================================
-
-        this.metaBatidaDisparada =
-            localStorage.getItem('meta_batida_disparada') === 'true';
 
         this.storage =
             new StorageService();
@@ -37,126 +64,68 @@ class AppController {
         this.producaoController =
             new ProducaoController();
 
-        this.sincronizacaoController =
-            new SincronizacaoController();
+        this.configuracaoService =
+            new ConfiguracaoService();
 
-        this.supabaseService =
-            new SupabaseService();
+        this.gestaoFinanceiraService = new GestaoFinanceiraService();
+        this.planejamentoFinanceiroService =
+            new PlanejamentoFinanceiroService();
 
-        this.usuarioSupabase =
-            null;
+        this.despesasPessoaisService =
+            new DespesasPessoaisService();
 
         this.termoBusca =
             '';
 
         this.lancamentosAtuais =
-            this.carregarLancamentosLocais();
-
-        const sincronizadoSalvo =
-            localStorage.getItem('sincronizado_nuvem');
-
-        this.sincronizadoComNuvem =
-            sincronizadoSalvo === null
-                ? true
-                : sincronizadoSalvo === 'true';
-
-        // =====================================================
-        // AMBIENTE
-        // =====================================================
-
-        const ambienteLocal =
-            window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1';
+            this.storage.obterLancamentosTemporarios();
 
         // =====================================================
         // CONFIGURAÇÕES
         // =====================================================
 
+        const configuracoes =
+            this.configuracaoService.obterTodas();
+
         this.metaSemanal =
-            parseFloat(
-                localStorage.getItem(
-                    'meta_semanal_valor'
-                )
-            ) || 500.00;
+            configuracoes.metaSemanal;
 
         this.configSemanaPadrao =
-            localStorage.getItem(
-                'config_semana_padrao'
-            ) || 'atual';
+            configuracoes.semanaPadrao;
 
         this.configDataSemana =
-            localStorage.getItem(
-                'config_data_semana'
-            ) || '';
+            configuracoes.dataSemana;
 
         this.configFormatoNumeros =
-            localStorage.getItem(
-                'config_formato_numeros'
-            ) || 'milhar';
+            configuracoes.formatoNumeros;
 
         this.configConfirmacaoSalvar =
-            localStorage.getItem(
-                'config_confirmacao_salvar'
-            ) || 'perguntar';
+            configuracoes.confirmacaoSalvar;
 
         this.configValorUnitario =
-            parseFloat(
-                localStorage.getItem(
-                    'config_valor_unitario'
-                )
-            ) || 0.21;
+            configuracoes.valorUnitario;
 
-        // =====================================================
-        // GOOGLE
-        // =====================================================
+        this.configSomLancamento =
+            configuracoes.somLancamento;
 
-        this.googleService =
-            new GoogleService({
-                ambienteLocal,
+        this.custoFixoMensal =
+            configuracoes.custoFixoMensal;
 
-                onLoginStatusChange:
-                    (logado, token) => {
+        this.retiradaSemanalDesejada =
+            configuracoes.retiradaSemanalDesejada;
 
-                        this.accessToken = token ||
-                        this.googleService?.accessToken || null;
-                        
-                        this.atualizarInterfaceLogin(logado);
-                        this.atualizarBottomBar();
-                    },
+        this.modoPlanejamentoFinanceiro =
+            configuracoes.modoPlanejamentoFinanceiro || 'meta_semanal';
 
-                onRender:
-                    () => {
-                        this.render();
-                    }
-            });
+        this.configSomMeta =
+            configuracoes.somMeta;
 
-        this.accessToken =
-            this.googleService?.accessToken || null;
-
-        // =====================================================
-        // TEMA
-        // =====================================================
-
-        this.temaController =
-            new TemaController();
-
-        this.temaController.aplicar();
-
-        // =====================================================
-        // ANIMAÇÕES
-        // =====================================================
-
-        this.animacoesAtivas =
-            localStorage.getItem(
-                'animacoes_interface'
-            ) !== 'false';
-
-        this.aplicarAnimacoes();
+        this.configConfeteMeta =
+            configuracoes.confeteMeta;
 
         // =====================================================
         // DISPONIBILIZA APP GLOBALMENTE
         // =====================================================
-
         window.app =
             this;
 
@@ -164,333 +133,23 @@ class AppController {
         // INICIALIZAÇÃO
         // =====================================================
 
-        this.initGoogleAuth();
         this.initEvents();
         this.atualizarPerfilMenu();
         this.render();
-
-        // A sincronização começa somente depois
-        // que o aplicativo já foi completamente inicializado.
-        this.sincronizarAoAbrir();
     }
 
     // =====================================================
     // UTILITÁRIOS DE DADOS LOCAIS
     // =====================================================
 
-    carregarLancamentosLocais() {
-
-        const dados =
-            localStorage.getItem(
-                'temp_lancamentos'
-            );
-
-        if (!dados) {
-            return [];
-        }
-
-        try {
-
-            const lancamentos =
-                JSON.parse(dados);
-
-            return Array.isArray(lancamentos)
-                ? lancamentos
-                : [];
-
-        } catch (erro) {
-
-            console.error(
-                'Erro ao carregar lançamentos locais:',
-                erro
-            );
-
-            return [];
-        }
+    alternarMostrarTodos() {
+        this.mostrarTodosLancamentos = !this.mostrarTodosLancamentos;
+        this.render();
     }
-
-    salvarLancamentosLocais() {
-
-        localStorage.setItem(
-            'temp_lancamentos',
-            JSON.stringify(
-                this.lancamentosAtuais
-            )
-        );
+    alternarMostrarResumo() {
+        this.mostrarTodosResumo = !this.mostrarTodosResumo;
+        this.render();
     }
-
-    marcarNuvemPendente() {
-
-        this.sincronizadoComNuvem =
-            false;
-
-        localStorage.setItem(
-            'sincronizado_nuvem',
-            'false'
-        );
-    }
-
-    marcarNuvemSincronizada() {
-
-        this.sincronizadoComNuvem =
-            true;
-
-        localStorage.setItem(
-            'sincronizado_nuvem',
-            'true'
-        );
-    }
-
-    // =====================================================
-    // SUPABASE
-    // =====================================================
-
-    async sincronizarAoAbrir() {
-
-        try {
-
-            const usuario =
-                await this.supabaseService
-                    .obterUsuarioAtual();
-
-            if (!usuario) {
-                return;
-            }
-
-            this.usuarioSupabase =
-                usuario;
-
-            const pacote =
-                await this.supabaseService
-                    .obterDadosUsuario(
-                        usuario.id
-                    );
-
-            // =================================================
-            // PRIMEIRO ACESSO
-            // =================================================
-            //
-            // Se não existe pacote na nuvem, NÃO apagamos
-            // os dados locais.
-            //
-            // Enviamos os dados locais para a nuvem.
-            // =================================================
-
-            if (!pacote) {
-
-                const pacoteLocal =
-                    await this.sincronizacaoController
-                        .montarPacoteCompleto();
-
-                const possuiDadosLocais =
-                    pacoteLocal.lancamentosAbertos.length > 0 ||
-                    pacoteLocal.semanasFechadas.length > 0 ||
-                    !!pacoteLocal.configuracoes.semanaReferenciaAtual ||
-                    !!pacoteLocal.perfil.nome ||
-                    !!pacoteLocal.perfil.foto;
-
-                if (possuiDadosLocais) {
-
-                    const enviado =
-                        await this.sincronizacaoController
-                            .enviarPacoteParaSupabase();
-
-                    if (enviado) {
-                        this.marcarNuvemSincronizada();
-                    }
-                }
-
-                return;
-            }
-
-            // =================================================
-            // PACOTE EXISTENTE
-            // =================================================
-
-            await this.sincronizacaoController
-                .aplicarPacoteCompleto(
-                    pacote
-                );
-
-            this.lancamentosAtuais =
-                this.carregarLancamentosLocais();
-
-            this.metaSemanal =
-                parseFloat(
-                    localStorage.getItem(
-                        'meta_semanal_valor'
-                    )
-                ) || 500.00;
-
-            this.configSemanaPadrao =
-                localStorage.getItem(
-                    'config_semana_padrao'
-                ) || 'atual';
-
-            this.configDataSemana =
-                localStorage.getItem(
-                    'config_data_semana'
-                ) || '';
-
-            this.configFormatoNumeros =
-                localStorage.getItem(
-                    'config_formato_numeros'
-                ) || 'milhar';
-
-            this.configConfirmacaoSalvar =
-                localStorage.getItem(
-                    'config_confirmacao_salvar'
-                ) || 'perguntar';
-
-            this.configValorUnitario =
-                parseFloat(
-                    localStorage.getItem(
-                        'config_valor_unitario'
-                    )
-                ) || 0.21;
-
-            this.animacoesAtivas =
-                localStorage.getItem(
-                    'animacoes_interface'
-                ) !== 'false';
-
-            this.temaController.aplicar();
-            this.aplicarAnimacoes();
-            this.atualizarCampoSemana();
-            this.carregarConfigProducao();
-            this.atualizarPerfilMenu();
-
-            this.render();
-
-        } catch (erro) {
-
-            console.error(
-                'Erro ao sincronizar dados ao abrir:',
-                erro
-            );
-        }
-    }
-
-    async sincronizarDadosAgora() {
-
-        try {
-
-            const usuario =
-                await this.supabaseService
-                    .obterUsuarioAtual();
-
-            if (!usuario) {
-                return false;
-            }
-
-            this.usuarioSupabase =
-                usuario;
-
-            const resultado =
-                await this.sincronizacaoController
-                    .enviarPacoteParaSupabase();
-
-            if (resultado) {
-                this.marcarNuvemSincronizada();
-            } else {
-                this.marcarNuvemPendente();
-            }
-
-            return resultado;
-
-        } catch (erro) {
-
-            console.error(
-                'Erro ao sincronizar com Supabase:',
-                erro
-            );
-
-            this.marcarNuvemPendente();
-
-            return false;
-        }
-    }
-
-    async carregarUsuarioSupabase() {
-
-        this.usuarioSupabase =
-            await this.supabaseService
-                .obterUsuarioAtual();
-
-        if (this.usuarioSupabase) {
-
-            console.log(
-                'Usuário Supabase:',
-                this.usuarioSupabase.id
-            );
-        }
-    }
-
-    // =====================================================
-    // GOOGLE AUTH
-    // =====================================================
-
-    initGoogleAuth() {
-
-        this.googleService
-            .initGoogleAuth();
-    }
-
-    atualizarInterfaceLogin(logado) {
-
-        const statusEl =
-            document.getElementById(
-                'statusLogin'
-            );
-
-        const btnLogin =
-            document.getElementById(
-                'btnLoginGoogle'
-            );
-
-        const btnLogout =
-            document.getElementById(
-                'btnLogoutGoogle'
-            );
-
-        if (
-            !statusEl ||
-            !btnLogin ||
-            !btnLogout
-        ) {
-            return;
-        }
-
-        if (logado) {
-
-            statusEl.innerText =
-                'Status: Conectado ao Google Drive ✅';
-
-            statusEl.style.color =
-                'var(--accent-color)';
-
-            btnLogin.style.display =
-                'none';
-
-            btnLogout.style.display =
-                'inline-block';
-
-        } else {
-
-            statusEl.innerText =
-                'Status: Desconectado';
-
-            statusEl.style.color =
-                'var(--muted-color)';
-
-            btnLogin.style.display =
-                'inline-flex';
-
-            btnLogout.style.display =
-                'none';
-        }
-    }
-
     atualizarPerfilMenu() {
 
         const nomeEl =
@@ -502,18 +161,31 @@ class AppController {
             document.querySelector(
                 '.menu-profile-photo'
             );
+        const avatarDashboard =
+            document.getElementById('btnPerfilDashboard');
+
+        const nome =
+            this.perfilController
+            .obterNome();
+
+        const foto =
+            this.perfilController
+            .obterFoto();
+
+        if (avatarDashboard) {
+            avatarDashboard.textContent =
+                nome ? nome.trim().charAt(0).toLocaleUpperCase('pt-BR') : 'J';
+            if (foto) {
+                avatarDashboard.textContent = '';
+                avatarDashboard.style.backgroundImage = `url("${foto}")`;
+                avatarDashboard.style.backgroundSize = 'cover';
+                avatarDashboard.style.backgroundPosition = '50% 50%';
+            }
+        }
 
         if (!nomeEl || !fotoEl) {
             return;
         }
-
-        const nome =
-            this.perfilController
-                .obterNome();
-
-        const foto =
-            this.perfilController
-                .obterFoto();
 
         if (nome) {
 
@@ -535,18 +207,6 @@ class AppController {
             fotoEl.style.backgroundPosition =
                 '50% 50%';
         }
-    }
-
-    fazerLoginGoogle() {
-
-        this.googleService
-            .fazerLoginGoogle();
-    }
-
-    fazerLogoutGoogle() {
-
-        this.googleService
-            .fazerLogoutGoogle();
     }
 
     // =====================================================
@@ -589,65 +249,27 @@ class AppController {
             'btnSalvar',
             'click',
             () =>
-                this.salvarLancamento()
+            this.salvarLancamento()
         );
 
         safeBind(
             'btnFecharSemana',
             'click',
             () =>
-                this.fecharSemana()
+            this.fecharSemana()
         );
 
         safeBind(
             'btnSalvarMeta',
             'click',
             () =>
-                this.salvarMetaSemanal()
-        );
-
-        safeBind(
-            'btnLoginGoogle',
-            'click',
-            () =>
-                this.fazerLoginGoogle()
-        );
-
-        safeBind(
-            'btnLogoutGoogle',
-            'click',
-            () =>
-                this.fazerLogoutGoogle()
-        );
-
-        safeBind(
-            'btnEnviarNuvem',
-            'click',
-            () =>
-                this.enviarParaGoogleSheetsAutomatico()
-        );
-
-        safeBind(
-            'btnAbrirPlanilhaDrive',
-            'click',
-            () =>
-                this.abrirPlanilhaNoNavegador()
+            this.salvarMetaSemanal()
         );
 
         // =================================================
         // MENU
         // =================================================
-
-        safeBind(
-            'btnMenuHamburger',
-            'click',
-            () => {
-                this.menuController
-                    .abrirMenu();
-            }
-        );
-
-        safeBind(
+safeBind(
             'btnFecharMenu',
             'click',
             () => {
@@ -677,47 +299,9 @@ class AppController {
         // =================================================
         // TEMA
         // =================================================
-
-        safeBind(
-            'configTema',
-            'change',
-            (event) => {
-
-                this.temaController
-                    .definirTema(
-                        event.target.value
-                    );
-
-                this.render();
-
-                this.sincronizarDadosAgora();
-            }
-        );
-
-        // =================================================
-        // ANIMAÇÕES
-        // =================================================
-
-        safeBind(
-            'configAnimacoes',
-            'change',
-            (event) => {
-
-                this.animacoesAtivas =
-                    event.target.checked;
-
-                localStorage.setItem(
-                    'animacoes_interface',
-                    String(
-                        this.animacoesAtivas
-                    )
-                );
-
-                this.aplicarAnimacoes();
-
-                this.sincronizarDadosAgora();
-            }
-        );
+        safeBind('configTema', 'change', () => {
+            this.render();
+        });
 
         // =================================================
         // CONFIGURAÇÕES DE PRODUÇÃO
@@ -731,16 +315,14 @@ class AppController {
                 this.configSemanaPadrao =
                     'atual';
 
-                localStorage.setItem(
-                    'config_semana_padrao',
+                this.configuracaoService.definir(
+                    'semanaPadrao',
                     'atual'
                 );
 
                 this.atualizarCampoSemana();
 
                 this.render();
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -752,16 +334,12 @@ class AppController {
                 this.configSemanaPadrao =
                     'escolhida';
 
-                localStorage.setItem(
-                    'config_semana_padrao',
+                this.configuracaoService.definir(
+                    'semanaPadrao',
                     'escolhida'
                 );
-
                 this.atualizarCampoSemana();
-
                 this.render();
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -769,18 +347,14 @@ class AppController {
             'configDataSemana',
             'change',
             (event) => {
-
                 this.configDataSemana =
                     event.target.value;
 
-                localStorage.setItem(
-                    'config_data_semana',
+                this.configuracaoService.definir(
+                    'dataSemana',
                     this.configDataSemana
                 );
-
                 this.render();
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -792,14 +366,11 @@ class AppController {
                 this.configFormatoNumeros =
                     'milhar';
 
-                localStorage.setItem(
-                    'config_formato_numeros',
+                this.configuracaoService.definir(
+                    'formatoNumeros',
                     'milhar'
                 );
-
                 this.render();
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -811,14 +382,11 @@ class AppController {
                 this.configFormatoNumeros =
                     'simples';
 
-                localStorage.setItem(
-                    'config_formato_numeros',
+                this.configuracaoService.definir(
+                    'formatoNumeros',
                     'simples'
                 );
-
                 this.render();
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -830,12 +398,10 @@ class AppController {
                 this.configConfirmacaoSalvar =
                     'perguntar';
 
-                localStorage.setItem(
-                    'config_confirmacao_salvar',
+                this.configuracaoService.definir(
+                    'confirmacaoSalvar',
                     'perguntar'
                 );
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -847,12 +413,10 @@ class AppController {
                 this.configConfirmacaoSalvar =
                     'direto';
 
-                localStorage.setItem(
-                    'config_confirmacao_salvar',
+                this.configuracaoService.definir(
+                    'confirmacaoSalvar',
                     'direto'
                 );
-
-                this.sincronizarDadosAgora();
             }
         );
 
@@ -860,7 +424,53 @@ class AppController {
             'btnSalvarConfigProducao',
             'click',
             () =>
-                this.salvarConfigProducao()
+            this.salvarConfigProducao()
+        );
+
+        // =================================================
+        // NOTIFICAÇÕES E SONS
+        // =================================================
+
+        safeBind(
+            'configSomLancamento',
+            'change',
+            (event) => {
+                this.configSomLancamento =
+                    event.target.checked;
+
+                this.configuracaoService.definir(
+                    'somLancamento',
+                    this.configSomLancamento
+                );
+            }
+        );
+
+        safeBind(
+            'configSomMeta',
+            'change',
+            (event) => {
+                this.configSomMeta =
+                    event.target.checked;
+
+                this.configuracaoService.definir(
+                    'somMeta',
+                    this.configSomMeta
+                );
+            }
+        );
+
+        safeBind(
+            'configConfeteMeta',
+            'change',
+            (event) => {
+                this.configConfeteMeta =
+                    event.target.checked;
+
+                this.configuracaoService.definir(
+                    'confeteMeta',
+                    this.configConfeteMeta
+                );
+            }
         );
 
         // =================================================
@@ -887,7 +497,7 @@ class AppController {
             textoInput.addEventListener(
                 'input',
                 () =>
-                    this.atualizarPreviewTempoReal()
+                this.atualizarPreviewTempoReal()
             );
         }
 
@@ -896,7 +506,7 @@ class AppController {
             valorInput.addEventListener(
                 'input',
                 () =>
-                    this.atualizarPreviewTempoReal()
+                this.atualizarPreviewTempoReal()
             );
         }
 
@@ -908,8 +518,8 @@ class AppController {
 
                     this.termoBusca =
                         e.target.value
-                            .toLowerCase()
-                            .trim();
+                        .toLowerCase()
+                        .trim();
 
                     this.render();
                 }
@@ -919,39 +529,24 @@ class AppController {
         // =================================================
         // BOTTOM BAR
         // =================================================
-
-        safeBind(
-            'btnBottomSync',
-            'click',
-            () =>
-                this.acaoBottomSync()
-        );
-
         safeBind(
             'btnBottomBusca',
             'click',
             () =>
-                this.abrirBuscaRapida()
+            this.abrirBuscaRapida()
         );
 
         safeBind(
             'btnBottomHome',
             'click',
-            () => {
-
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
+            () => this.menuController.voltarInicio()
         );
 
         safeBind(
-            'btnBottomMenu',
+            'btnBottomGestao',
             'click',
             () => {
-                this.menuController
-                    .abrirMenu();
+                window.location.href = './gestao-financeira.html';
             }
         );
 
@@ -1023,8 +618,8 @@ class AppController {
             this.configValorUnitario =
                 valor;
 
-            localStorage.setItem(
-                'config_valor_unitario',
+            this.configuracaoService.definir(
+                'valorUnitario',
                 valor
             );
 
@@ -1039,13 +634,7 @@ class AppController {
                     valor;
             }
         }
-
-        this.atualizarCampoSemana();
-
         this.render();
-
-        this.sincronizarDadosAgora();
-
         alert(
             'Configurações de produção salvas com sucesso!'
         );
@@ -1110,6 +699,21 @@ class AppController {
                 'configSalvarDireto'
             );
 
+        const somLancamento =
+            document.getElementById(
+                'configSomLancamento'
+            );
+
+        const somMeta =
+            document.getElementById(
+                'configSomMeta'
+            );
+
+        const confeteMeta =
+            document.getElementById(
+                'configConfeteMeta'
+            );
+
         const valorUnitario =
             document.getElementById(
                 'configValorUnitario'
@@ -1163,13 +767,38 @@ class AppController {
                 'direto';
         }
 
+        if (somLancamento) {
+            somLancamento.checked =
+                this.configSomLancamento;
+        }
+
+        if (somMeta) {
+            somMeta.checked =
+                this.configSomMeta;
+        }
+
+        if (confeteMeta) {
+            confeteMeta.checked =
+                this.configConfeteMeta;
+        }
+
         if (valorUnitario) {
 
             valorUnitario.value =
                 this.configValorUnitario;
         }
 
-        this.atualizarCampoSemana();
+        const valorUnitarioPrincipal =
+            document.getElementById(
+                'valorUnitario'
+            );
+
+        if (valorUnitarioPrincipal) {
+
+            valorUnitarioPrincipal.value =
+                this.configValorUnitario;
+        }
+
     }
 
     // =====================================================
@@ -1207,16 +836,11 @@ class AppController {
         this.metaSemanal =
             novoValor;
 
-        this.metaBatidaDisparada =
-            false;
+        this.producaoController
+            .resetarMetaBatida();
 
-        localStorage.setItem(
-            'meta_batida_disparada',
-            'false'
-        );
-
-        localStorage.setItem(
-            'meta_semanal_valor',
+        this.configuracaoService.definir(
+            'metaSemanal',
             this.metaSemanal
         );
 
@@ -1224,9 +848,6 @@ class AppController {
             '';
 
         this.render();
-
-        this.sincronizarDadosAgora();
-
         alert(
             'Meta semanal atualizada com sucesso!'
         );
@@ -1265,9 +886,9 @@ class AppController {
 
         const valorUnitario =
             parseFloat(
-                valorEl
-                    ? valorEl.value
-                    : 0
+                valorEl ?
+                valorEl.value :
+                0
             ) || 0;
 
         if (!texto.trim()) {
@@ -1363,11 +984,6 @@ class AppController {
                 valorUnitario
             );
 
-        // IMPORTANTE:
-        // novo lançamento ainda não foi enviado ao Google Sheets.
-        lancamento.sincronizado =
-            false;
-
         this.producaoController
             .definirSemanaDoLancamento(
                 lancamento,
@@ -1404,11 +1020,13 @@ class AppController {
             lancamento
         );
 
-        this.salvarLancamentosLocais();
+        this.storage.salvarLancamentosTemporarios(
+            this.lancamentosAtuais
+        );
 
-        this.marcarNuvemPendente();
-
-        tocarSomLancamento();
+        if (this.configSomLancamento) {
+            tocarSomLancamento();
+        }
 
         textoEl.value =
             '';
@@ -1423,10 +1041,7 @@ class AppController {
             previewBox.style.display =
                 'none';
         }
-
         this.render();
-
-        await this.sincronizarDadosAgora();
     }
 
     // =====================================================
@@ -1455,13 +1070,10 @@ class AppController {
             1
         );
 
-        this.salvarLancamentosLocais();
-
-        this.marcarNuvemPendente();
-
+        this.storage.salvarLancamentosTemporarios(
+            this.lancamentosAtuais
+        );
         this.render();
-
-        await this.sincronizarDadosAgora();
     }
 
     // =====================================================
@@ -1511,17 +1123,13 @@ class AppController {
             1
         );
 
-        this.salvarLancamentosLocais();
-
-        this.marcarNuvemPendente();
-
+        this.storage.salvarLancamentosTemporarios(
+            this.lancamentosAtuais
+        );
         this.render();
-
         if (textoEl) {
-
             textoEl.focus();
         }
-
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
@@ -1536,11 +1144,11 @@ class AppController {
 
         const lancamentosDaSemana =
             this.producaoController
-                .obterLancamentosDaSemana(
-                    this.lancamentosAtuais,
-                    this.configSemanaPadrao,
-                    this.configDataSemana
-                );
+            .obterLancamentosDaSemana(
+                this.lancamentosAtuais,
+                this.configSemanaPadrao,
+                this.configDataSemana
+            );
 
         if (
             lancamentosDaSemana.length ===
@@ -1567,20 +1175,39 @@ class AppController {
                 lancamentosDaSemana
             );
 
-        await this.storage
-            .salvarSemana(
-                semana
+        try {
+
+            await this.storage
+                .salvarSemana(
+                    semana
+                );
+
+        } catch (erro) {
+
+            console.error(
+                'Não foi possível fechar a semana:',
+                erro
             );
+
+            alert(
+                'Não foi possível salvar a semana no histórico. ' +
+                'Os lançamentos foram mantidos.'
+            );
+
+            return;
+        }
 
         this.lancamentosAtuais =
             this.lancamentosAtuais.filter(
                 reg =>
-                    !lancamentosDaSemana.includes(
-                        reg
-                    )
+                !lancamentosDaSemana.includes(
+                    reg
+                )
             );
 
-        this.salvarLancamentosLocais();
+        this.storage.salvarLancamentosTemporarios(
+            this.lancamentosAtuais
+        );
 
         if (
             this.configSemanaPadrao ===
@@ -1590,248 +1217,10 @@ class AppController {
             this.producaoController
                 .fecharSemana();
         }
-
-        this.marcarNuvemPendente();
-
         this.render();
-
-        await this.sincronizarDadosAgora();
-
         alert(
             'Semana fechada com sucesso!'
         );
-    }
-
-    // =====================================================
-    // GOOGLE SHEETS
-    // =====================================================
-
-    async obterOuCriarPlanilhaDrive() {
-
-        return await this.googleService
-            .obterOuCriarPlanilhaDrive();
-    }
-
-    abrirPlanilhaNoNavegador() {
-
-        if (!this.accessToken) {
-
-            alert(
-                'Conecte-se com o Google primeiro para acessar sua planilha.'
-            );
-
-            this.fazerLoginGoogle();
-
-            return;
-        }
-
-        if (
-            !this.googleService
-                .spreadsheetIdSalvo
-        ) {
-
-            this.googleService
-                .obterOuCriarPlanilhaDrive()
-                .then(
-                    id => {
-
-                        if (id) {
-
-                            window.open(
-                                `https://docs.google.com/spreadsheets/d/${this.googleService.spreadsheetIdSalvo}/edit`,
-                                '_blank'
-                            );
-                        }
-                    }
-                )
-                .catch(
-                    () => {
-
-                        alert(
-                            'Não foi possível localizar sua planilha no Drive. Tente sincronizar primeiro.'
-                        );
-                    }
-                );
-
-            return;
-        }
-
-        window.open(
-            `https://docs.google.com/spreadsheets/d/${this.googleService.spreadsheetIdSalvo}/edit`,
-            '_blank'
-        );
-    }
-
-    async enviarParaGoogleSheetsAutomatico() {
-
-        if (!this.accessToken) {
-
-            alert(
-                'Por favor, clique em "Entrar com o Google" antes de sincronizar.'
-            );
-
-            this.fazerLoginGoogle();
-
-            return;
-        }
-
-        if (
-            this.lancamentosAtuais.length ===
-            0
-        ) {
-
-            alert(
-                'Não há lançamentos atuais na tela para sincronizar.'
-            );
-
-            return;
-        }
-
-        const btnNuvem =
-            document.getElementById(
-                'btnEnviarNuvem'
-            );
-
-        try {
-
-            if (btnNuvem) {
-
-                btnNuvem.innerText =
-                    'Sincronizando com o Drive...';
-            }
-
-            await this.googleService
-                .obterOuCriarPlanilhaDrive();
-
-            const lancamentosDaSemana =
-                this.producaoController
-                    .obterLancamentosDaSemana(
-                        this.lancamentosAtuais,
-                        this.configSemanaPadrao,
-                        this.configDataSemana
-                    );
-
-            if (
-                lancamentosDaSemana.length ===
-                0
-            ) {
-
-                alert(
-                    'Não há lançamentos na semana selecionada para sincronizar.'
-                );
-
-                return;
-            }
-
-            const lancamentosPendentes =
-                lancamentosDaSemana.filter(
-                    reg =>
-                        reg.sincronizado !== true
-                );
-
-            if (
-                lancamentosPendentes.length ===
-                0
-            ) {
-
-                alert(
-                    'Todos os lançamentos da semana selecionada já estão sincronizados.'
-                );
-
-                return;
-            }
-
-            const linhasNovas =
-                lancamentosPendentes.map(
-                    reg => [
-
-                        reg.data ||
-                        new Date()
-                            .toLocaleDateString(
-                                'pt-BR'
-                            ),
-
-                        reg.textoBruto ||
-                        reg.textoOriginal ||
-                        '',
-
-                        reg.pecas ||
-                        0,
-
-                        reg.valorUnitario ||
-                        0,
-
-                        reg.valorTotal ||
-                        0
-                    ]
-                );
-
-            await this.googleService
-                .enviarLancamentos(
-                    linhasNovas
-                );
-
-            lancamentosPendentes.forEach(
-                reg => {
-
-                    reg.sincronizado =
-                        true;
-                }
-            );
-
-            this.salvarLancamentosLocais();
-
-            this.marcarNuvemPendente();
-
-            this.render();
-
-            // O Google foi atualizado.
-            // Agora também atualizamos o pacote do Supabase.
-            await this.sincronizarDadosAgora();
-
-            alert(
-                `Sincronizado com sucesso! ${lancamentosPendentes.length} lançamento(s) foram enviados para a planilha.`
-            );
-
-        } catch (e) {
-
-            console.error(e);
-
-            if (
-                e.message?.includes('401') ||
-                e.message?.includes('expired')
-            ) {
-
-                localStorage.removeItem(
-                    'google_access_token'
-                );
-
-                this.accessToken =
-                    null;
-
-                this.atualizarInterfaceLogin(
-                    false
-                );
-
-                alert(
-                    'Sua sessão expirou. Por favor, entre com o Google novamente.'
-                );
-
-            } else {
-
-                alert(
-                    'Erro ao sincronizar com o Google Drive. Verifique sua conexão.'
-                );
-            }
-
-        } finally {
-
-            if (btnNuvem) {
-
-                btnNuvem.innerText =
-                    '🚀 Sincronizar com o Drive';
-            }
-        }
     }
 
     // =====================================================
@@ -1872,1223 +1261,234 @@ class AppController {
         }
     }
 
-    atualizarBottomBar() {
-
-        const status =
-            document.getElementById(
-                'bottomSyncStatus'
-            );
-
-        const label =
-            document.getElementById(
-                'bottomSyncLabel'
-            );
-
-        const btnSync =
-            document.getElementById(
-                'btnBottomSync'
-            );
-
-        if (
-            !status ||
-            !label ||
-            !btnSync
-        ) {
-            return;
-        }
-
-        const conectado =
-            !!this.accessToken;
-
-        const lancamentosDaSemana =
-            this.producaoController
-                .obterLancamentosDaSemana(
-                    this.lancamentosAtuais,
-                    this.configSemanaPadrao,
-                    this.configDataSemana
-                );
-
-        const pendente =
-            lancamentosDaSemana.some(
-                reg =>
-                    reg.sincronizado !== true
-            );
-
-        btnSync.classList.remove(
-            'sincronizado',
-            'pendente',
-            'desconectado'
-        );
-
-        if (!conectado) {
-
-            status.textContent =
-                '⚪';
-
-            label.textContent =
-                'Google';
-
-            btnSync.classList.add(
-                'desconectado'
-            );
-
-            btnSync.title =
-                'Conectar ao Google';
-
-        } else if (pendente) {
-
-            status.textContent =
-                '🟡';
-
-            label.textContent =
-                'Pendente';
-
-            btnSync.classList.add(
-                'pendente'
-            );
-
-            btnSync.title =
-                'Sincronizar lançamentos';
-
-        } else {
-
-            status.textContent =
-                '🟢';
-
-            label.textContent =
-                'Sincronizado';
-
-            btnSync.classList.add(
-                'sincronizado'
-            );
-
-            btnSync.title =
-                'Abrir planilha no Google';
-        }
-    }
-
-    acaoBottomSync() {
-
-        if (!this.accessToken) {
-
-            this.fazerLoginGoogle();
-
-            return;
-        }
-
-        const lancamentosDaSemana =
-            this.producaoController
-                .obterLancamentosDaSemana(
-                    this.lancamentosAtuais,
-                    this.configSemanaPadrao,
-                    this.configDataSemana
-                );
-
-        const existemLancamentosPendentes =
-            lancamentosDaSemana.some(
-                reg =>
-                    reg.sincronizado !== true
-            );
-
-        if (
-            existemLancamentosPendentes
-        ) {
-
-            this.enviarParaGoogleSheetsAutomatico();
-
-            return;
-        }
-
-        this.abrirPlanilhaNoNavegador();
-    }
-
-    aplicarAnimacoes() {
-
-        const html =
-            document.documentElement;
-
-        if (this.animacoesAtivas) {
-
-            html.classList.remove(
-                'sem-animacoes'
-            );
-
-        } else {
-
-            html.classList.add(
-                'sem-animacoes'
-            );
-        }
-
-        const configAnimacoes =
-            document.getElementById(
-                'configAnimacoes'
-            );
-
-        if (configAnimacoes) {
-
-            configAnimacoes.checked =
-                this.animacoesAtivas;
-        }
-    }
-
     // =====================================================
     // RENDER
     // =====================================================
 
     async render() {
-
-        const listaAtualEl =
-            document.getElementById(
-                'listaHistorico'
-            );
-
-        // =================================================
-        // TOTAIS
-        // =================================================
-
-        let totalPecas =
-            0;
-
-        let totalValor =
-            0;
-
-        const lancamentosDaSemana =
-            this.producaoController
-                .obterLancamentosDaSemana(
-                    this.lancamentosAtuais,
-                    this.configSemanaPadrao,
-                    this.configDataSemana
-                );
-
-        lancamentosDaSemana.forEach(
-            reg => {
-
-                const textoBuscaRef =
-                    (
-                        reg.textoBruto ||
-                        reg.textoOriginal ||
-                        ''
-                    ).toLowerCase();
-
-                const dataRef =
-                    (
-                        reg.data ||
-                        ''
-                    ).toLowerCase();
-
-                if (
-                    this.termoBusca &&
-                    !dataRef.includes(
-                        this.termoBusca
-                    ) &&
-                    !textoBuscaRef.includes(
-                        this.termoBusca
-                    )
-                ) {
-                    return;
-                }
-
-                totalPecas +=
-                    Number(
-                        reg.pecas
-                    ) || 0;
-
-                totalValor +=
-                    Number(
-                        reg.valorTotal
-                    ) || 0;
-            }
+        // 1. Processa dados e lógica através do Serviço
+        const dadosProcessados = ProducaoService.processarDadosSemana(
+            this.lancamentosAtuais,
+            this.producaoController,
+            this.configSemanaPadrao,
+            this.configDataSemana,
+            this.termoBusca,
+            this.mostrarTodosLancamentos,
+            this.mostrarTodosResumo
         );
 
-        // =================================================
-        // META
-        // =================================================
+        const {
+            lancamentosDaSemana,
+            lancamentosFiltrados,
+            totais,
+            gruposPorPreco,
+            chavesPreco,
+            totalLancamentosGeral
+        } = dadosProcessados;
 
-        const textoMetaEl =
-            document.getElementById(
-                'textoMetaProgresso'
-            );
+        const referenciaFinanceira =
+            this.configSemanaPadrao === 'escolhida' && this.configDataSemana
+                ? this.configDataSemana
+                : this.producaoController.obterSemanaReferencia();
 
-        const porcentagemEl =
-            document.getElementById(
-                'porcentagemMeta'
-            );
+        const todasDespesas =
+            this.despesasPessoaisService.obterTodas();
 
-        const barraEl =
-            document.getElementById(
-                'barraProgressoMeta'
-            );
+        const hojeFinanceiro =
+            new Date().toISOString().slice(0, 10);
 
-        if (
-            textoMetaEl &&
-            porcentagemEl &&
-            barraEl
-        ) {
+        const dataLimiteFinanceira =
+            this.configSemanaPadrao === 'escolhida' && this.configDataSemana
+                ? (() => {
+                    const fim = new Date(`${referenciaFinanceira}T00:00:00`);
+                    fim.setDate(fim.getDate() + 6);
+                    return fim.toISOString().slice(0, 10);
+                })()
+                : hojeFinanceiro;
 
-            const progressoPorcentagem =
-                this.metaSemanal > 0
-                    ? (
-                        totalValor /
-                        this.metaSemanal
-                    ) * 100
-                    : 0;
-
-            const porcentagemLimitada =
-                Math.min(
-                    progressoPorcentagem,
-                    100
-                );
-
-            textoMetaEl.innerText =
-                `R$ ${totalValor.toFixed(2)} / R$ ${this.metaSemanal.toFixed(2)}`;
-
-            porcentagemEl.innerText =
-                `${progressoPorcentagem.toFixed(0)}%`;
-
-            barraEl.style.width =
-                `${porcentagemLimitada}%`;
-
-            if (
-                progressoPorcentagem >= 100
-            ) {
-
-                barraEl.style.backgroundColor =
-                    'var(--accent-color)';
-
-                if (
-                    !this.metaBatidaDisparada
-                ) {
-
-                    this.metaBatidaDisparada =
-                        true;
-
-                    localStorage.setItem(
-                        'meta_batida_disparada',
-                        'true'
-                    );
-
-                    setTimeout(
-                        () => {
-
-                            tocarSomMetaBatida();
-
-                            dispararAnimacaoMetaBatida();
-
-                        },
-                        100
-                    );
+        // A pessoa registra cada despesa uma única vez, sem precisar separar os gastos em grupos.
+        // A referência é interna para associar os gastos à produção em andamento.
+        // Registros antigos sem referência são associados pelo período da despesa.
+        const despesasDaProducao =
+            todasDespesas.filter(despesa => {
+                if (despesa.semanaReferencia) {
+                    return despesa.semanaReferencia === referenciaFinanceira;
                 }
 
-            } else {
-
-                barraEl.style.backgroundColor =
-                    'var(--accent-color)';
-
-                this.metaBatidaDisparada =
-                    false;
-
-                localStorage.setItem(
-                    'meta_batida_disparada',
-                    'false'
+                const dataDespesa = String(despesa.data || '');
+                return Boolean(
+                    dataDespesa &&
+                    dataDespesa >= referenciaFinanceira &&
+                    dataDespesa <= dataLimiteFinanceira
                 );
-            }
-        }
+            });
 
-        // =================================================
-        // LANÇAMENTOS ATUAIS
-        // =================================================
-
-        if (listaAtualEl) {
-
-            let htmlAtuais =
-                '';
-
-            lancamentosDaSemana.forEach(
-                reg => {
-
-                    const index =
-                        this.lancamentosAtuais
-                            .indexOf(
-                                reg
-                            );
-
-                    const textoBuscaRef =
-                        (
-                            reg.textoBruto ||
-                            reg.textoOriginal ||
-                            ''
-                        ).toLowerCase();
-
-                    const dataRef =
-                        (
-                            reg.data ||
-                            ''
-                        ).toLowerCase();
-
-                    if (
-                        this.termoBusca &&
-                        !dataRef.includes(
-                            this.termoBusca
-                        ) &&
-                        !textoBuscaRef.includes(
-                            this.termoBusca
-                        )
-                    ) {
-                        return;
-                    }
-
-                    const detalhesList =
-                        reg.detalhes
-                            ? reg.detalhes
-                                .map(
-                                    d =>
-                                        `<li>${d}</li>`
-                                )
-                                .join('')
-                            : '';
-
-                    htmlAtuais += `
-                        <div
-                            class="history-item"
-                            style="
-                                display:flex;
-                                justify-content:space-between;
-                                align-items:flex-start;
-                                padding:10px 0;
-                                border-bottom:1px solid var(--border-color);
-                            "
-                        >
-                            <div
-                                style="
-                                    flex:1;
-                                    margin-right:8px;
-                                "
-                            >
-                                <strong>${reg.data}</strong>
-                                -
-                                ${this.formatarNumero(reg.pecas)} pçs
-                                (R$ ${Number(reg.valorTotal || 0).toFixed(2)})
-
-                                <ul>
-                                    ${detalhesList}
-                                </ul>
-                            </div>
-
-                            <div
-                                style="
-                                    display:flex;
-                                    gap:4px;
-                                "
-                            >
-                                <button
-                                    onclick="window.app.editarLancamento(${index})"
-                                    title="Editar Lançamento"
-                                    style="
-                                        width:auto;
-                                        padding:6px 8px;
-                                        background:transparent;
-                                        color:var(--warning-color);
-                                        font-size:0.9rem;
-                                        margin:0;
-                                        cursor:pointer;
-                                        border:none;
-                                    "
-                                >
-                                    ✏️
-                                </button>
-
-                                <button
-                                    onclick="window.app.removerLancamento(${index})"
-                                    title="Excluir Lançamento"
-                                    style="
-                                        width:auto;
-                                        padding:6px 8px;
-                                        background:transparent;
-                                        color:var(--danger-color);
-                                        font-size:0.9rem;
-                                        margin:0;
-                                        cursor:pointer;
-                                        border:none;
-                                    "
-                                >
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
+        const despesasDoMesFinanceiro =
+            todasDespesas.filter(despesa =>
+                String(despesa.data || '').startsWith(
+                    new Date().toISOString().slice(0, 7)
+                )
             );
 
-            listaAtualEl.innerHTML =
-                htmlAtuais ||
-                `
-                    <p
-                        style="
-                            color:var(--muted-color);
-                            text-align:center;
-                            font-size:0.9rem;
-                        "
-                    >
-                        Nenhum lançamento na semana atual.
-                    </p>
-                `;
-        }
+        // Quando despesas antigas não têm uma referência compatível com a
+        // produção atual, usa a média semanal do total mensal para que o
+        // ponto de equilíbrio não seja zerado apesar de existirem despesas.
+        const usarMediaMensalDespesas =
+            despesasDaProducao.length === 0 &&
+            despesasDoMesFinanceiro.length > 0;
 
-        // =================================================
-        // TOTAIS GERAIS
-        // =================================================
+        const despesasFixasDaProducao = usarMediaMensalDespesas
+            ? despesasDoMesFinanceiro.reduce(
+                (soma, despesa) => soma + (Number(despesa.valor) || 0),
+                0
+            ) / 4
+            : despesasDaProducao
+                .filter(despesa => despesa.tipo === 'fixa')
+                .reduce((soma, despesa) => soma + (Number(despesa.valor) || 0), 0);
 
+        const despesasVariaveisDaProducao = usarMediaMensalDespesas
+            ? 0
+            : despesasDaProducao
+                .filter(despesa => despesa.tipo !== 'fixa')
+                .reduce((soma, despesa) => soma + (Number(despesa.valor) || 0), 0);
+
+        const dadosBaseFinanceiros =
+            this.gestaoFinanceiraService.calcular({
+                custoFixoMensal: this.custoFixoMensal,
+
+                retiradaSemanalDesejada: this.retiradaSemanalDesejada,
+
+                valorUnitario: this.configValorUnitario,
+
+                metaSemanal: this.metaSemanal,
+
+                pecasProduzidas: totais.totalPecas
+            });
+
+        const planejamentoFinanceiro =
+            this.planejamentoFinanceiroService.calcular({
+                modo: this.modoPlanejamentoFinanceiro,
+                valorProduzido: totais.totalValor,
+                valorUnitario: this.configValorUnitario,
+                custoFixoSemanal:
+                    dadosBaseFinanceiros.custoFixoSemanal +
+                    despesasFixasDaProducao,
+                custoVariavelSemanal: despesasVariaveisDaProducao,
+                retiradaSemanalDesejada: this.retiradaSemanalDesejada
+            });
+
+        const retiradaCalculada =
+            planejamentoFinanceiro.valorRetiradaPlanejada;
+
+        const dadosFinanceiros = {
+            ...dadosBaseFinanceiros,
+            valorProduzido: totais.totalValor,
+            custoFixoSemanal: planejamentoFinanceiro.custosDespesas,
+            pecasPontoEquilibrio: planejamentoFinanceiro.pecasPontoEquilibrio,
+            retiradaSemanalDesejada: retiradaCalculada,
+            pecasRetirada: this.configValorUnitario > 0
+                ? retiradaCalculada / this.configValorUnitario
+                : 0,
+            valorAposEquilibrio: planejamentoFinanceiro.saldoAposCustos,
+            excedente: this.modoPlanejamentoFinanceiro === 'valor_restante'
+                ? planejamentoFinanceiro.saldoAposCustos
+                : Math.max(
+                    planejamentoFinanceiro.saldoAposCustos -
+                        planejamentoFinanceiro.retiradaSemanalDesejada,
+                    0
+                ),
+            custosDespesas: planejamentoFinanceiro.custosDespesas,
+            despesasFixasRegistradas: despesasFixasDaProducao,
+            despesasVariaveisRegistradas: despesasVariaveisDaProducao,
+            planejamentoFinanceiro
+        };
+
+        this.dadosFinanceiros =
+            dadosFinanceiros;
+
+        // Atualiza os cards da Gestão Financeira quando a produção muda.
+        window.atualizarDashboardGestaoFinanceira?.();
+
+        // Atualiza o resumo da nova tela inicial usando os registros reais.
+        UIRenderer.renderizarResumoPainel(this, lancamentosDaSemana);
+
+        // 2. Renderiza a Meta e Totais
+        this.renderizarMeta(totais.totalValor);
+
+        // 3. Renderiza os Totais (em cima do botão fechar semana)
         const totalGeralValorEl =
-            document.getElementById(
-                'totalGeralValor'
-            );
+            document.getElementById('totalGeralValor');
 
         const totalGeralPecasEl =
-            document.getElementById(
-                'totalGeralPecas'
-            );
+            document.getElementById('totalGeralPecas');
 
         if (totalGeralValorEl) {
-
-            totalGeralValorEl.innerText =
-                `R$ ${totalValor.toFixed(2)}`;
+            totalGeralValorEl.textContent =
+                `R$ ${totais.totalValor.toFixed(2)}`;
         }
 
         if (totalGeralPecasEl) {
-
-            totalGeralPecasEl.innerText =
-                this.formatarNumero(
-                    totalPecas
-                );
+            totalGeralPecasEl.textContent =
+                this.formatarNumero(totais.totalPecas);
         }
 
-        // =================================================
-        // RESUMO POR PREÇO
-        // =================================================
-
-        const resumoSemanalPrecoEl =
-            document.getElementById(
-                'resumoSemanalPreco'
-            );
-
-        if (resumoSemanalPrecoEl) {
-
-            const gruposPorPreco =
-                {};
-
-            lancamentosDaSemana.forEach(
-                reg => {
-
-                    const valorUnitario =
-                        Number(
-                            reg.valorUnitario
-                        ) || 0.21;
-
-                    const chave =
-                        valorUnitario.toFixed(
-                            2
-                        );
-
-                    if (
-                        !gruposPorPreco[
-                            chave
-                        ]
-                    ) {
-
-                        gruposPorPreco[
-                            chave
-                        ] = {
-
-                            valorUnitario,
-
-                            pecas:
-                                0,
-
-                            valor:
-                                0,
-
-                            lancamentos:
-                                []
-                        };
-                    }
-
-                    const pecas =
-                        Number(
-                            reg.pecas
-                        ) || 0;
-
-                    const valorTotal =
-                        Number(
-                            reg.valorTotal
-                        ) ||
-                        (
-                            pecas *
-                            valorUnitario
-                        );
-
-                    gruposPorPreco[
-                        chave
-                    ].pecas +=
-                        pecas;
-
-                    gruposPorPreco[
-                        chave
-                    ].valor +=
-                        valorTotal;
-
-                    gruposPorPreco[
-                        chave
-                    ].lancamentos.push({
-                        data:
-                            reg.data ||
-                            '',
-
-                        pecas,
-
-                        valorTotal,
-
-                        texto:
-                            reg.textoBruto ||
-                            reg.textoOriginal ||
-                            ''
-                    });
-                }
-            );
-
-            const chaves =
-                Object.keys(
-                    gruposPorPreco
-                ).sort(
-                    (a, b) =>
-                        Number(a) -
-                        Number(b)
-                );
-
-            if (
-                chaves.length ===
-                0
-            ) {
-
-                resumoSemanalPrecoEl.innerHTML =
-                    '';
-
-            } else {
-
-                let htmlResumo = `
-                    <div class="resumo-preco-titulo">
-                        📦 Resumo por valor unitário
-                    </div>
-                `;
-
-                chaves.forEach(
-                    chave => {
-
-                        const grupo =
-                            gruposPorPreco[
-                                chave
-                            ];
-
-                        htmlResumo += `
-                            <div class="resumo-preco-grupo">
-
-                                <div class="resumo-preco-grupo-titulo">
-                                    💰 R$ ${grupo.valorUnitario.toFixed(2)}
-                                    por peça
-                                </div>
-                        `;
-
-                        grupo.lancamentos.forEach(
-                            reg => {
-
-                                htmlResumo += `
-                                    <div class="resumo-preco-item">
-
-                                        <span>
-                                            ${reg.data}
-                                            -
-                                            ${this.formatarNumero(reg.pecas)}
-                                            pçs
-                                        </span>
-
-                                        <span>
-                                            R$ ${reg.valorTotal.toFixed(2)}
-                                        </span>
-
-                                    </div>
-                                `;
-                            }
-                        );
-
-                        htmlResumo += `
-                                <div class="resumo-preco-total">
-
-                                    <span>
-                                        Total:
-                                        ${this.formatarNumero(grupo.pecas)}
-                                        pçs
-                                    </span>
-
-                                    <span>
-                                        R$ ${grupo.valor.toFixed(2)}
-                                    </span>
-
-                                </div>
-
-                            </div>
-                        `;
-                    }
-                );
-
-                resumoSemanalPrecoEl.innerHTML =
-                    htmlResumo;
-            }
-        }
-
-        // =================================================
-        // SINCRONIZAÇÃO DO MENU
-        // =================================================
-
-        const containerMenuSync =
-            document.getElementById(
-                'cardSincronizacaoMenu'
-            );
-
-        if (containerMenuSync) {
-
-            let avisoEl =
-                document.getElementById(
-                    'avisoSyncPendenteMenu'
-                );
-
-            const existemLancamentosPendentes =
-                lancamentosDaSemana.some(
-                    reg =>
-                        reg.sincronizado !==
-                        true
-                );
-
-            if (
-                this.accessToken &&
-                existemLancamentosPendentes
-            ) {
-
-                if (!avisoEl) {
-
-                    avisoEl =
-                        document.createElement(
-                            'div'
-                        );
-
-                    avisoEl.id =
-                        'avisoSyncPendenteMenu';
-
-                    avisoEl.style.cssText = `
-                        background:rgba(255,152,0,0.15);
-                        color:var(--warning-color);
-                        padding:8px;
-                        border-radius:6px;
-                        font-size:0.8rem;
-                        margin-bottom:10px;
-                        text-align:center;
-                        border:1px solid var(--warning-color);
-                    `;
-
-                    containerMenuSync.prepend(
-                        avisoEl
-                    );
-                }
-
-                avisoEl.innerText =
-                    '⚠️ Há lançamentos pendentes de sincronização.';
-
-            } else if (avisoEl) {
-
-                avisoEl.remove();
-            }
-
-            // =================================================
-            // BOTÃO PLANILHA
-            // =================================================
-
-            let btnAbrirPlanilha =
-                document.getElementById(
-                    'btnAbrirPlanilhaDrive'
-                );
-
-            if (this.accessToken) {
-
-                if (!btnAbrirPlanilha) {
-
-                    btnAbrirPlanilha =
-                        document.createElement(
-                            'button'
-                        );
-
-                    btnAbrirPlanilha.id =
-                        'btnAbrirPlanilhaDrive';
-
-                    btnAbrirPlanilha.className =
-                        'btn-backup';
-
-                    btnAbrirPlanilha.style.cssText = `
-                        background-color:#34a853;
-                        color:white;
-                        font-weight:bold;
-                        width:100%;
-                        margin-top:8px;
-                    `;
-
-                    btnAbrirPlanilha.innerHTML =
-                        '📊 Ver Planilha no Google Drive';
-
-                    btnAbrirPlanilha.onclick =
-                        () =>
-                            window.app
-                                .abrirPlanilhaNoNavegador();
-
-                    containerMenuSync.appendChild(
-                        btnAbrirPlanilha
-                    );
-                }
-
-            } else if (btnAbrirPlanilha) {
-
-                btnAbrirPlanilha.remove();
-            }
-        }
-
-        // =================================================
-        // HISTÓRICO
-        // =================================================
-
-        const historicoEl =
-            document.getElementById(
-                'listaArquivo'
-            );
-
-        if (!historicoEl) {
-
-            this.atualizarBottomBar();
-
-            return;
-        }
-
-        const semanasSalvas =
-            await this.storage
-                .obterTodasSemanas();
-
-        let htmlHistorico =
-            '';
-
-        // =================================================
-        // RESUMO MENSAL
-        // =================================================
-
-        const resumoMensal =
-            {};
-
-        semanasSalvas.forEach(
-            semana => {
-
-                const partesPeriodo =
-                    semana.periodo
-                        ? semana.periodo.split(' ')
-                        : [];
-
-                let mesAnoKey =
-                    'Outros';
-
-                if (
-                    partesPeriodo.length > 0
-                ) {
-
-                    const dataInicioStr =
-                        partesPeriodo[0];
-
-                    const subPartes =
-                        dataInicioStr.split(
-                            '/'
-                        );
-
-                    if (
-                        subPartes.length ===
-                        3
-                    ) {
-
-                        const mesesNomes = [
-                            'Janeiro',
-                            'Fevereiro',
-                            'Março',
-                            'Abril',
-                            'Maio',
-                            'Junho',
-                            'Julho',
-                            'Agosto',
-                            'Setembro',
-                            'Outubro',
-                            'Novembro',
-                            'Dezembro'
-                        ];
-
-                        const mesIndex =
-                            parseInt(
-                                subPartes[1],
-                                10
-                            ) - 1;
-
-                        if (
-                            mesesNomes[
-                                mesIndex
-                            ]
-                        ) {
-
-                            mesAnoKey =
-                                `${mesesNomes[mesIndex]} de ${subPartes[2]}`;
-                        }
-                    }
-                }
-
-                if (
-                    !resumoMensal[
-                        mesAnoKey
-                    ]
-                ) {
-
-                    resumoMensal[
-                        mesAnoKey
-                    ] = {
-
-                        valor:
-                            0,
-
-                        pecas:
-                            0,
-
-                        semanasCount:
-                            0
-                    };
-                }
-
-                resumoMensal[
-                    mesAnoKey
-                ].valor +=
-                    semana.valorTotal ||
-                    0;
-
-                resumoMensal[
-                    mesAnoKey
-                ].pecas +=
-                    semana.pecasTotal ||
-                    0;
-
-                resumoMensal[
-                    mesAnoKey
-                ].semanasCount +=
-                    1;
-            }
-        );
-
-        let htmlResumoMensal =
-            '';
-
-        Object.keys(
-            resumoMensal
-        ).forEach(
-            mes => {
-
-                const dados =
-                    resumoMensal[
-                        mes
-                    ];
-
-                htmlResumoMensal += `
-                    <div
-                        style="
-                            background:rgba(33,150,243,0.1);
-                            padding:8px 12px;
-                            border-radius:6px;
-                            margin-bottom:8px;
-                            display:flex;
-                            justify-content:space-between;
-                            align-items:center;
-                            font-size:0.9rem;
-                        "
-                    >
-                        <div>
-                            <strong
-                                style="
-                                    color:var(--info-color);
-                                "
-                            >
-                                ${mes}
-                            </strong>
-
-                            <div
-                                style="
-                                    font-size:0.75rem;
-                                    color:var(--muted-color);
-                                "
-                            >
-                                ${dados.semanasCount}
-                                semana(s) fechada(s)
-                            </div>
-                        </div>
-
-                        <div
-                            style="
-                                text-align:right;
-                            "
-                        >
-                            <span
-                                style="
-                                    color:var(--accent-color);
-                                    font-weight:bold;
-                                "
-                            >
-                                R$ ${dados.valor.toFixed(2)}
-                            </span>
-
-                            <div
-                                style="
-                                    font-size:0.75rem;
-                                    color:var(--muted-color);
-                                "
-                            >
-                                ${this.formatarNumero(dados.pecas)} pçs
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        if (htmlResumoMensal) {
-
-            htmlHistorico += `
-                <div
-                    style="
-                        margin-bottom:16px;
-                        border-bottom:1px solid var(--border-color);
-                        padding-bottom:12px;
-                    "
-                >
-                    <h4
-                        style="
-                            margin:0 0 8px 0;
-                            font-size:0.9rem;
-                            color:var(--text-color);
-                        "
-                    >
-                        📊 Resumo por Mês
-                    </h4>
-
-                    ${htmlResumoMensal}
-                </div>
-            `;
-        }
-
-        // =================================================
-        // SEMANAS SALVAS
-        // =================================================
-
-        semanasSalvas
-            .sort(
-                (a, b) =>
-                    b.id - a.id
-            )
-            .forEach(
-                semana => {
-
-                    const semObj =
-                        new SemanaProducao(
-                            semana.registros
-                        );
-
-                    semObj.periodo =
-                        semana.periodo;
-
-                    semObj.pecasTotal =
-                        semana.pecasTotal;
-
-                    semObj.valorTotal =
-                        semana.valorTotal;
-
-                    let itensDetalhadosHtml =
-                        '';
-
-                    semana.registros.forEach(
-                        reg => {
-
-                            const valorReg =
-                                reg.valorTotal ||
-                                (
-                                    reg.pecas *
-                                    (
-                                        reg.valorUnitario ||
-                                        0.21
-                                    )
-                                );
-
-                            const infoPreco =
-                                reg.valorUnitario
-                                    ? `
-                                        <small
-                                            style="
-                                                color:var(--muted-color);
-                                            "
-                                        >
-                                            (R$ ${reg.valorUnitario.toFixed(2)} un)
-                                        </small>
-                                    `
-                                    : '';
-
-                            const detalhesList =
-                                reg.detalhes
-                                    ? reg.detalhes
-                                        .map(
-                                            d =>
-                                                `
-                                                    <li
-                                                        style="
-                                                            font-size:0.85rem;
-                                                            color:var(--muted-color);
-                                                        "
-                                                    >
-                                                        ${d}
-                                                    </li>
-                                                `
-                                        )
-                                        .join('')
-                                    : '';
-
-                            itensDetalhadosHtml += `
-                                <div
-                                    style="
-                                        padding:6px 0;
-                                        border-bottom:1px solid var(--border-color);
-                                    "
-                                >
-                                    <div
-                                        style="
-                                            display:flex;
-                                            justify-content:space-between;
-                                            font-size:0.9rem;
-                                        "
-                                    >
-                                        <span>
-                                            <strong>
-                                                ${reg.data}
-                                            </strong>
-                                            -
-                                            ${this.formatarNumero(reg.pecas)}
-                                            pçs
-                                            ${infoPreco}
-                                        </span>
-
-                                        <span
-                                            style="
-                                                color:var(--accent-color);
-                                            "
-                                        >
-                                            R$ ${valorReg.toFixed(2)}
-                                        </span>
-                                    </div>
-
-                                    <ul
-                                        style="
-                                            margin:2px 0 0 15px;
-                                            padding:0;
-                                        "
-                                    >
-                                        ${detalhesList}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-                    );
-
-                    htmlHistorico += `
-                        <div class="archive-box">
-                            <details>
-                                <summary
-                                    style="
-                                        cursor:pointer;
-                                        display:flex;
-                                        justify-content:space-between;
-                                        align-items:center;
-                                        font-weight:bold;
-                                        outline:none;
-                                        font-size:0.95rem;
-                                    "
-                                >
-                                    <span>
-                                        📅 ${semObj.periodo}
-                                    </span>
-
-                                    <span
-                                        style="
-                                            color:var(--accent-color);
-                                        "
-                                    >
-                                        R$ ${semObj.valorTotal.toFixed(2)}
-                                        (${this.formatarNumero(semObj.pecasTotal)} pçs)
-                                    </span>
-                                </summary>
-
-                                <div
-                                    style="
-                                        margin-top:10px;
-                                        border-top:1px solid var(--border-color);
-                                        padding-top:8px;
-                                    "
-                                >
-                                    ${itensDetalhadosHtml}
-
-                                    <button
-                                        class="btn-whatsapp"
-                                        onclick="window.open('https://api.whatsapp.com/send?text=${encodeURIComponent(semObj.gerarMensagemWhatsApp())}', '_blank')"
-                                    >
-                                        📲 Enviar por WhatsApp
-                                    </button>
-                                </div>
-                            </details>
-                        </div>
-                    `;
-                }
-            );
-
-        // =================================================
-        // ARQUIVO
-        // =================================================
-
-        const cardArquivo =
-            document.getElementById(
-                'cardArquivo'
-            );
-
-        if (cardArquivo) {
-
-            cardArquivo.style.display =
-                semanasSalvas.length
-                    ? 'block'
-                    : 'none';
-        }
-
-        historicoEl.innerHTML =
-            htmlHistorico;
-
-        // =================================================
-        // BARRA INFERIOR
-        // =================================================
-
-        this.atualizarBottomBar();
+        // 4. Delega a renderização da Lista e Resumo para o UIRenderer
+        const listaAtualEl = document.getElementById('listaHistorico');
+        UIRenderer.renderizarListaAtual(listaAtualEl, lancamentosFiltrados, this);
+
+        const resumoSemanalPrecoEl = document.getElementById('resumoSemanalPreco');
+        UIRenderer.renderizarResumoPreco(resumoSemanalPrecoEl, gruposPorPreco, chavesPreco, totalLancamentosGeral, this);
+
+        // 5. Renderiza o Histórico de Semanas (logo abaixo da semana atual)
+        const historicoEl = document.getElementById('listaArquivo');
+        UIRenderer.renderizarHistoricoSemanas(historicoEl, this);
     }
-}
+
+    // Auxiliar extraído do render antigo apenas para manter a lógica da barra de meta limpa
+    renderizarMeta(totalValor) {
+        const textoMetaEl = document.getElementById('textoMetaProgresso');
+        const porcentagemEl = document.getElementById('porcentagemMeta');
+        const barraEl = document.getElementById('barraProgressoMeta');
+
+        if (textoMetaEl && porcentagemEl && barraEl) {
+            const progressoPorcentagem = this.metaSemanal > 0 ? (totalValor / this.metaSemanal) * 100 : 0;
+            const porcentagemLimitada = Math.min(progressoPorcentagem, 100);
+
+            textoMetaEl.innerText = `R$ ${totalValor.toFixed(2)} / R$ ${this.metaSemanal.toFixed(2)}`;
+            porcentagemEl.innerText = `${progressoPorcentagem.toFixed(0)}%`;
+            barraEl.style.width = `${porcentagemLimitada}%`;
+
+            if (progressoPorcentagem >= 100) {
+                barraEl.style.backgroundColor = 'var(--accent-color)';
+                if (
+                    !this.producaoController
+                    .metaJaFoiBatida()
+                ) {
+                    this.producaoController
+                        .marcarMetaBatida();
+
+                    setTimeout(() => {
+                        if (this.configSomMeta) {
+                            tocarSomMetaBatida();
+                        }
+
+                        if (this.configConfeteMeta) {
+                            dispararAnimacaoMetaBatida();
+                        }
+                    }, 100);
+                }
+            } else {
+                barraEl.style.backgroundColor = 'var(--accent-color)';
+                this.producaoController
+                    .resetarMetaBatida();
+            }
+        }
+    }
+} // <--- FECHAMENTO DA CLASSE APPCONTROLLER ADICIONADO AQUI
 
 
 // =========================================================
-// INICIALIZAÇÃO
+// INICIALIZAÇÃO (Agora fora da classe corretamente)
 // =========================================================
 
 if (
@@ -3099,7 +1499,7 @@ if (
     document.addEventListener(
         'DOMContentLoaded',
         () =>
-            new AppController()
+        new AppController()
     );
 
 } else {

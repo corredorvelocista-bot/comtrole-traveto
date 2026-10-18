@@ -1,4 +1,5 @@
 import { PerfilController } from './PerfilController.js';
+import { encerrarSessao } from './AuthController.js';
 
 const perfilController =
     new PerfilController();
@@ -310,3 +311,28 @@ if (fotoSalva) {
 
     aplicarPosicaoFoto();
 }
+
+
+// ========================================
+// ENCERRAR SESSÃO
+// ========================================
+
+const btnSairConta = document.getElementById('btnSairConta');
+const mensagemSairConta = document.getElementById('mensagemSairConta');
+
+if (btnSairConta) {
+    btnSairConta.addEventListener('click', async () => {
+        btnSairConta.disabled = true;
+        mensagemSairConta.textContent = 'Encerrando sessão...';
+
+        try {
+            await encerrarSessao();
+        } catch (erro) {
+            console.error('Falha ao encerrar sessão:', erro);
+            mensagemSairConta.textContent =
+                'Não foi possível sair. Tente novamente.';
+            btnSairConta.disabled = false;
+        }
+    });
+}
+

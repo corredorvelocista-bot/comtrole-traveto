@@ -4,22 +4,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Controle de Travete</title>
+    <title>Anotei</title>
 
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#6c45d9">
     <meta name="apple-mobile-web-app-capable" content="yes">
-
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer>
-    </script>
 
     <link rel="stylesheet" href="./src/css/index.css">
     <link rel="stylesheet" href="./src/css/menu.css">
+    <link rel="stylesheet" href="./src/css/global.css">
 
 </head>
 
-<body>
+<body class="dashboard-active">
+
+    <!-- NOVA TELA INICIAL — estrutura visual baseada no protótipo aprovado -->
+    <main id="telaInicio" class="dashboard-view" aria-label="Tela inicial Anotei">
+        <header class="dashboard-topbar">
+            <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            <div class="dashboard-actions">
+                <button class="dashboard-icon-btn" id="helpBtn" type="button" aria-label="Ajuda"
+                    title="Ajuda">?</button>
+                <button class="dashboard-profile" id="btnPerfilDashboard" type="button"
+                    aria-label="Abrir perfil">J</button>
+            </div>
+        </header>
+
+        <section class="dashboard-intro">
+            <p class="dashboard-eyebrow">Seu espaço de trabalho</p>
+            <h1>Olá! Vamos organizar seu dia?</h1>
+        </section>
+
+        <section class="dashboard-hero" aria-label="Resumo da produção">
+            <div class="dashboard-balance">
+                <p class="dashboard-eyebrow">Produção de hoje</p>
+                <div class="dashboard-balance-label">Valor registrado</div>
+                <div class="dashboard-amount" id="todayAmount">R$ 0,00</div>
+                <div class="dashboard-progress-row"><span>Meta semanal</span><strong id="progressLabel">0% de R$
+                        500,00</strong></div>
+                <div class="dashboard-progress" id="progressBar" role="progressbar"
+                    aria-label="Progresso da meta semanal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span
+                        id="progressFill"></span></div>
+            </div>
+            <div class="dashboard-summary">
+                <div class="dashboard-summary-top"><span>Resumo da semana</span><span class="dashboard-status">Em
+                        andamento</span></div>
+                <div><small>Total registrado</small><br><strong id="weekAmount">R$ 0,00</strong></div>
+                <small>Atualize os valores em “Lançar produção”.</small>
+            </div>
+        </section>
+
+        <div class="dashboard-section-head">
+            <div>
+                <h2>O que você deseja fazer?</h2>
+                <p>Escolha uma opção para continuar.</p>
+            </div>
+        </div>
+        <section class="dashboard-menu-grid" aria-label="Menu principal">
+            <button class="dashboard-menu-card" data-action="launch" type="button"><span
+                    class="dashboard-tile-icon">＋</span><span class="dashboard-tile-copy"><strong>Lançar
+                        produção</strong><small>Registre o que produziu hoje.</small></span><span
+                    class="dashboard-arrow">›</span></button>
+            <button class="dashboard-menu-card" data-action="history" type="button"><span
+                    class="dashboard-tile-icon">◷</span><span
+                    class="dashboard-tile-copy"><strong>Histórico</strong><small>Consulte seus registros
+                        anteriores.</small></span><span class="dashboard-arrow">›</span></button>
+            <button class="dashboard-menu-card" data-action="management" type="button"><span
+                    class="dashboard-tile-icon">▦</span><span
+                    class="dashboard-tile-copy"><strong>Gestão</strong><small>Veja e organize sua
+                        produção.</small></span><span class="dashboard-arrow">›</span></button>
+
+            <button class="dashboard-menu-card" data-action="expenses" type="button">
+                <span class="dashboard-tile-icon">↘</span>
+                <span class="dashboard-tile-copy">
+                    <strong>Despesas</strong>
+                    <small>Acompanhe seus gastos pessoais.</small>
+                </span>
+                <span class="dashboard-arrow">›</span>
+            </button>
+
+            <button class="dashboard-menu-card" data-action="reports" type="button"
+                aria-label="Relatórios — indisponível nesta etapa"><span class="dashboard-tile-icon">▥</span><span
+                    class="dashboard-tile-copy"><strong>Relatórios</strong><small>Entenda seus
+                        resultados.</small></span><span class="dashboard-arrow">›</span></button>
+            <button class="dashboard-menu-card" data-action="settings" type="button"><span
+                    class="dashboard-tile-icon">⚙</span><span
+                    class="dashboard-tile-copy"><strong>Configurações</strong><small>Ajuste o aplicativo do seu
+                        jeito.</small></span><span class="dashboard-arrow">›</span></button>
+        </section>
+
+        <aside class="dashboard-tip"><span>✦</span>
+            <p><strong>Dica:</strong> você não precisa entender de tecnologia. Escolha um cartão e siga as instruções na
+                tela.</p>
+        </aside>
+        <footer class="dashboard-footer">Anotei · Desenvolvidor responsável · Jhonata </footer>
+    </main>
+
+    <!-- TELA DE CONFIGURAÇÕES — cada categoria possui sua própria tela -->
+    <main id="telaConfiguracoes" class="dashboard-view dashboard-settings-view" aria-label="Configurações" hidden>
+        <section id="dashboardSettingsHome" class="dashboard-settings-home">
+            <header class="dashboard-topbar">
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+                <button class="dashboard-icon-btn" id="btnVoltarInicioConfig" type="button"
+                    aria-label="Voltar ao início" title="Voltar ao início">←</button>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Personalize o aplicativo</p>
+                <h1>Configurações</h1>
+                <p class="dashboard-subtitle">Escolha uma área para ajustar suas preferências.</p>
+            </section>
+            <section class="dashboard-settings-grid" aria-label="Áreas de configuração">
+                <button class="dashboard-menu-card" type="button" data-settings-page="producao"><span
+                        class="dashboard-tile-icon">⚙</span><span class="dashboard-tile-copy"><strong>Produção e
+                            metas</strong><small>Semana padrão, valor unitário e meta semanal.</small></span><span
+                        class="dashboard-arrow">›</span></button>
+                <button class="dashboard-menu-card" type="button" data-settings-page="aparencia"><span
+                        class="dashboard-tile-icon">◐</span><span
+                        class="dashboard-tile-copy"><strong>Aparência</strong><small>Tema, tamanho do texto e
+                            animações.</small></span><span class="dashboard-arrow">›</span></button>
+                <button class="dashboard-menu-card" type="button" data-settings-page="notificacoes"><span
+                        class="dashboard-tile-icon">♧</span><span
+                        class="dashboard-tile-copy"><strong>Notificações</strong><small>Sons e avisos do
+                            aplicativo.</small></span><span class="dashboard-arrow">›</span></button>
+                <button class="dashboard-menu-card" type="button" data-settings-page="dados"><span
+                        class="dashboard-tile-icon">▤</span><span
+                        class="dashboard-tile-copy"><strong>Dados</strong><small>Importação, exportação e manutenção dos
+                            dados.</small></span><span class="dashboard-arrow">›</span></button>
+                <button class="dashboard-menu-card" type="button" data-settings-page="sobre"><span
+                        class="dashboard-tile-icon">ⓘ</span><span class="dashboard-tile-copy"><strong>Sobre e
+                            atualizações</strong><small>Versão e atualização do aplicativo.</small></span><span
+                        class="dashboard-arrow">›</span></button>
+            </section>
+        </section>
+
+        <section id="dashboardSettingsProducao" class="dashboard-settings-subview"
+            aria-labelledby="dashboardSettingsProducaoTitle" hidden>
+            <header class="dashboard-topbar"><button class="dashboard-back-button" type="button" data-settings-back>←
+                    Configurações</button>
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Preferências de trabalho</p>
+                <h1 id="dashboardSettingsProducaoTitle">Produção e metas</h1>
+                <p class="dashboard-subtitle">Configure como os lançamentos e as metas são organizados.</p>
+            </section>
+            <div id="configuracoesConteudoProducao" class="dashboard-settings-content"></div>
+        </section>
+
+        <section id="dashboardSettingsAparencia" class="dashboard-settings-subview"
+            aria-labelledby="dashboardSettingsAparenciaTitle" hidden>
+            <header class="dashboard-topbar"><button class="dashboard-back-button" type="button" data-settings-back>←
+                    Configurações</button>
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Personalização</p>
+                <h1 id="dashboardSettingsAparenciaTitle">Aparência</h1>
+                <p class="dashboard-subtitle">Ajuste a apresentação do aplicativo.</p>
+            </section>
+            <div id="configuracoesConteudoAparencia" class="dashboard-settings-content"></div>
+        </section>
+
+        <section id="dashboardSettingsNotificacoes" class="dashboard-settings-subview"
+            aria-labelledby="dashboardSettingsNotificacoesTitle" hidden>
+            <header class="dashboard-topbar"><button class="dashboard-back-button" type="button" data-settings-back>←
+                    Configurações</button>
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Avisos e sons</p>
+                <h1 id="dashboardSettingsNotificacoesTitle">Notificações</h1>
+                <p class="dashboard-subtitle">Escolha quais avisos e efeitos deseja manter.</p>
+            </section>
+            <div id="configuracoesConteudoNotificacoes" class="dashboard-settings-content"></div>
+        </section>
+
+        <section id="dashboardSettingsDados" class="dashboard-settings-subview"
+            aria-labelledby="dashboardSettingsDadosTitle" hidden>
+            <header class="dashboard-topbar"><button class="dashboard-back-button" type="button" data-settings-back>←
+                    Configurações</button>
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Seus registros</p>
+                <h1 id="dashboardSettingsDadosTitle">Dados</h1>
+                <p class="dashboard-subtitle">Gerencie a importação, exportação e manutenção dos dados.</p>
+            </section>
+            <div id="configuracoesConteudoDados" class="dashboard-settings-content"></div>
+        </section>
+
+        <section id="dashboardSettingsSobre" class="dashboard-settings-subview"
+            aria-labelledby="dashboardSettingsSobreTitle" hidden>
+            <header class="dashboard-topbar"><button class="dashboard-back-button" type="button" data-settings-back>←
+                    Configurações</button>
+                <div class="dashboard-brand"><span class="dashboard-logo">✓</span><span>Anotei</span></div>
+            </header>
+            <section class="dashboard-intro">
+                <p class="dashboard-eyebrow">Informações do aplicativo</p>
+                <h1 id="dashboardSettingsSobreTitle">Sobre e atualizações</h1>
+                <p class="dashboard-subtitle">Consulte a versão e verifique atualizações disponíveis.</p>
+            </section>
+            <div id="configuracoesConteudoSobre" class="dashboard-settings-content"></div>
+        </section>
+    </main>
 
     <!-- =====================================================
      OVERLAY DO MENU
@@ -50,16 +237,12 @@
             ✏️ Editar perfil
         </button>
 
+
         <div class="menu-header">
-            <h3>
-                Menu do Sistema
-            </h3>
-            <button id="btnFecharMenu" class="btn-fechar-menu" type="button" aria-label="Fechar menu">
-                ✕
-            </button>
+
         </div>
 
-        <div class="menu-content" id="cardSincronizacao" style="
+        <div class="menu-content" id="menuConteudoPrincipal" style="
             display:flex;
             flex-direction:column;
             gap:12px;">
@@ -154,7 +337,6 @@
 
             <!-- HISTÓRICO -->
             <div>
-
                 <button id="btnMenuHistorico" class="menu-section-button" type="button"
                     onclick="window.location.href='historico.html'">
 
@@ -165,79 +347,30 @@
                     <span class="section-arrow">
                         ›
                     </span>
-
                 </button>
-
             </div>
 
+            <!-- =================================================
+                         GESTÃO FINANCEIRA
+            ================================================= -->
             <div>
-                <button id="btnMenuGoogle" class="menu-section-button" type="button" aria-expanded="false">
+                <button id="btnMenuFinanceiro" class="menu-section-button" type="button">
+
                     <span>
-                        ☁️ Sincronização Google
+                        💰 Gestão Financeira
                     </span>
+
                     <span class="section-arrow">
                         ›
                     </span>
+
                 </button>
-
-                <div id="painelMenuGoogle" class="menu-section-panel">
-                    <p style="
-                        font-size:0.8rem;
-                        color: var(--muted-color);
-                        margin:0 0 10px 0;">
-
-                        Conecte sua conta para salvar
-                        dados na nuvem com facilidade.
-                    </p>
-
-                    <div id="statusLogin" class="google-status-box">
-                        ⚪ Nenhuma conta conectada
-                    </div>
-
-                    <button id="btnLoginGoogle" type="button" style="
-                        background-color:#4285F4;
-                        color:white;
-                        font-size:0.9rem;
-                        padding:10px;
-                        display:inline-flex;
-                        align-items:center;
-                        justify-content:center;
-                        gap:8px;
-                        margin:0;">
-
-                        🔑 Entrar com o Google
-                    </button>
-
-                    <button id="btnLogoutGoogle" type="button" style="
-                        background-color:#d32f2f;
-                        color:white;
-                        font-size:0.85rem;
-                        padding:8px;
-                        display:none;
-                        margin:0;">
-
-                        🚪 Sair da Conta
-                    </button>
-
-                    <div id="cardSincronizacaoMenu" style="margin-top:4px;">
-                        <button id="btnEnviarNuvem" class="btn-backup" type="button" style="
-                            background-color:var(--warning-color);
-                            color:#000;
-                            font-weight:bold;
-                            width:100%;
-                            margin:0;">
-
-                            🚀 Sincronizar com o Drive
-
-                        </button>
-                    </div>
-                </div>
             </div>
+
 
             <!-- =================================================
              CONFIGURAÇÃO
              ================================================= -->
-
             <div>
 
                 <button id="btnAbrirConfiguracao" class="config-menu-button" type="button" aria-expanded="false">
@@ -249,84 +382,18 @@
                     </span>
                 </button>
                 <div id="painelConfiguracao" class="configuracao-panel">
+                    <!--
                     <div class="config-header">
                         <h4>
                             ⚙️ Configuração do Sistema
                         </h4>
                         <p>
                             Personalize o funcionamento do
-                            Controle de Travete.
-                            As alterações ficam salvas
+                            aplicativo. As alterações ficam salvas
                             neste dispositivo.
                         </p>
                     </div>
-
-                    <!-- GOOGLE E SINCRONIZAÇÃO -->
-                    <div class="config-card">
-                        <button id="btnConfigGoogle" class="config-section-button" type="button" aria-expanded="false">
-                            <span>
-                                ☁️ Google e Sincronização
-                            </span>
-                            <span class="section-arrow">
-                                ›
-                            </span>
-                        </button>
-                        <div id="painelConfigGoogle" class="config-section-panel">
-                            <div class="config-item">
-                                <div class="config-item-title">
-                                    Conta conectada
-                                </div>
-                                <div class="config-status">
-                                    <span class="config-status-dot" id="configStatusGoogleDot">
-                                        ⚪
-                                    </span>
-                                    <span id="configStatusGoogle">
-                                        Nenhuma conta conectada
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="config-item">
-                                <label class="config-switch-row">
-                                    <div class="config-item-text">
-                                        <div class="config-item-title">
-                                            🔄 Sincronização automática
-                                        </div>
-                                        <div class="config-item-description">
-                                            Sincroniza os lançamentos automaticamente
-                                            quando possível.
-                                        </div>
-                                    </div>
-                                    <input type="checkbox" id="configSyncAutomatico" class="config-switch">
-                                </label>
-                            </div>
-
-                            <div class="config-item">
-                                <label class="config-switch-row">
-                                    <div class="config-item-text">
-                                        <div class="config-item-title">
-                                            📶 Sincronizar somente no Wi-Fi
-                                        </div>
-                                        <div class="config-item-description">
-                                            Evita sincronização automática usando
-                                            conexão móvel.
-                                        </div>
-                                    </div>
-                                    <input type="checkbox" id="configSyncWifi" class="config-switch">
-                                </label>
-                            </div>
-
-                            <div class="config-item">
-                                <button id="btnConfigSincronizarAgora" class="config-button" type="button">
-                                    🔄 Sincronizar agora
-                                </button>
-                                <button id="btnConfigPlanilha" class="config-button" type="button">
-                                    📊 Ver Planilha no Google Drive
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-
+                -->
                     <!-- PRODUÇÃO -->
                     <div class="config-card">
                         <button id="btnConfigProducao" class="config-section-button" type="button"
@@ -406,7 +473,7 @@
                                     </div>
 
                                     <input type="radio" name="configFormatoNumeros" id="configFormatoMilhar"
-                                        value="milhar" checked>
+                                        value="milhar">
 
                                 </label>
 
@@ -628,61 +695,7 @@
 
                     <!-- META -->
 
-                    <div class="config-card">
 
-                        <button id="btnConfigMeta" class="config-section-button" type="button" aria-expanded="false">
-
-                            <span>
-                                🎯 Meta Semanal
-                            </span>
-
-                            <span class="section-arrow">
-                                ›
-                            </span>
-
-                        </button>
-
-                        <div id="painelConfigMeta" class="config-section-panel">
-
-                            <div class="config-item">
-
-                                <div class="config-item-title">
-                                    💵 Valor da meta
-                                </div>
-
-                                <div class="config-item-description">
-                                    Defina o valor que deseja alcançar
-                                    durante a semana.
-                                </div>
-
-                                <input type="number" id="configMetaSemanal" class="config-number" step="50" min="0"
-                                    placeholder="R$ 500,00">
-
-                                <button id="btnSalvarConfigMeta" class="config-button" type="button">
-
-                                    💾 Salvar meta
-
-                                </button>
-
-                            </div>
-
-                            <div class="config-item">
-
-                                <div class="config-item-title">
-                                    📈 Progresso da meta
-                                </div>
-
-                                <div id="configResumoMeta" class="config-info">
-
-                                    R$ 0,00 / R$ 0,00
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
 
                     <!-- NOTIFICAÇÕES -->
 
@@ -901,25 +914,11 @@
 
                     </div>
 
-                    <button id="btnFecharConfiguracao" class="config-voltar" type="button">
-
-                        ← Voltar ao Menu
-
-                    </button>
-
                 </div>
 
             </div>
 
-            <!-- GOOGLE -->
-
-
-
-
-
-
             <!-- AJUDA -->
-
             <div>
 
                 <button id="btnMenuAjuda" class="menu-section-button" type="button" aria-expanded="false">
@@ -961,30 +960,33 @@
     </nav>
 
     <!-- =====================================================
-     CONTEÚDO PRINCIPAL
-===================================================== -->
+                     GESTÃO FINANCEIRA
+    ===================================================== -->
 
-    <div class="container">
+
+
+    <!-- =====================================================
+                  DESPESAS PESSOAIS
+    ===================================================== -->
+
+
+
+    <!-- =====================================================
+     CONTEÚDO PRINCIPAL
+    ===================================================== -->
+
+    <div id="telaProducao" class="container">
 
         <!-- CABEÇALHO -->
         <div class="app-header">
 
-            <button id="btnMenuHamburger" class="btn-hamburger" aria-label="Abrir Menu" type="button">
-
-                ☰
-
-            </button>
+            <button id="btnVoltarInicio" class="dashboard-back-button" type="button" aria-label="Voltar ao início">←
+                Início</button>
 
             <div class="app-header-titles">
-
                 <h1>
-                    Controle de Travete
+                    Painel de Produção
                 </h1>
-
-                <p class="subtitle">
-                    Arquitetura Modular em POO
-                </p>
-
             </div>
 
         </div>
@@ -1108,28 +1110,14 @@
      BARRA INFERIOR
 ===================================================== -->
     <nav class="bottom-bar" aria-label="Navegação rápida">
-
-        <button id="btnBottomSync" class="bottom-item desconectado" aria-label="Status da sincronização" type="button">
-
-            <span class="bottom-icon" id="bottomSyncStatus">
-
-                ⚪
-
-            </span>
-
-            <span class="bottom-label" id="bottomSyncLabel">
-
-                Google
-
-            </span>
-
-        </button>
-
         <button id="btnBottomBusca" class="bottom-item" aria-label="Buscar na semana" type="button">
 
             <span class="bottom-icon">
-                🔎
-            </span>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="10.8" cy="10.8" r="6.8"/>
+    <path d="m16 16 4.2 4.2"/>
+</svg>
+</span>
 
             <span class="bottom-label">
                 Buscar
@@ -1140,8 +1128,12 @@
         <button id="btnBottomHome" class="bottom-item" aria-label="Ir para o topo" type="button">
 
             <span class="bottom-icon">
-                🏠
-            </span>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="m3 10 9-7 9 7"/>
+    <path d="M5.5 9v11h13V9"/>
+    <path d="M9.5 20v-6h5v6"/>
+</svg>
+</span>
 
             <span class="bottom-label">
                 Home
@@ -1149,16 +1141,27 @@
 
         </button>
 
-        <button id="btnBottomMenu" class="bottom-item" aria-label="Abrir menu" type="button">
-
+        <button id="btnBottomGestao" class="bottom-item" aria-label="Abrir Gestão" type="button">
             <span class="bottom-icon">
-                ☰
-            </span>
-
-            <span class="bottom-label">
-                Menu
-            </span>
-
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 20V11"/>
+    <path d="M10 20V5"/>
+    <path d="M16 20v-8"/>
+    <path d="M22 20H2"/>
+</svg>
+</span>
+            <span class="bottom-label">Gestão</span>
+        </button>
+<button id="btnBottomDespesas" class="bottom-item" aria-label="Abrir Despesas" type="button" data-action="expenses">
+            <span class="bottom-icon">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="5" y="3" width="14" height="18" rx="2"/>
+    <path d="M9 8h6"/>
+    <path d="M9 12h6"/>
+    <path d="M9 16h3"/>
+</svg>
+</span>
+            <span class="bottom-label">Despesas</span>
         </button>
 
     </nav>
@@ -1166,9 +1169,11 @@
     <!-- =====================================================
                         APP.JS  index.js
     ===================================================== -->
-    <script type="module" src="./src/js/app.js"></script>
-    <script type="module" src="./src/js/index.js"></script>
+    
+    
+    
 
+<script type="module" src="./src/js/auth-entry.js" data-auth-entry data-modules="app.js,index.js,menu-principal.js"></script>
 </body>
 
 </html>

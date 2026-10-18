@@ -1,0 +1,279 @@
+/* Gestão financeira: estilos isolados do restante do aplicativo. */
+body.gestao-financeira-page .financeiro-config,
+body.gestao-financeira-page .financeiro-orientacao,
+body.gestao-financeira-page .financeiro-como-calcula {
+    padding: 24px;
+}
+
+body.gestao-financeira-page .financeiro-bloco-titulo {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+body.gestao-financeira-page .financeiro-icone-config,
+body.gestao-financeira-page .financeiro-card-icone,
+body.gestao-financeira-page .financeiro-orientacao-icone {
+    display: grid;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 20px;
+}
+
+body.gestao-financeira-page .financeiro-icone-config {
+    color: #7656d8;
+    background: #f2eeff;
+}
+
+body.gestao-financeira-page .financeiro-bloco-titulo h2,
+body.gestao-financeira-page .financeiro-secao-titulo h2 {
+    margin: 0 0 6px;
+    color: #25233a;
+    font-size: 1.18rem;
+    font-weight: 780;
+    letter-spacing: -.025em;
+}
+
+body.gestao-financeira-page .financeiro-bloco-titulo p,
+body.gestao-financeira-page .financeiro-secao-titulo p {
+    margin: 0;
+    color: #77768b;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+body.gestao-financeira-page .financeiro-opcoes-calculo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+body.gestao-financeira-page .financeiro-opcao {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+    padding: 17px;
+    border: 1.5px solid #e8e6f0;
+    border-radius: 15px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+body.gestao-financeira-page .financeiro-opcao:hover {
+    border-color: #c4b5fd;
+}
+
+body.gestao-financeira-page .financeiro-opcao.selecionada {
+    border-color: #7656d8;
+    background: #faf8ff;
+}
+
+body.gestao-financeira-page .financeiro-opcao input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+body.gestao-financeira-page .financeiro-radio {
+    position: relative;
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    margin-top: 2px;
+    border: 2px solid #c5c3d1;
+    border-radius: 50%;
+}
+
+body.gestao-financeira-page .financeiro-opcao.selecionada .financeiro-radio {
+    border-color: #7656d8;
+}
+
+body.gestao-financeira-page .financeiro-opcao.selecionada .financeiro-radio::after {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #7656d8;
+    content: "";
+}
+
+body.gestao-financeira-page .financeiro-opcao-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+body.gestao-financeira-page .financeiro-opcao-texto strong {
+    color: #25233a;
+    font-size: .91rem;
+    line-height: 1.4;
+}
+
+body.gestao-financeira-page .financeiro-opcao-texto span {
+    color: #77768b;
+    font-size: .82rem;
+    line-height: 1.5;
+}
+
+body.gestao-financeira-page .financeiro-aviso {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0 0;
+    color: #77768b;
+    font-size: .78rem;
+    line-height: 1.5;
+}
+
+body.gestao-financeira-page .financeiro-aviso span {
+    color: #7656d8;
+}
+
+body.gestao-financeira-page .financeiro-secao-titulo {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 32px 0 16px;
+}
+
+body.gestao-financeira-page .financeiro-secao-titulo h2 {
+    font-size: 1.4rem;
+}
+
+body.gestao-financeira-page .financeiro-periodo {
+    padding: 7px 11px;
+    border-radius: 99px;
+    background: #eeedf5;
+    color: #66647c;
+    font-size: .75rem;
+    white-space: nowrap;
+}
+
+body.gestao-financeira-page #telaGestaoFinanceira .financeiro-grid-planejamento {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+body.gestao-financeira-page .financeiro-grid-planejamento .financeiro-indicador {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 22px;
+}
+
+body.gestao-financeira-page .financeiro-card-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+body.gestao-financeira-page .financeiro-card-icone {
+    flex-basis: 37px;
+    width: 37px;
+    height: 37px;
+    font-size: 19px;
+}
+
+body.gestao-financeira-page .financeiro-card-icone.roxo { color: #7550d4; background: #f0eaff; }
+body.gestao-financeira-page .financeiro-card-icone.azul { color: #3974bd; background: #eaf3ff; }
+body.gestao-financeira-page .financeiro-card-icone.verde { color: #16875e; background: #e7f7ef; }
+body.gestao-financeira-page .financeiro-card-icone.laranja { color: #bd6b23; background: #fff1e5; }
+
+body.gestao-financeira-page .financeiro-card-etiqueta {
+    color: #77768b;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+}
+
+body.gestao-financeira-page .financeiro-grid-planejamento .financeiro-indicador h3 {
+    min-height: 0;
+    margin: 0 0 2px;
+    font-size: .98rem;
+    line-height: 1.45;
+}
+
+body.gestao-financeira-page .financeiro-grid-planejamento .financeiro-indicador > strong {
+    color: #5030b5;
+    font-size: clamp(1.45rem, 2.5vw, 1.85rem);
+    line-height: 1.25;
+}
+
+body.gestao-financeira-page .financeiro-grid-planejamento .financeiro-indicador > small {
+    color: #77768b;
+    font-size: .78rem;
+    line-height: 1.5;
+}
+
+body.gestao-financeira-page .financeiro-grid-planejamento .financeiro-indicador-meta {
+    border-color: #d8cdfd;
+    background: linear-gradient(145deg, #fff 0%, #faf8ff 100%);
+}
+
+body.gestao-financeira-page .financeiro-orientacao {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border-color: #d8eee3 !important;
+    background: #f5fcf8 !important;
+}
+
+body.gestao-financeira-page .financeiro-orientacao-icone {
+    color: #16875e;
+    background: #ddf5e9;
+}
+
+body.gestao-financeira-page .financeiro-orientacao h3 {
+    margin: 1px 0 6px !important;
+    font-size: 1rem !important;
+}
+
+body.gestao-financeira-page .financeiro-orientacao p {
+    margin: 0;
+    color: #5e786b;
+    font-size: .84rem;
+    line-height: 1.55;
+}
+
+body.gestao-financeira-page .financeiro-como-calcula h3 {
+    margin-bottom: 10px !important;
+}
+
+body.gestao-financeira-page .financeiro-como-calcula ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #77768b;
+    font-size: .83rem;
+    line-height: 1.65;
+}
+
+body.gestao-financeira-page .financeiro-como-calcula li + li {
+    margin-top: 4px;
+}
+
+@media (max-width: 650px) {
+    body.gestao-financeira-page .financeiro-config,
+    body.gestao-financeira-page .financeiro-orientacao,
+    body.gestao-financeira-page .financeiro-como-calcula {
+        padding: 18px;
+    }
+    body.gestao-financeira-page .financeiro-opcoes-calculo,
+    body.gestao-financeira-page #telaGestaoFinanceira .financeiro-grid-planejamento {
+        grid-template-columns: 1fr;
+    }
+    body.gestao-financeira-page .financeiro-secao-titulo {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

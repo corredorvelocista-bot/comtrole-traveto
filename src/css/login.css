@@ -1,0 +1,148 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --text: #211d35;
+  --muted: #77748a;
+  --line: #ece9f4;
+  --purple: #7863c7;
+  --purple-soft: #f0edfc;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, #eee9ff 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 18px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 16px 50px #231a4810;
+  text-align: center;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 22px;
+  border-radius: 17px;
+  background: var(--purple-soft);
+  color: var(--purple);
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: var(--purple);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(25px, 6vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -.04em;
+}
+
+.subtitle {
+  margin: 13px 0 26px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 16px;
+  border: 1px solid #dedbe7;
+  border-radius: 11px;
+  background: #fff;
+  color: #292538;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.google-button:hover {
+  background: #faf9fe;
+  border-color: #c9c0e8;
+}
+
+.google-button:focus-visible {
+  outline: 3px solid #cfc4ff;
+  outline-offset: 3px;
+}
+
+.google-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.google-icon {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border: 1px solid #eee;
+  border-radius: 50%;
+  color: #4285f4;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.message {
+  min-height: 20px;
+  margin: 14px 0 0;
+  color: #a13f39;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.privacy-note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+footer {
+  margin-top: 24px;
+  color: #9995a9;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 28px 22px; }
+}

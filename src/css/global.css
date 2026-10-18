@@ -1,0 +1,249 @@
+/* =====================================================
+   TEMA ESCURO
+===================================================== */
+
+:root {
+    color-scheme: dark;
+
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --muted-color: #aaaaaa;
+    --input-bg: #2c2c2c;
+    --secondary-bg: #252525;
+    --hover-bg: #353535;
+    --button-secondary-bg: #333333;
+    --border-color: #333333;
+    --border-light: #444444;
+
+    --accent-color: #4caf50;
+    --accent-hover: #45a049;
+    --info-color: #2196f3;
+    --whatsapp-color: #25d366;
+    --warning-color: #ff9800;
+    --purple-color: #bb86fc;
+    --danger-color: #d32f2f;
+
+    --bottom-bar-bg: rgba(30, 30, 30, 0.96);
+    --bottom-bar-border: #3a3a3a;
+
+    --overlay-color: rgba(0, 0, 0, 0.6);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --progress-bg: #333333;
+    --button-on-accent: #ffffff;
+    --button-on-warning: #000000;
+
+    --danger-bg: #5b2525;
+    --danger-border: #733030;
+    --danger-hover: #713030;
+
+    --backup-bg: #607d8b;
+    --backup-hover: #546e7a;
+}
+
+/* =====================================================
+   TEMA CLARO
+===================================================== */
+
+:root[data-theme="claro"] {
+    color-scheme: light;
+
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-color: #222222;
+    --muted-color: #666666;
+    --input-bg: #ffffff;
+    --secondary-bg: #f5f5f5;
+    --hover-bg: #eeeeee;
+    --button-secondary-bg: #eeeeee;
+    --border-color: #dddddd;
+    --border-light: #cccccc;
+
+    --accent-color: #2e7d32;
+    --accent-hover: #1b5e20;
+    --info-color: #1976d2;
+    --whatsapp-color: #25d366;
+    --warning-color: #f57c00;
+    --purple-color: #7b1fa2;
+    --danger-color: #c62828;
+
+    --bottom-bar-bg: rgba(255, 255, 255, 0.96);
+    --bottom-bar-border: #d9d9d9;
+
+    --overlay-color: rgba(0, 0, 0, 0.35);
+    --shadow-color: rgba(0, 0, 0, 0.20);
+    --progress-bg: #dddddd;
+    --button-on-accent: #ffffff;
+    --button-on-warning: #000000;
+
+    --danger-bg: #fdecec;
+    --danger-border: #e0aaaa;
+    --danger-hover: #f8dada;
+
+    --backup-bg: #607d8b;
+    --backup-hover: #546e7a;
+}
+
+/* =====================================================
+   BASE GLOBAL
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+/* =====================================================
+   CONTROLES GLOBAIS
+===================================================== */
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    margin-bottom: 6px;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15);
+}
+
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-color);
+    color: var(--button-on-accent);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+}
+
+button:hover {
+    background-color: var(--accent-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* =====================================================
+   TAMANHO DO TEXTO
+===================================================== */
+
+html[data-text-size="pequeno"] body {
+    font-size: 14px;
+}
+
+html[data-text-size="normal"] body {
+    font-size: 16px;
+}
+
+html[data-text-size="grande"] body {
+    font-size: 18px;
+}
+
+html[data-text-size="pequeno"] button,
+html[data-text-size="pequeno"] input,
+html[data-text-size="pequeno"] textarea,
+html[data-text-size="pequeno"] select {
+    font-size: 0.9rem;
+}
+
+html[data-text-size="normal"] button,
+html[data-text-size="normal"] input,
+html[data-text-size="normal"] textarea,
+html[data-text-size="normal"] select {
+    font-size: 1rem;
+}
+
+html[data-text-size="grande"] button,
+html[data-text-size="grande"] input,
+html[data-text-size="grande"] textarea,
+html[data-text-size="grande"] select {
+    font-size: 1.1rem;
+}
+
+/* =====================================================
+   ANIMAÇÕES / EFEITOS
+===================================================== */
+
+html.sem-animacoes,
+html.sem-animacoes * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+    caret-color: transparent;
+}
+
+html.sem-animacoes input,
+html.sem-animacoes textarea,
+html.sem-animacoes select {
+    caret-color: currentColor;
+}
+
+/* =====================================================
+   ESCALA GLOBAL DE TAMANHO DE TEXTO (TODAS AS TELAS)
+===================================================== */
+
+html[data-text-size="pequeno"] {
+    font-size: 14px;
+}
+
+html[data-text-size="normal"] {
+    font-size: 16px;
+}
+
+html[data-text-size="grande"] {
+    font-size: 18px;
+}
+
+/* Redimensionamento proporcional padrão para elementos comuns */
+html[data-text-size="pequeno"] body,
+html[data-text-size="pequeno"] p,
+html[data-text-size="pequeno"] ul,
+html[data-text-size="pequeno"] li {
+    font-size: 0.85rem;
+}
+
+html[data-text-size="normal"] body,
+html[data-text-size="normal"] p,
+html[data-text-size="normal"] ul,
+html[data-text-size="normal"] li {
+    font-size: 0.95rem;
+}
+
+html[data-text-size="grande"] body,
+html[data-text-size="grande"] p,
+html[data-text-size="grande"] ul,
+html[data-text-size="grande"] li {
+    font-size: 1.05rem;
+}

@@ -161,8 +161,6 @@ export function tocarSomMetaBatida() {
 // =====================================================
 
 export function dispararAnimacaoMetaBatida() {
-    tocarSomMetaBatida();
-
     const quantidade = 30;
 
     const cores = [

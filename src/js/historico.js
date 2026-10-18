@@ -1,0 +1,971 @@
+
+
+        import { StorageService }
+            from './StorageService.js';
+        
+        import { GlobalAparenciaController } from './GlobalAparenciaController.js';
+        
+        // Inicializa o controle global de aparência e preferências visuais
+        const aparencia = new GlobalAparenciaController();
+        aparencia.inicializar();
+
+        const storage = new StorageService();
+
+        let semanasHistorico = [];
+
+        function formatarValor(valor) {
+            return Number(valor || 0)
+                .toFixed(2)
+                .replace('.', ',');
+        }
+
+        function obterDetalhes(registro) {
+            if (
+                Array.isArray(registro.detalhes)
+            ) {
+                return registro.detalhes;
+            }
+            return [];
+        }
+
+
+        function atualizarResumoHistorico(semanas) {
+
+            const totalSemanas =
+                document.getElementById(
+                    'totalSemanas'
+                );
+
+
+            const totalPecas =
+                document.getElementById(
+                    'totalPecas'
+                );
+
+
+            const totalValor =
+                document.getElementById(
+                    'totalValor'
+                );
+
+
+            if (
+                !totalSemanas ||
+                !totalPecas ||
+                !totalValor
+            ) {
+
+                return;
+
+            }
+
+
+            const lista =
+                Array.isArray(semanas)
+                    ? semanas
+                    : [];
+
+
+            const pecas =
+                lista.reduce(
+                    (
+                        total,
+                        semana
+                    ) =>
+                        total +
+                        Number(
+                            semana.pecasTotal || 0
+                        ),
+                    0
+                );
+
+
+            const valor =
+                lista.reduce(
+                    (
+                        total,
+                        semana
+                    ) =>
+                        total +
+                        Number(
+                            semana.valorTotal || 0
+                        ),
+                    0
+                );
+
+
+            totalSemanas.textContent =
+                lista.length;
+
+
+            totalPecas.textContent =
+                pecas.toLocaleString(
+                    'pt-BR'
+                );
+
+
+            totalValor.textContent =
+                `R$ ${formatarValor(valor)}`;
+
+        }
+
+
+        function renderizarHistorico(semanas) {
+
+            const lista =
+                document.getElementById(
+                    'listaHistoricoSeparado'
+                );
+
+
+            if (!lista) {
+
+                return;
+
+            }
+
+
+            if (
+                !semanas ||
+                semanas.length === 0
+            ) {
+
+                lista.innerHTML = `
+
+                    <div class="vazio">
+
+                        🔍 Nenhum resultado encontrado.
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            lista.innerHTML =
+                semanas.map(
+                    (
+                        semana,
+                        indice
+                    ) => {
+
+                        const registros =
+                            Array.isArray(
+                                semana.registros
+                            )
+                                ? semana.registros
+                                : [];
+
+
+                        return `
+
+                            <div
+                                class="semana"
+                                data-indice="${indice}"
+                                onclick="alternarSemana(${indice})">
+
+
+                                <div class="semana-cabecalho">
+
+
+                                    <div>
+
+                                        <div class="semana-data">
+
+                                            📅 ${semana.periodo ||
+                            'Período não informado'
+                            }
+
+                                        </div>
+
+
+                                        <div class="semana-resumo">
+
+                                            🧵 ${semana.pecasTotal || 0
+                            } peças
+
+                                            &nbsp; • &nbsp;
+
+                                            💰 R$ ${formatarValor(
+                                semana.valorTotal
+                            )
+                            }
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            display:flex;
+                                            align-items:center;
+                                            gap:8px;
+                                            flex-shrink:0;
+                                        ">
+
+
+                                        <button
+    type="button"
+    class="btn-copiar-semana"
+    onclick="event.stopPropagation(); copiarSemana(${indice})"
+    aria-label="Copiar dados desta semana"
+    title="Copiar dados desta semana">
+    📋
+</button>
+                                        
+                                        <button
+                                            type="button"
+                                            class="btn-excluir-semana"
+                                            onclick="event.stopPropagation(); excluirSemana(${indice})"
+                                            aria-label="Excluir esta semana"
+                                            title="Excluir esta semana">
+
+                                            🗑️
+
+                                        </button>
+
+
+                                        <span
+                                            class="seta"
+                                            id="setaSemana${indice}">
+
+                                            ›
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    id="detalhesSemana${indice}"
+                                    class="detalhes-semana"
+                                    style="display:none;">
+
+                                    ${registros.length > 0
+
+                                ? registros.map(
+                                    (
+                                        registro,
+                                        indiceLancamento
+                                    ) => {
+
+                                        const detalhes =
+                                            obterDetalhes(
+                                                registro
+                                            );
+
+
+                                        return `
+
+                                                        <div class="lancamento">
+
+
+                                                            <div class="lancamento-cabecalho">
+
+    <div class="lancamento-info">
+
+        <div class="lancamento-numero">
+            Lançamento ${indiceLancamento + 1}
+        </div>
+
+        <div class="lancamento-data">
+            📅 ${registro.data ||
+                                            'Data não informada'
+                                            }
+        </div>
+
+        <div class="lancamento-resumo">
+            🧵 ${registro.pecas ||
+                                            0
+                                            } peças
+
+            &nbsp; • &nbsp;
+
+            💰 R$ ${formatarValor(
+                                                registro.valorTotal
+                                            )
+                                            }
+        </div>
+
+    </div>
+
+    <button
+        type="button"
+        class="btn-excluir-lancamento"
+        onclick="event.stopPropagation(); excluirLancamento(${indice},${indiceLancamento})"
+        aria-label="Excluir este lançamento"
+        title="Excluir este lançamento">
+        🗑️
+    </button>
+
+</div>
+
+
+                                                            ${detalhes.length > 0
+
+                                                ? `
+
+                                                                        <div class="tipos-roupa">
+
+                                                                            ${detalhes.map(
+                                                    detalhe => `
+
+                                                                                        <div class="tipo-roupa">
+
+                                                                                            ${detalhe}
+
+                                                                                        </div>
+
+                                                                                    `
+                                                ).join('')
+                                                }
+
+                                                                        </div>
+
+                                                                    `
+
+                                                : ''
+
+                                            }
+
+                                                        </div>
+
+                                                    `;
+
+                                    }
+
+                                ).join('')
+
+                                : `
+
+                                                <div class="vazio">
+
+                                                    Nenhum lançamento encontrado.
+
+                                                </div>
+
+                                            `
+                            }
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+                ).join('');
+
+        }
+
+
+        function obterTextoBusca(semana) {
+
+            const registros =
+                Array.isArray(
+                    semana.registros
+                )
+                    ? semana.registros
+                    : [];
+
+
+            return [
+
+                semana.periodo,
+
+                semana.pecasTotal,
+
+                semana.valorTotal,
+
+
+                registros.map(
+                    registro => [
+
+                        registro.data,
+
+                        registro.pecas,
+
+                        registro.valorUnitario,
+
+                        registro.valorTotal,
+
+                        registro.textoOriginal,
+
+                        registro.textoBruto,
+
+
+                        Array.isArray(
+                            registro.detalhes
+                        )
+                            ? registro.detalhes.join(' ')
+                            : ''
+
+                    ].join(' ')
+
+                ).join(' ')
+
+            ]
+
+                .join(' ')
+
+                .toLowerCase();
+
+        }
+
+
+        function abrirTodasSemanas() {
+
+            document
+                .querySelectorAll(
+                    '.detalhes-semana'
+                )
+                .forEach(
+                    detalhes => {
+
+                        detalhes.style.display =
+                            'block';
+
+                    }
+                );
+
+
+            document
+                .querySelectorAll(
+                    '.seta'
+                )
+                .forEach(
+                    seta => {
+
+                        seta.textContent =
+                            '⌄';
+
+                    }
+                );
+
+        }
+
+
+        function fecharTodasSemanas() {
+
+            document
+                .querySelectorAll(
+                    '.detalhes-semana'
+                )
+                .forEach(
+                    detalhes => {
+
+                        detalhes.style.display =
+                            'none';
+
+                    }
+                );
+
+
+            document
+                .querySelectorAll(
+                    '.seta'
+                )
+                .forEach(
+                    seta => {
+
+                        seta.textContent =
+                            '›';
+
+                    }
+                );
+
+        }
+
+
+        async function carregarHistorico() {
+
+            try {
+
+                semanasHistorico =
+                    await storage.obterTodasSemanas();
+
+
+                console.log(
+                    'Semanas encontradas:',
+                    semanasHistorico
+                );
+
+
+                atualizarResumoHistorico(
+                    semanasHistorico
+                );
+
+
+                renderizarHistorico(
+                    semanasHistorico
+                );
+
+
+            } catch (erro) {
+
+                console.error(
+                    'Erro ao carregar histórico:',
+                    erro
+                );
+
+
+                const lista =
+                    document.getElementById(
+                        'listaHistoricoSeparado'
+                    );
+
+
+                if (lista) {
+
+                    lista.innerHTML = `
+
+                        <div class="vazio">
+
+                            ⚠️ Não foi possível carregar o histórico.
+
+                        </div>
+
+                    `;
+
+                }
+
+            }
+
+        }
+
+
+        window.copiarSemana = async function (indice) {
+
+    const semana =
+        semanasHistorico[indice];
+
+    if (!semana) {
+        return;
+    }
+
+    const registros =
+        Array.isArray(semana.registros)
+            ? semana.registros
+            : [];
+
+    let texto = '';
+
+    texto +=
+        '📅 Semana: ' +
+        (
+            semana.periodo ||
+            'Período não informado'
+        ) +
+        '\n\n';
+
+    registros.forEach(
+        (registro, indiceLancamento) => {
+
+            texto +=
+                'Lançamento ' +
+                (indiceLancamento + 1) +
+                '\n';
+
+            texto +=
+                '📅 ' +
+                (
+                    registro.data ||
+                    'Data não informada'
+                ) +
+                '\n';
+
+            texto +=
+                '🧵 ' +
+                (
+                    registro.pecas || 0
+                ) +
+                ' peças\n';
+
+            texto +=
+                '💰 R$ ' +
+                formatarValor(
+                    registro.valorTotal
+                ) +
+                '\n';
+
+            const detalhes =
+                obterDetalhes(registro);
+
+            if (detalhes.length > 0) {
+
+                detalhes.forEach(
+                    detalhe => {
+
+                        texto +=
+                            '👕 ' +
+                            detalhe +
+                            '\n';
+                    }
+                );
+            }
+
+            texto += '\n';
+        }
+    );
+
+    texto +=
+        'TOTAL: ' +
+        (
+            semana.pecasTotal || 0
+        ) +
+        ' peças\n';
+
+    texto +=
+        'VALOR: R$ ' +
+        formatarValor(
+            semana.valorTotal
+        );
+
+    try {
+
+        await navigator.clipboard.writeText(
+            texto
+        );
+
+        window.alert(
+            '📋 Dados da semana copiados!'
+        );
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao copiar:',
+            erro
+        );
+
+        window.alert(
+            '❌ Não foi possível copiar os dados.'
+        );
+    }
+};
+        
+        window.excluirLancamento =
+            async function (
+                indiceSemana,
+                indiceLancamento
+            ) {
+
+                const semana =
+                    semanasHistorico[
+                    indiceSemana
+                    ];
+
+
+                if (!semana) {
+                    return;
+                }
+
+
+                const registro =
+                    Array.isArray(
+                        semana.registros
+                    )
+                        ? semana.registros[
+                        indiceLancamento
+                        ]
+                        : null;
+
+
+                if (!registro) {
+                    return;
+                }
+
+
+                const confirmar =
+                    window.confirm(
+                        '⚠️ Excluir este lançamento?\n\n' +
+
+                        '📅 ' +
+                        (
+                            registro.data ||
+                            'Data não informada'
+                        ) +
+
+                        '\n🧵 ' +
+                        (
+                            registro.pecas || 0
+                        ) +
+                        ' peças' +
+
+                        '\n💰 R$ ' +
+                        formatarValor(
+                            registro.valorTotal
+                        ) +
+
+                        '\n\n' +
+
+                        'Apenas este lançamento será removido.'
+                    );
+
+
+                if (!confirmar) {
+                    return;
+                }
+
+
+                const sucesso =
+                    await storage.excluirLancamento(
+                        semana.id,
+                        indiceLancamento
+                    );
+
+
+                if (!sucesso) {
+
+                    window.alert(
+                        '❌ Não foi possível excluir o lançamento.'
+                    );
+
+                    return;
+                }
+
+
+                semanasHistorico =
+                    await storage.obterTodasSemanas();
+
+
+                atualizarResumoHistorico(
+                    semanasHistorico
+                );
+
+
+                renderizarHistorico(
+                    semanasHistorico
+                );
+
+
+                window.alert(
+                    '✅ Lançamento excluído com sucesso.'
+                );
+
+            };
+
+
+        window.excluirSemana =
+            async function (indice) {
+
+                const semana =
+                    semanasHistorico[indice];
+
+
+                if (!semana) {
+                    return;
+                }
+
+
+                const confirmar =
+                    window.confirm(
+                        '⚠️ Excluir esta semana do histórico?\n\n' +
+
+                        '📅 ' +
+                        (
+                            semana.periodo ||
+                            'Período não informado'
+                        ) +
+
+                        '\n🧵 ' +
+                        (
+                            semana.pecasTotal || 0
+                        ) +
+                        ' peças' +
+
+                        '\n💰 R$ ' +
+                        formatarValor(
+                            semana.valorTotal
+                        ) +
+
+                        '\n\n' +
+
+                        'Esta ação não poderá ser desfeita.'
+                    );
+
+
+                if (!confirmar) {
+                    return;
+                }
+
+
+                const sucesso =
+                    await storage.excluirSemana(
+                        semana.id
+                    );
+
+
+                if (!sucesso) {
+
+                    window.alert(
+                        '❌ Não foi possível excluir a semana.'
+                    );
+
+                    return;
+                }
+
+
+                semanasHistorico =
+                    await storage.obterTodasSemanas();
+
+
+                atualizarResumoHistorico(
+                    semanasHistorico
+                );
+
+
+                renderizarHistorico(
+                    semanasHistorico
+                );
+
+
+                window.alert(
+                    '✅ Semana excluída com sucesso.'
+                );
+
+            };
+
+
+        window.alternarSemana =
+            function (indice) {
+
+                const detalhes =
+                    document.getElementById(
+                        `detalhesSemana${indice}`
+                    );
+
+
+                const seta =
+                    document.getElementById(
+                        `setaSemana${indice}`
+                    );
+
+
+                if (
+                    !detalhes ||
+                    !seta
+                ) {
+
+                    return;
+
+                }
+
+
+                const aberto =
+                    detalhes.style.display !== 'none';
+
+
+                if (aberto) {
+
+                    detalhes.style.display =
+                        'none';
+
+
+                    seta.textContent =
+                        '›';
+
+                } else {
+
+                    detalhes.style.display =
+                        'block';
+
+
+                    seta.textContent =
+                        '⌄';
+
+                }
+
+            };
+
+
+        const campoBusca =
+            document.getElementById(
+                'inputBuscaHistorico'
+            );
+
+
+        if (campoBusca) {
+
+            campoBusca.addEventListener(
+                'input',
+                () => {
+
+                    const termo =
+                        campoBusca.value
+                            .trim()
+                            .toLowerCase();
+
+
+                    if (!termo) {
+
+                        renderizarHistorico(
+                            semanasHistorico
+                        );
+
+                        return;
+
+                    }
+
+
+                    const semanasFiltradas =
+                        semanasHistorico.filter(
+                            semana =>
+                                obterTextoBusca(
+                                    semana
+                                ).includes(termo)
+                        );
+
+
+                    renderizarHistorico(
+                        semanasFiltradas
+                    );
+
+                }
+            );
+
+        }
+
+
+        const btnAbrirTodas =
+            document.getElementById(
+                'btnAbrirTodas'
+            );
+
+
+        const btnFecharTodas =
+            document.getElementById(
+                'btnFecharTodas'
+            );
+
+
+        if (btnAbrirTodas) {
+
+            btnAbrirTodas.addEventListener(
+                'click',
+                abrirTodasSemanas
+            );
+
+        }
+
+
+        if (btnFecharTodas) {
+
+            btnFecharTodas.addEventListener(
+                'click',
+                fecharTodasSemanas
+            );
+
+        }
+
+
+        carregarHistorico();
+
+    

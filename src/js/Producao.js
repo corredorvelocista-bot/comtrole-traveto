@@ -7,6 +7,19 @@ export class LancamentoDia {
         this.detalhes = this.extrairDetalhes(texto);
         this.valorTotal = this.pecas * this.valorUnitario;
         this.data = this.extrairDataOuHoje(texto);
+
+        // Data completa para separar produção diária de resumo semanal.
+        const dataEncontrada = String(texto).match(/(\d{2})\/(\d{2})/);
+        const agora = new Date();
+        const dia = dataEncontrada
+            ? dataEncontrada[1]
+            : String(agora.getDate()).padStart(2, '0');
+        const mes = dataEncontrada
+            ? dataEncontrada[2]
+            : String(agora.getMonth() + 1).padStart(2, '0');
+
+        this.dataISO =
+            `${agora.getFullYear()}-${mes}-${dia}`;
         
         // Identificação da semana deste lançamento
         this.semanaReferencia = null;

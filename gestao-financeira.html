@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel de Produção</title>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="./src/css/index.css">
+    <link rel="stylesheet" href="./src/css/menu.css">
+    <link rel="stylesheet" href="./src/css/global.css">
+    <link rel="stylesheet" href="./src/css/gestao-financeira.css">
+
+    <link rel="stylesheet" href="./src/css/barra-inferior-compartilhada.css">
+</head>
+
+<body class="gestao-financeira-page">
+
+    <section id="telaGestaoFinanceira" class="container">
+
+        <div class="app-header">
+
+            <button id="btnVoltarProducao" class="btn-hamburger" type="button"
+                aria-label="Voltar para produção">
+                ←
+            </button>
+
+            <div class="app-header-titles">
+                <h1>💰 Gestão Financeira</h1>
+                <p class="financeiro-subtitulo">
+                    Veja quanto você produz, quanto precisa pagar e como se planejar.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- MODELO FINANCEIRO APROVADO -->
+        <section class="financeiro-config card" aria-labelledby="tituloModoCalculo">
+            <div class="financeiro-bloco-titulo">
+                <span class="financeiro-icone-config" aria-hidden="true">⚙</span>
+                <div>
+                    <h2 id="tituloModoCalculo">Como calcular meu dinheiro disponível?</h2>
+                    <p>Escolha como o Anotei deve fazer as contas. Você pode mudar depois.</p>
+                </div>
+            </div>
+
+            <div class="financeiro-opcoes-calculo" role="radiogroup" aria-label="Modo de cálculo financeiro">
+                <label class="financeiro-opcao" id="opcaoCalculoBruto">
+                    <input type="radio" name="modoCalculoFinanceiro" value="bruto">
+                    <span class="financeiro-radio" aria-hidden="true"></span>
+                    <span class="financeiro-opcao-texto">
+                        <strong>Usar o valor total produzido</strong>
+                        <span>Não desconta despesas antes de fazer a previsão.</span>
+                    </span>
+                </label>
+                <label class="financeiro-opcao" id="opcaoCalculoLiquido">
+                    <input type="radio" name="modoCalculoFinanceiro" value="liquido">
+                    <span class="financeiro-radio" aria-hidden="true"></span>
+                    <span class="financeiro-opcao-texto">
+                        <strong>Descontar as despesas registradas</strong>
+                        <span>Usa o valor que sobra depois dos custos considerados na semana.</span>
+                    </span>
+                </label>
+            </div>
+            <p class="financeiro-aviso"><span aria-hidden="true">ⓘ</span> Essa escolha muda as previsões, mas não altera nem apaga os registros de produção ou despesas.</p>
+        </section>
+
+        <section class="financeiro-secao-titulo">
+            <div>
+                <h2>Seu planejamento</h2>
+                <p>Informações simples para ajudar você a decidir o próximo passo.</p>
+            </div>
+            <span class="financeiro-periodo">Baseado nos seus registros</span>
+        </section>
+
+        <div class="financeiro-grid financeiro-grid-planejamento">
+            <article class="card financeiro-indicador">
+                <div class="financeiro-card-topo"><span class="financeiro-card-icone roxo" aria-hidden="true">↗</span><span class="financeiro-card-etiqueta">PRODUÇÃO</span></div>
+                <h3>Quanto produzi?</h3>
+                <strong id="financeiroValorProduzido">R$ 0,00</strong>
+                <small id="financeiroDetalheProducao">Valor produzido na semana atual</small>
+            </article>
+            <article class="card financeiro-indicador">
+                <div class="financeiro-card-topo"><span class="financeiro-card-icone azul" aria-hidden="true">▤</span><span class="financeiro-card-etiqueta">DESPESAS</span></div>
+                <h3>Quanto preciso pagar?</h3>
+                <strong id="financeiroTotalDespesasMes">R$ 0,00</strong>
+                <small id="financeiroDetalheDespesas">Total das despesas registradas neste mês</small>
+            </article>
+            <article class="card financeiro-indicador financeiro-indicador-meta">
+                <div class="financeiro-card-topo"><span class="financeiro-card-icone verde" aria-hidden="true">◎</span><span class="financeiro-card-etiqueta">META SEMANAL</span></div>
+                <h3>Quanto preciso produzir por semana?</h3>
+                <strong id="financeiroMetaSemanalNecessaria">R$ 0,00</strong>
+                <small id="financeiroDetalheMeta">Meta estimada para cobrir as despesas em quatro semanas</small>
+            </article>
+            <article class="card financeiro-indicador">
+                <div class="financeiro-card-topo"><span class="financeiro-card-icone laranja" aria-hidden="true">◷</span><span class="financeiro-card-etiqueta">PREVISÃO</span></div>
+                <h3>Se eu continuar assim, em quantas semanas consigo pagar?</h3>
+                <strong id="financeiroSemanasNecessarias">—</strong>
+                <small id="financeiroDetalhePrevisao">Estimativa com base no valor semanal disponível</small>
+            </article>
+        </div>
+
+        <section class="card financeiro-orientacao" aria-live="polite">
+            <span class="financeiro-orientacao-icone" aria-hidden="true">✦</span>
+            <div>
+                <h3 id="financeiroOrientacaoTitulo">Sua orientação financeira</h3>
+                <p id="financeiroOrientacaoTexto">Os resultados serão calculados com base nos registros do Anotei.</p>
+            </div>
+        </section>
+
+        <section class="card financeiro-como-calcula">
+            <h3>Como essa previsão funciona?</h3>
+            <ul>
+                <li>As despesas são somadas por mês.</li>
+                <li>A produção é considerada por semana.</li>
+                <li>A previsão supõe que o ritmo semanal continue parecido.</li>
+                <li>Se não houver produção ou valor disponível, o Anotei avisará que não é possível estimar o prazo.</li>
+            </ul>
+        </section>
+
+        <!-- EVOLUÇÃO DAS ÚLTIMAS SEMANAS -->
+
+        <section
+            id="financeiroEvolucaoSemanas"
+            class="card financeiro-evolucao-card">
+
+            <div class="financeiro-secao-cabecalho">
+
+                <div>
+                    <h3>📈 Evolução das últimas semanas</h3>
+
+                    <p>
+                        Acompanhe sua produção nas semanas anteriores.
+                    </p>
+                </div>
+
+            </div>
+
+            <div
+                id="financeiroEvolucaoLista"
+                class="financeiro-evolucao-lista">
+
+                <div class="financeiro-evolucao-vazio">
+                    Nenhum histórico disponível ainda.
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- DESPESAS PESSOAIS -->
+
+        <section class="card financeiro-despesas-resumo"
+            aria-labelledby="tituloDespesasPessoais">
+
+            <div class="financeiro-secao-cabecalho">
+
+                <div>
+                    <h3 id="tituloDespesasPessoais">
+                        💸 Despesas
+                    </h3>
+
+                    <p>
+                        Acompanhe suas despesas e veja quanto já foi registrado.
+                    </p>
+                </div>
+
+                <button id="btnAbrirDespesasPessoais"
+                    class="config-button"
+                    type="button">
+                    Ver despesas →
+                </button>
+
+            </div>
+
+            <div class="financeiro-despesas-info">
+
+                <div>
+                    <span>Este mês</span>
+                    <strong id="financeiroDespesasMes">
+                        R$ 0,00
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Despesas registradas</span>
+                    <strong id="financeiroQuantidadeDespesas">
+                        0
+                    </strong>
+                </div>
+
+            </div>
+
+        </section>
+
+    </section>
+
+    
+
+
+    
+<script type="module" src="./src/js/auth-entry.js" data-auth-entry data-modules="app.js,index.js,barra-inferior-compartilhada.js"></script>
+</body>
+
+</html>
