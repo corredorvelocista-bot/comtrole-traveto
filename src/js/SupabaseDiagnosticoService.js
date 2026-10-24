@@ -13,6 +13,21 @@ function lerJSON(chave, padrao) {
     }
 }
 
+function obterProducaoRemota(remoto) {
+    if (remoto?.producao && typeof remoto.producao === 'object' && !Array.isArray(remoto.producao)) {
+        return {
+            formato: Number.isInteger(remoto.schemaVersion) ? 'canonico' : 'desconhecido-aninhado',
+            producao: remoto.producao
+        };
+    }
+    return { formato: remoto ? 'legado' : null, producao: remoto };
+}
+
+function contarLista(valor) {
+    // null significa que o campo não existe/não foi mapeado; 0 significa lista vazia.
+    return Array.isArray(valor) ? valor.length : null;
+}
+
 export async function diagnosticarDadosLocaisERemotos() {
     if (!supabaseConfigurado || !supabase) {
         throw new Error('Supabase não está configurado.');
@@ -22,7 +37,6 @@ export async function diagnosticarDadosLocaisERemotos() {
         data: { user },
         error: erroUsuario
     } = await supabase.auth.getUser();
-
     if (erroUsuario) throw erroUsuario;
     if (!user) throw new Error('É necessário entrar na conta.');
 
@@ -31,21 +45,23 @@ export async function diagnosticarDadosLocaisERemotos() {
     const perfil = new PerfilController();
     const despesas = new DespesasPessoaisService();
 
-    const [
-        semanasLocais,
-        respostaRemota
-    ] = await Promise.all([
+    const [semanasLocais, respostaRemota] = await Promise.all([
         storage.obterTodasSemanas(),
         supabase
             .from('dados_usuario')
-            .select('dados, atualizado_em')
+            .select('usuario_id, dados, atualizado_em')
             .eq('usuario_id', user.id)
             .maybeSingle()
     ]);
 
     if (respostaRemota.error) throw respostaRemota.error;
+    const registro = respostaRemota.data ?? null;
+    if (registro?.usuario_id && registro.usuario_id !== user.id) {
+        throw new Error('O registro remoto não pertence à conta autenticada.');
+    }
 
-    const remoto = respostaRemota.data?.dados ?? null;
+    const remoto = registro?.dados ?? null;
+    const { formato, producao } = obterProducaoRemota(remoto);
     const lancamentosLocais = lerJSON('temp_lancamentos', []);
     const despesasLocais = despesas.obterTodas();
 
@@ -55,29 +71,25 @@ export async function diagnosticarDadosLocaisERemotos() {
             fotoDefinida: Boolean(perfil.obterFoto())
         },
         configuracoes: Object.keys(configuracao.obterTodas()),
-        semanas: Array.isArray(semanasLocais) ? semanasLocais.length : 0,
-        lancamentosAbertos: Array.isArray(lancamentosLocais)
-            ? lancamentosLocais.length
-            : 0,
-        despesasPessoais: despesasLocais.length
+        semanas: Array.isArray(semanasLocais) ? semanasLocais.length : null,
+        lancamentosAbertos: Array.isArray(lancamentosLocais) ? lancamentosLocais.length : null,
+        despesasPessoais: Array.isArray(despesasLocais) ? despesasLocais.length : null
     };
 
     const resumoRemoto = remoto ? {
+        formato,
+        schemaVersion: Number.isInteger(remoto.schemaVersion) ? remoto.schemaVersion : null,
         categorias: Object.keys(remoto),
         perfil: remoto.perfil && typeof remoto.perfil === 'object'
             ? Object.keys(remoto.perfil)
             : [],
-        configuracoes: remoto.configuracoes &&
-            typeof remoto.configuracoes === 'object'
+        configuracoes: remoto.configuracoes && typeof remoto.configuracoes === 'object'
             ? Object.keys(remoto.configuracoes)
             : [],
-        semanasFechadas: Array.isArray(remoto.semanasFechadas)
-            ? remoto.semanasFechadas.length
-            : 0,
-        lancamentosAbertos: Array.isArray(remoto.lancamentosAbertos)
-            ? remoto.lancamentosAbertos.length
-            : 0,
-        atualizadoEm: respostaRemota.data.atualizado_em
+        semanasFechadas: contarLista(producao?.semanasFechadas),
+        lancamentosAbertos: contarLista(producao?.lancamentosAbertos),
+        despesasPessoais: contarLista(remoto.despesasPessoais),
+        atualizadoEm: registro.atualizado_em
     } : null;
 
     return {
@@ -89,7 +101,9 @@ export async function diagnosticarDadosLocaisERemotos() {
         observacoes: [
             'Nenhum dado foi alterado.',
             'A quantidade de registros não garante que o conteúdo seja igual.',
-            'As despesas pessoais locais ainda precisam de um mapeamento remoto.'
+            'Registros legados são reconhecidos, mas não são migrados automaticamente.',
+            'Campo null significa que a lista não existe nesse formato; não deve ser interpretado como lista vazia.',
+            'A comparação por identificadores e conteúdo ainda é necessária antes de qualquer gravação.'
         ]
     };
 }
