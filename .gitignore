@@ -9,3 +9,13 @@ backup-*/
 *.bak
 *.bak-*
 *.backup-*
+
+# Segredos e variáveis de ambiente
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Dependências e arquivos de build
+node_modules/
+dist/
