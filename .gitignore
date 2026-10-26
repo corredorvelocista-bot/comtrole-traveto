@@ -1,0 +1,43 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+backup-*/
+
+# Backups antigos: manter no computador, fora do historico Git
+*.bak
+*.bak-*
+*.backup-*
+
+# Segredos e variáveis de ambiente
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Dependências e arquivos de build
+node_modules/
+dist/
+
+# Credenciais e variáveis de ambiente
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Chaves e credenciais locais
+*.pem
+*.key
+service-account*.json
+credentials*.json
+
+# Backups locais
+backup-*/
+*.backup
+*.bak
+*.log
+
+# Dependências e compilação
+node_modules/
+dist/

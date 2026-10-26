@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anotei — Despesas</title>
+  <link rel="stylesheet" href="./src/css/index.css">
+  <link rel="stylesheet" href="./src/css/menu.css">
+  <link rel="stylesheet" href="./src/css/global.css">
+  <link rel="stylesheet" href="./src/css/barra-inferior-compartilhada.css">
+  <link rel="stylesheet" href="./src/css/despesas-prototipo.css">
+</head>
+<body>
+
+
+<main class="page">
+  <header class="app-header despesas-app-header">
+  <a class="btn-hamburger despesas-voltar"
+     href="./gestao-financeira.html"
+     aria-label="Voltar para Gestão Financeira">←</a>
+  <div class="app-header-titles">
+    <h1>🧾 Despesas</h1>
+    <p class="despesas-subtitulo">Cadastre suas contas, acompanhe o que já pagou e veja o que ainda falta.</p>
+  </div>
+  <span class="topbar-label" hidden>Despesas</span>
+</header>
+  <section class="page-heading despesas-page-heading">
+  <button class="primary-button" id="new-expense-btn"><span>＋</span> Nova despesa</button>
+</section>
+
+  <section class="summary-grid" aria-label="Resumo das despesas">
+    <article class="summary-card">
+      <span class="summary-icon purple">▤</span>
+      <p>Total do mês</p><strong id="total-month">R$ 0,00</strong>
+      <small>Despesas cadastradas para este mês</small>
+    </article>
+    <article class="summary-card">
+      <span class="summary-icon green">✓</span>
+      <p>Já paguei</p><strong id="total-paid">R$ 0,00</strong>
+      <small id="paid-count">0 despesas pagas</small>
+    </article>
+    <article class="summary-card">
+      <span class="summary-icon orange">◷</span>
+      <p>Ainda falta pagar</p><strong id="total-pending">R$ 0,00</strong>
+      <small id="pending-count">0 despesas pendentes</small>
+    </article>
+  </section>
+
+  <section class="list-panel">
+    <div class="list-heading">
+      <div><h2>Despesas cadastradas</h2><p>Você pode editar, marcar como paga ou excluir uma despesa.</p></div>
+      <label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Buscar despesa..." aria-label="Buscar despesa"></label>
+    </div>
+    <div class="filters" role="group" aria-label="Filtrar despesas">
+      <button class="filter active" data-filter="todas">Todas <span id="count-all">0</span></button>
+      <button class="filter" data-filter="pendente">Pendentes <span id="count-pending">0</span></button>
+      <button class="filter" data-filter="paga">Pagas <span id="count-paid">0</span></button>
+    </div>
+    <div id="expense-list" class="expense-list"></div>
+    <div id="empty-state" class="empty-state" hidden>
+      <div class="empty-icon">▤</div><h3>Nenhuma despesa encontrada</h3><p>Experimente mudar a busca ou cadastre uma nova despesa.</p>
+      <button class="secondary-button" id="empty-new-btn">Cadastrar despesa</button>
+    </div>
+  </section>
+
+  <section class="tip-card">
+    <div class="tip-icon">✦</div><div><h2>Dica rápida</h2><p>Antes de excluir, confira se a despesa está correta. A exclusão remove o registro desta demonstração e atualiza os totais.</p></div>
+  </section>
+  <footer>Protótipo de demonstração · Os dados ficam salvos somente neste navegador.</footer>
+</main>
+
+<div class="modal-backdrop" id="expense-modal" hidden>
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-heading"><div><p class="eyebrow">SEUS REGISTROS</p><h2 id="modal-title">Nova despesa</h2></div><button class="icon-button" id="close-modal" aria-label="Fechar">×</button></div>
+    <form id="expense-form">
+      <input type="hidden" id="expense-id">
+      <label class="field">Nome da despesa<input id="description" required maxlength="80" placeholder="Ex.: Conta de energia"></label>
+      <div class="form-row">
+        <label class="field">Valor (R$)<input id="value" type="number" min="0.01" step="0.01" required placeholder="0,00"></label>
+        <label class="field">Vencimento<input id="due-date" type="date" required></label>
+      </div>
+      <div class="form-row">
+        <label class="field">Categoria<select id="category"><option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Saúde</option><option>Produção</option><option>Serviços</option><option>Outros</option></select></label>
+        <label class="field">Frequência<select id="frequency"><option value="mensal">Todo mês</option><option value="unica">Uma vez</option></select></label>
+      </div>
+      <label class="field">Situação<select id="status"><option value="pendente">Ainda não paguei</option><option value="paga">Já paguei</option></select></label>
+      <div class="modal-actions"><button type="button" class="secondary-button" id="cancel-modal">Cancelar</button><button class="primary-button" type="submit">Salvar despesa</button></div>
+    </form>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="delete-modal" hidden>
+  <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-title">
+    <div class="delete-symbol">!</div><h2 id="delete-title">Excluir esta despesa?</h2>
+    <p id="delete-message">O registro será removido desta demonstração. Essa ação não pode ser desfeita.</p>
+    <div class="modal-actions"><button class="secondary-button" id="keep-expense">Cancelar</button><button class="danger-button" id="confirm-delete">Sim, excluir</button></div>
+  </section>
+</div>
+
+
+
+
+<script type="module" src="./src/js/auth-entry.js" data-auth-entry data-modules="app.js,index.js,despesas-prototipo.js,barra-inferior-compartilhada.js"></script>
+</body>
+</html>

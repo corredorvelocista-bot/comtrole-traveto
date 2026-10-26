@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatórios | Anotei</title><link rel="stylesheet" href="./src/css/global.css">
+<link rel="stylesheet" href="./src/css/relatorios.css">
+
+</head>
+<body>
+<div class="shell">
+<header class="header"><a class="back" href="./index.html" id="back" aria-label="Voltar ao menu principal">←</a><div><p class="eyebrow">ANOTEI · ACOMPANHAMENTO</p><h1>Relatórios</h1><p class="muted">Entenda sua produção e seus resultados em um só lugar.</p></div><div class="brand" aria-hidden="true">▥</div></header>
+<main>
+<section class="period panel"><div><p class="eyebrow">PERÍODO DO RELATÓRIO</p><h2 id="periodTitle">Resumo mensal</h2><p class="muted">Escolha o mês para atualizar os indicadores e gráficos.</p></div><div class="controls"><label>Mês<select id="month"></select></label><label>Ano<select id="year"></select></label><button id="current" class="secondary">Mês atual</button></div></section>
+<section class="metrics">
+<article class="metric"><div class="metric-title"><span class="ico purple">▦</span>Produção do mês</div><strong id="pieces">1.240 <small>peças</small></strong><p><b id="piecesChange" class="change up">↑ 8,4%</b> <span class="muted">vs. mês anterior</span></p></article>
+<article class="metric"><div class="metric-title"><span class="ico green">R$</span>Valor bruto produzido</div><strong id="gross">R$ 2.480,00</strong><p><b id="grossChange" class="change up">↑ 12,7%</b> <span class="muted">vs. mês anterior</span></p></article>
+<article class="metric"><div class="metric-title"><span class="ico orange">↗</span>Despesas registradas</div><strong id="expenses">R$ 680,00</strong><p><b id="expensesChange" class="change down">↓ 3,1%</b> <span class="muted">vs. mês anterior</span></p></article>
+<article class="metric highlight"><div class="metric-title"><span class="ico purple">✓</span>Resultado estimado</div><strong id="result">R$ 1.800,00</strong><p><b id="resultChange" class="change up">↑ 20,2%</b> <span class="muted">vs. mês anterior</span></p></article>
+</section>
+<div class="notice"><span>i</span><p><b>Importante:</b> valor produzido não significa necessariamente dinheiro recebido. O resultado é uma estimativa calculada subtraindo as despesas registradas do valor bruto produzido. Ele não altera os cálculos da Gestão Financeira.</p></div>
+<section class="charts">
+<article class="panel"><div class="panel-head"><div><p class="eyebrow">PRODUÇÃO</p><h2>Produção por semana</h2><p class="muted">Quantidade de peças em cada semana do mês.</p></div><span class="badge" id="average">Média: 248 peças/semana</span></div><div id="productionChart" class="bars" aria-label="Produção por semana"></div><div class="legend"><span>● Peças produzidas</span><span id="best">Maior produção: Semana 4</span></div></article>
+<article class="panel"><p class="eyebrow">FINANCEIRO</p><h2>Produção e despesas</h2><p class="muted">Comparação dos valores no período.</p><div id="financeChart" class="finance-chart"></div><div class="finance-legend"><p><i class="dot purple-dot"></i> Valor bruto <b id="grossLegend">R$ 2.480,00</b></p><p><i class="dot orange-dot"></i> Despesas <b id="expensesLegend">R$ 680,00</b></p></div></article>
+</section>
+<section class="panel compare"><div class="panel-head"><div><p class="eyebrow">COMPARAÇÃO MENSAL</p><h2 id="compareTitle">Outubro × Setembro</h2><p class="muted">Veja o que mudou em relação ao mês anterior.</p></div><span id="trend" class="badge good">Resultado em alta</span></div><div class="table-wrap"><table><thead><tr><th>Indicador</th><th id="colCurrent">Outubro</th><th id="colPrevious">Setembro</th><th>Variação</th></tr></thead><tbody>
+<tr><td>Peças produzidas</td><td id="tp1">1.240</td><td id="tp2">1.144</td><td id="tp3" class="good-text">+8,4%</td></tr>
+<tr><td>Valor bruto produzido</td><td id="tg1">R$ 2.480,00</td><td id="tg2">R$ 2.200,00</td><td id="tg3" class="good-text">+12,7%</td></tr>
+<tr><td>Despesas</td><td id="te1">R$ 680,00</td><td id="te2">R$ 702,00</td><td id="te3" class="good-text">−3,1%</td></tr>
+<tr><td>Resultado estimado</td><td id="tr1">R$ 1.800,00</td><td id="tr2">R$ 1.498,00</td><td id="tr3" class="good-text">+20,2%</td></tr>
+</tbody></table></div></section>
+<section class="bottom"><article class="panel insight"><span class="spark">✦</span><div><p class="eyebrow">RESUMO DO PERÍODO</p><h2>O que os números mostram</h2><p id="insight">A produção aumentou em relação ao mês anterior. Acompanhe as semanas para entender o que contribuiu para esse resultado.</p></div></article>
+<article class="panel definitions"><h2>O que significa cada valor?</h2><details><summary>Valor bruto produzido</summary><p>Valor calculado a partir da quantidade produzida e do valor unitário configurado.</p></details><details><summary>Despesas registradas</summary><p>Soma das despesas registradas cuja data pertence ao período selecionado.</p></details><details><summary>Resultado estimado</summary><p>Estimativa após descontar as despesas consideradas. Não representa necessariamente dinheiro disponível ou já recebido.</p></details></article></section>
+<p class="disclaimer" id="dataNotice">Os valores são lidos dos registros existentes no Anotei. Nenhum dado é criado ou alterado por esta tela.</p>
+</main><footer><b>ANOTEI</b><span>Relatórios mensais</span></footer>
+</div><script type="module" src="./src/js/auth-entry.js" data-auth-entry data-modules="relatorios.js"></script>
+</body></html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Histórico - Controle de Travete</title>
+    
+    <meta name="theme-color" content="#121212">
+    <link rel="stylesheet" href="./src/css/historico.css">
+    <link rel="stylesheet" href="./src/css/global.css">
+
+    <link rel="stylesheet" href="./src/css/barra-inferior-compartilhada.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- CABEÇALHO -->
+
+        <div class="app-header">
+
+            <button class="btn-voltar" type="button" onclick="window.location.href='index.html'"
+                aria-label="Voltar para a tela principal">
+
+                ←
+
+            </button>
+
+            <div class="titulo">
+
+                <h1>📚 Histórico</h1>
+
+                <p>
+                    Histórico das semanas de produção
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUSCA + RESUMO + CONTROLES -->
+
+        <div class="card">
+
+            <input type="search" id="inputBuscaHistorico" class="busca"
+                placeholder="🔍 Pesquisar por data, roupa, quantidade..." autocomplete="off" enterkeyhint="search">
+
+
+            <!-- RESUMO -->
+
+            <div id="resumoHistorico" class="resumo-historico">
+
+                <div class="resumo-item">
+
+                    <span class="resumo-icone">
+                        📅
+                    </span>
+
+                    <span id="totalSemanas" class="resumo-valor">
+                        0
+                    </span>
+
+                    <span class="resumo-label">
+                        Semanas
+                    </span>
+
+                </div>
+
+
+                <div class="resumo-item">
+
+                    <span class="resumo-icone">
+                        🧵
+                    </span>
+
+                    <span id="totalPecas" class="resumo-valor">
+                        0
+                    </span>
+
+                    <span class="resumo-label">
+                        Peças
+                    </span>
+
+                </div>
+
+
+                <div class="resumo-item">
+
+                    <span class="resumo-icone">
+                        💰
+                    </span>
+
+                    <span id="totalValor" class="resumo-valor">
+                        R$ 0,00
+                    </span>
+
+                    <span class="resumo-label">
+                        Total
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONTROLES -->
+
+            <div class="controles-historico">
+
+                <button id="btnAbrirTodas" class="btn-controle" type="button">
+
+                    🔽 Abrir todas
+
+                </button>
+
+
+                <button id="btnFecharTodas" class="btn-controle" type="button">
+
+                    🔼 Fechar todas
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- LISTA DO HISTÓRICO -->
+
+        <div class="card">
+
+            <div id="listaHistoricoSeparado">
+
+                <div class="vazio">
+
+                    📚 O histórico será exibido aqui.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    
+
+
+    
+<script type="module" src="./src/js/auth-entry.js" data-auth-entry data-modules="historico.js,barra-inferior-compartilhada.js"></script>
+</body>
+
+</html>

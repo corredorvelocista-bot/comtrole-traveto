@@ -1,0 +1,238 @@
+.perfil-page {
+    min-height: 100vh;
+    background: var(--background-color);
+    color: var(--text-color);
+    padding: 20px;
+}
+
+.perfil-header {
+    display: grid;
+    grid-template-columns: 42px 1fr 42px;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+#btnVoltarPerfil {
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+#btnVoltarPerfil:hover {
+    background: var(--secondary-bg);
+}
+
+#btnVoltarPerfil:active {
+    transform: scale(0.92);
+}
+
+.perfil-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.perfil-card {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    text-align: center;
+}
+
+.perfil-foto {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: var(--background-color);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 50%;
+
+    overflow: hidden;
+    font-size: 2.5rem;
+    cursor: grab;
+    touch-action: none;
+}
+
+.perfil-foto:active{
+    cursor: grabbing;
+}
+.perfil-card h2 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.perfil-card p {
+    margin: 8px 0 0;
+    color: var(--muted-color);
+}
+
+
+/* =====================================================
+   ANOTEI — CAMADA VISUAL DO NOVO DESIGN
+   Preserva os IDs e os elementos usados por perfil.js.
+===================================================== */
+html[data-theme="claro"] body {
+    --anotei-page-bg: #f5f5fa;
+    --anotei-surface: #ffffff;
+    --anotei-ink: #211d35;
+    --anotei-muted: #77748a;
+    --anotei-accent: #6c45d9;
+    --anotei-accent-hover: #5030b5;
+    --anotei-line: #ece9f4;
+    --anotei-soft: #f0ebff;
+    --anotei-shadow: 0 12px 34px #2a1c550d;
+    background: var(--anotei-page-bg);
+    color: var(--anotei-ink);
+}
+
+html:not([data-theme="claro"]) body {
+    --anotei-page-bg: var(--bg-color);
+    --anotei-surface: var(--card-bg);
+    --anotei-ink: var(--text-color);
+    --anotei-muted: var(--muted-color);
+    --anotei-accent: var(--purple-color);
+    --anotei-accent-hover: var(--accent-hover);
+    --anotei-line: var(--border-color);
+    --anotei-soft: var(--secondary-bg);
+    --anotei-shadow: 0 12px 34px var(--shadow-color);
+    background: var(--anotei-page-bg);
+    color: var(--anotei-ink);
+}
+
+.perfil-page {
+    --background-color: var(--anotei-page-bg);
+    min-height: 100vh;
+    padding: 26px 28px 40px;
+    background: var(--anotei-page-bg);
+    color: var(--anotei-ink);
+}
+
+.perfil-header {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto 28px;
+    grid-template-columns: 44px 1fr 44px;
+    gap: 14px;
+}
+
+#btnVoltarPerfil {
+    border: 1px solid var(--anotei-line);
+    background: var(--anotei-surface);
+    color: var(--anotei-ink);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px #26134b05;
+}
+#btnVoltarPerfil:hover { background: var(--anotei-soft); }
+
+.perfil-header h1 {
+    color: var(--anotei-ink);
+    font-size: clamp(1.7rem, 4vw, 2.35rem);
+    font-weight: 850;
+    letter-spacing: -.055em;
+}
+
+.perfil-card {
+    max-width: 620px;
+    padding: 30px;
+    border: 1px solid var(--anotei-line);
+    border-radius: 26px;
+    background: var(--anotei-surface);
+    box-shadow: var(--anotei-shadow);
+    text-align: left;
+}
+
+.perfil-foto {
+    width: 104px;
+    height: 104px;
+    margin: 0 auto 18px;
+    border: 4px solid var(--anotei-soft);
+    background-color: var(--anotei-soft);
+    color: var(--anotei-accent);
+    box-shadow: 0 8px 22px #2a1c5512;
+}
+
+.perfil-card h2 {
+    color: var(--anotei-ink);
+    text-align: center;
+    font-size: 1.4rem;
+    letter-spacing: -.035em;
+}
+.perfil-card p {
+    margin: 8px 0 24px;
+    color: var(--anotei-muted);
+    text-align: center;
+}
+
+.perfil-card > label:not(.perfil-foto) {
+    display: block;
+    margin: 18px 0 7px;
+    color: var(--anotei-ink);
+    font-size: .9rem;
+    font-weight: 750;
+}
+
+.perfil-card input[type="text"] {
+    width: 100%;
+    min-height: 48px;
+    padding: 13px 14px;
+    border: 1px solid var(--anotei-line);
+    border-radius: 13px;
+    background: var(--anotei-surface);
+    color: var(--anotei-ink);
+    font: inherit;
+}
+.perfil-card input[type="text"]:focus { border-color: var(--anotei-accent); }
+
+#btnSalvarNome {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 8px;
+    padding: 13px 18px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--anotei-accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .16s ease, transform .16s ease;
+}
+#btnSalvarNome:hover { background: var(--anotei-accent-hover); }
+#btnSalvarNome:active { transform: scale(.99); }
+
+#btnVoltarPerfil:focus-visible,
+#btnSalvarNome:focus-visible,
+.perfil-card input:focus-visible {
+    outline: 3px solid #b9a7ff;
+    outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+    .perfil-page { padding: 18px 16px 30px; }
+    .perfil-header { margin-bottom: 22px; }
+    .perfil-card { padding: 24px 18px; border-radius: 22px; }
+}
