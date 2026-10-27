@@ -41,3 +41,30 @@ backup-*/
 # Dependências e compilação
 node_modules/
 dist/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+
+# Backups e temporários
+backup-*/
+backups/
+*.bak
+*.bak-*
+*.backup
+*.backup-*
+*.log
+semana.id
+gemini-code-*.sh
+
+# Dependências e compilação
+node_modules/
+dist/
